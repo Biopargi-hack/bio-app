@@ -107,6 +107,11 @@ Records, tags and photos the judge makes during the demo are live, stored in Ind
 
 There is no server yet. Everything stays on the device until a backend is connected. The header shows how many records are queued. Export JSONL gives the handover file.
 
+The JSONL export keeps inspection records unchanged and adds a separate
+`type: "attachment"` line for each photo, video or voice note. Each attachment
+line contains its record sequence, storage key and a `data_url` holding the
+original file. Export fails visibly if a referenced attachment is missing.
+
 ## Deployment details
 
 Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `nfc.arle.top`, with `taptoprove.ee` ready for the DNS switch.

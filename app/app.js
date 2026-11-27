@@ -85,6 +85,8 @@ const WORDS = {
     fault_nophoto: 'photo not possible',
     fault_save: 'Save fault',
     save_failed: 'Save failed:',
+    media_pending: 'Wait for the selected media to finish processing.',
+    media_missing: 'An attachment is missing from device storage:',
     quick_reason: 'Declared clean at the tagged place',
     quick_fault_reason: 'Fault chosen from the NFC quick list',
     quick_done: 'Quick record',
@@ -189,6 +191,8 @@ const WORDS = {
     fault_nophoto: 'foto ei ole võimalik',
     fault_save: 'Salvesta viga',
     save_failed: 'Salvestamine ebaõnnestus:',
+    media_pending: 'Oota, kuni valitud meedia töötlemine lõpeb.',
+    media_missing: 'Manus puudub seadme salvestusest:',
     quick_reason: 'Märgistatud kohas kinnitatud puhas',
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
@@ -239,6 +243,10 @@ let currentSource = 'typed';
 let dbPromise = null;
 let saving = false;
 let audioToken = 0;
+let photoToken = 0;
+let photoPending = false;
+let photoFailed = false;
+let audioStarting = false;
 
 let gradeMode = false;
 function applyLanguage() {
@@ -340,13 +348,12 @@ async function allRecords() {
   });
 }
 
-async function putMedia(key, blob) {
-  const db = await openDb();
+async function mediaDataUrl(blob) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('media', 'readwrite');
-    tx.objectStore('media').put({ key, blob });
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -459,10 +466,10 @@ function legacyHash(value) {
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
 }
 
-async function appendRecord(payload) {
+async function appendRecord(payload, mediaFile, audioBlob) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('records', 'readwrite');
+    const tx = db.transaction(['records', 'media'], 'readwrite');
     const store = tx.objectStore('records');
     let record = null;
     const request = store.getAll();
@@ -481,6 +488,9 @@ async function appendRecord(payload) {
       // Keep hashing synchronous so the IndexedDB transaction cannot close before put.
       record = { ...body, hash: sha256Sync(body) };
       store.put(record);
+      const media = tx.objectStore('media');
+      if (mediaFile) media.put({ key: `${seq}:media`, blob: mediaFile });
+      if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
     };
     tx.oncomplete = () => resolve(record);
     tx.onerror = () => reject(tx.error);
@@ -646,25 +656,28 @@ function mediaPayload() {
   };
 }
 
-async function persistMedia(record) {
-  if (photoState?.file) await putMedia(`${record.seq}:media`, photoState.file);
-  if (audioState?.blob) await putMedia(`${record.seq}:audio`, audioState.blob);
-}
-
 function audioBusy(noteId) {
-  if (!audioRecorder) return false;
+  if (!audioRecorder && !audioStarting && !photoPending && !photoFailed) return false;
+  if (photoPending || photoFailed) {
+    note(noteId, t('media_pending'), true);
+    return true;
+  }
   note(noteId, t('audio_stop_first'), true);
   return true;
 }
 
 async function guardedWrite(noteId, work) {
   if (saving) return;
+  $('photo').disabled = true;
+  $('audioBtn').disabled = true;
   saving = true;
   try {
     await work();
   } catch (error) {
     note(noteId, `${t('save_failed')} ${error.message}`, true);
   } finally {
+    $('photo').disabled = false;
+    $('audioBtn').disabled = false;
     saving = false;
   }
 }
@@ -702,9 +715,7 @@ function saveRecord() {
       language: speechLang,
       default_assessment: false,
       ...mediaPayload()
-    });
-
-    await persistMedia(record);
+    }, photoState?.file, audioState?.blob);
     await finishRecord(record, 'saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
   });
 }
@@ -754,7 +765,7 @@ function quickRecord(kind, grade = 0) {
     const tier = isGrade ? 'C' : noEvidence ? 'C' : tierFor();
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
     const faultLabel = $('faultType').selectedOptions[0]?.textContent.trim() || WORDS[lang].fault_foam;
-    const transcript = isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : faultLabel;
+    const transcript = $('transcript').value.trim() || (isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : faultLabel);
     const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : isClean ? 'clean' : 'not clean';
     const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason;
     const previous = reusedPhoto(photoState);
@@ -763,14 +774,14 @@ function quickRecord(kind, grade = 0) {
       tag_sig: currentTag,
       source: currentSource,
       checkpoint: $('checkpoint').value,
-      method: isGrade ? 'Rated' : isClean ? 'Declared' : 'Visual',
+      method: isGrade ? 'Rated' : noEvidence ? (isClean ? 'Declared' : 'Visual') : $('method').value,
       verdict,
       grade: isGrade ? grade : null,
       transcript,
       tier,
       reason,
       supervisor: '',
-      instrument: '',
+      instrument: $('instrument').value.trim(),
       photo_hash: photoState?.hash || '',
       photo_thumb: photoState?.thumb || '',
       photo_usable: photoState?.usable || false,
@@ -779,8 +790,7 @@ function quickRecord(kind, grade = 0) {
       default_assessment: defaultAssessment,
       quick: true,
       ...mediaPayload()
-    });
-    await persistMedia(record);
+    }, photoState?.file, audioState?.blob);
     const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
   });
@@ -927,13 +937,15 @@ function toggleVoice() {
 
 async function toggleAudio() {
   if (audioRecorder) {
-    audioRecorder.stop();
+    if (audioRecorder.state !== 'inactive') audioRecorder.stop();
     return;
   }
+  if (audioStarting) return;
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
     note('audioNote', t('audio_unsupported'), true);
     return;
   }
+  audioStarting = true;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const langCode = speechLang;
@@ -968,25 +980,30 @@ async function toggleAudio() {
       audioRecognition = null;
       const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
       stream.getTracks().forEach((track) => track.stop());
-      if (audioRecorder === recorder) {
-        audioRecorder = null;
-        $('audioBtn').classList.remove('recording');
-        $('audioBtn').textContent = t('record_audio');
+      try {
+        if (!blob.size) {
+          if (token === audioToken) note('audioNote', t('audio_unsupported'), true);
+          return;
+        }
+        const hash = await hashBlob(blob);
+        if (token !== audioToken) return;
+        audioState = {
+          blob,
+          hash,
+          mime: blob.type,
+          size: blob.size,
+          duration: Math.round((Date.now() - started) / 1000)
+        };
+        note('audioNote', `${t('audio_saved')} ${audioState.duration}s`);
+      } catch (error) {
+        note('audioNote', `${t('save_failed')} ${error.message}`, true);
+      } finally {
+        if (audioRecorder === recorder) {
+          audioRecorder = null;
+          $('audioBtn').classList.remove('recording');
+          $('audioBtn').textContent = t('record_audio');
+        }
       }
-      if (!blob.size) {
-        if (token === audioToken) note('audioNote', t('audio_unsupported'), true);
-        return;
-      }
-      const hash = await hashBlob(blob);
-      if (token !== audioToken) return;
-      audioState = {
-        blob,
-        hash,
-        mime: blob.type,
-        size: blob.size,
-        duration: Math.round((Date.now() - started) / 1000)
-      };
-      note('audioNote', `${t('audio_saved')} ${audioState.duration}s`);
     };
     recorder.start();
     $('audioBtn').classList.add('recording');
@@ -1001,6 +1018,8 @@ async function toggleAudio() {
     audioRecorder = null;
     audioToken += 1;
     note('audioNote', `${t('audio_denied')}: ${error.message}`, true);
+  } finally {
+    audioStarting = false;
   }
 }
 
@@ -1069,11 +1088,25 @@ function bind() {
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('audioBtn').addEventListener('click', toggleAudio);
   $('photo').addEventListener('change', async (event) => {
+    const token = ++photoToken;
     const file = event.target.files?.[0];
-    if (!file) return;
-    photoState = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
-    note('photoNote', photoState.reason, !photoState.usable);
-    updateTier();
+    photoState = null;
+    photoPending = Boolean(file);
+    photoFailed = false;
+    if (!file) { updateTier(); return; }
+    try {
+      const result = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
+      if (token !== photoToken) return;
+      photoState = result;
+      note('photoNote', result.reason, !result.usable);
+    } catch (error) {
+      if (token === photoToken) {
+        photoFailed = true;
+        note('photoNote', `${t('save_failed')} ${error.message}`, true);
+      }
+    } finally {
+      if (token === photoToken) { photoPending = false; updateTier(); }
+    }
   });
   for (const id of ['instrument', 'method', 'verdict']) $(id).addEventListener('change', updateTier);
   $('saveBtn').addEventListener('click', saveRecord);
