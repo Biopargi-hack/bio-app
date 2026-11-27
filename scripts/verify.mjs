@@ -74,7 +74,7 @@ if (appSource.includes("kind === 'defaults'") && appSource.includes('class="defa
 
 // The showcase page must carry the demo NFC link and its tag id.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
-if (showcase.includes("TAP-DEMO-01") && showcase.includes("nfc.arle.top/?asset=")) {
+if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=")) {
   ok("showcase carries the NFC demo link");
 } else {
   fail("app/showcase.html: NFC demo link or tag id is missing");

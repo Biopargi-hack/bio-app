@@ -650,7 +650,7 @@ async function writeTag() {
     note('nfcNote', WORDS[lang].nfc_write_no_asset, true);
     return;
   }
-  const url = `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=MANUAL&via=nfc`;
+  const url = `https://taptoprove.ee/?asset=${encodeURIComponent(name)}&tag=MANUAL&via=nfc`;
   try {
     await ndefReader.write({ records: [
       { recordType: 'url', data: url },
@@ -696,7 +696,7 @@ function saveTags() {
 }
 
 function tagUrl(tag) {
-  return `https://nfc.arle.top/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}&via=nfc`;
+  return `https://taptoprove.ee/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}&via=nfc`;
 }
 
 function renderTagSlots() {
