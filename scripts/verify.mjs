@@ -118,7 +118,7 @@ for (const name of htmlFiles) {
 
   for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/gi)) {
     const reference = match[1];
-    if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
+    if (/^(?:[a-z]+:|\/\/|\/|#)/i.test(reference)) continue;
 
     const path = reference.split(/[?#]/)[0];
     if (!path) continue;

@@ -884,9 +884,6 @@ async function start() {
   bind();
   updateTier();
   updateNetwork();
-  await refreshRecords();
-  await loadCip();
-  await registerServiceWorker();
   const params = new URLSearchParams(location.search);
   const asset = params.get('asset');
   const tag = params.get('tag');
@@ -897,6 +894,9 @@ async function start() {
     $('cleanBtn').focus({ preventScroll: true });
   }
   initNfc();
+  await refreshRecords();
+  await loadCip();
+  await registerServiceWorker();
 }
 
 start().catch((error) => note('saveNote', `Startup failed: ${error.message}`, true));
