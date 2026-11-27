@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-white-v1';
+const CACHE = 'tap-to-prove-white-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -57,10 +57,10 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(async () => {
-        const cached = await caches.match(event.request);
+        const cached = await caches.match(event.request, { ignoreSearch: true });
         if (cached) return cached;
-        if (event.request.mode === 'navigate') {
-          const shell = await caches.match('./index.html');
+        if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+          const shell = await caches.match('./index.html') || await caches.match('./');
           if (shell) return shell;
         }
         return new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
