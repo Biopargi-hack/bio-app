@@ -325,7 +325,7 @@ if (existsSync(swPath)) {
       digest.update(asset);
       const path = [resolve(appDir, asset), resolve(appDir, `${asset}.html`)]
         .find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
-      if (path) digest.update(readFileSync(path));
+      if (path) digest.update(readFileSync(path, "utf8").replace(/\r\n/g, "\n"));
     }
     const expected = `tap-to-prove-${digest.digest("hex").slice(0, 12)}`;
     const declared = sw.match(/const CACHE = ['"]([^'"]+)['"]/)?.[1];
