@@ -1,6 +1,7 @@
-# Tõend
+# Tap to Prove
 
 Prototype for A. Le Coq challenge 3 at Hack the Future of Food 2026, 27 and 28 November, Tartu.
+Quick demo runbook: `docs/demo_runbook.md`. Earlier working name: Tõend.
 
 ## Idee kirjeldus
 
@@ -8,9 +9,9 @@ Kujuta ette, et töötad A. Le Coq'i tehases. Sinu ülesanne on iga natukese aja
 
 Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid tabeleid. See võtab kaua aega, tüütab ära ja vahel ununeb üldse ära. Lisaks ei saa igas kohas telefoniga pilti teha, aga kuidagi peab ikkagi tõestama, et kontroll on tehtud.
 
-Lahendus on NFC kleepsud. See on nagu viipemakse pangakaardiga, ainult et raha maksmise asemel kinnitad masina puhtuse. Igale tähtsale masinale kleebitakse veekindel NFC kleeps. Töötaja paneb telefoni korraks vastu kleepsu. Ekraanile hüppab eeltäidetud tekst "Kõik on puhas ja korras" ja töötaja vajutab ühte suurt rohelist nuppu KINNITA. Kogu tegevus võtab 2 sekundit. Kui midagi on must, vajutab töötaja punast nuppu, valib listist vea, näiteks "vaht maas", ja teeb võimalusel pildi.
+Lahendus on NFC kaardid. See on nagu viipemakse pangakaardiga, ainult et raha maksmise asemel kinnitad masina puhtuse. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti. Ekraanile hüppab eeltäidetud tekst "Kõik on puhas ja korras" ja töötaja vajutab suurt nuppu KINNITA PUHAS. Kogu tegevus võtab 2 sekundit. Kui midagi on must, vajutab töötaja punast nuppu, valib listist vea, näiteks "vaht maas", ja teeb võimalusel pildi.
 
-Viis kaarti kirjutatakse rakenduse jaotises "Kirjuta 5 silti". Iga kaart saab oma nime ja allkirja, näiteks T1 4AF2. Silt kannab URL-i `https://nfc.arle.top/?asset=...&tag=...` ja tekstikirjet. Puudutamine avab selle URL-i otse, ilma et rakendus peaks enne lahti olema. Sama saab lugeda ka iPhone'i taustalugeja. Füüsilisel telefonil pole seda veel testitud.
+Viis kaarti kirjutatakse rakenduse jaotises "Kirjuta 5 kaarti". Iga kaart saab oma nime ja kaardi ID, näiteks T1 4AF2. Kaart kannab URL-i `https://nfc.arle.top/?asset=...&tag=...&via=nfc` ja tekstikirjet. Puudutamine avab selle URL-i otse, ilma et rakendus peaks enne lahti olema. Kaardi ID salvestub igas kirjes koos allikaga `nfc`, `link` või `typed`. ID ei ole krüptograafiline allkiri. Päris allkirjastamine vajab NTAG424. Füüsilisel telefonil pole seda veel testitud.
 
 ## Live site
 

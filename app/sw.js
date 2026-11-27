@@ -1,4 +1,4 @@
-const CACHE = 'toend-v3';
+const CACHE = 'tap-to-prove-v1';
 const ASSETS = [
   './',
   './index.html',

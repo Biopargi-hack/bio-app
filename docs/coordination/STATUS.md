@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | five signed NFC tags and URL tap | feat/signed_tags | none |
+| @AARenor | omp | demo | Tap to Prove rebrand and card IDs in ledger | feat/demo_hardening | none |
 | @linnudtonisted | _fill in_ | idle | _pick a task_ | — | — |
 | @Pepukarv | _fill in_ | idle | _pick a task_ | — | — |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |

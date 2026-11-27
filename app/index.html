@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Tõend, production line flight recorder</title>
-  <meta name="description" content="NFC-kleepsud masinatele. Puuduta kleepsu, kinnita puhtus ühe nupuga või vali viga listist.">
-  <meta name="theme-color" content="#121712">
+  <title>Tap to Prove</title>
+  <meta name="description" content="Tap an NFC card, say what you did, and the proof writes itself. Built for Hack the Future of Food 2026.">
+  <meta name="theme-color" content="#0d1b22">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
@@ -13,75 +13,76 @@
 <body>
   <a class="skip" href="#capture">Skip to capture</a>
 
-  <header class="masthead">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">T</span>
-      <div>
-        <h1>Tõend</h1>
-        <p data-i18n="subtitle">Production line flight recorder</p>
-      </div>
+  <header class="topbar">
+    <div class="identity">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="wordmark">Tap to Prove<small data-i18n="subtitle">Proof for the production line</small></div>
     </div>
-    <div class="masthead-meta">
+    <div class="topbar-meta">
       <span id="net" class="net" role="status">Online</span>
       <span id="queueCount" class="queue">0 queued</span>
-      <button id="langToggle" class="ghost small" type="button" aria-label="Switch to Estonian">ET</button>
+      <button id="langToggle" class="switch" type="button" aria-label="Switch to Estonian">ET</button>
     </div>
   </header>
 
   <main>
-    <section class="intro" aria-labelledby="intro-title">
-      <p class="kicker" data-i18n="intro_kicker">Otse demo, kirjed jäävad seadmesse</p>
-      <h2 id="intro-title" data-i18n="intro_title">Puhtus kinnitatakse kahe sekundiga.</h2>
-      <p class="intro-body" data-i18n="intro_body">Kujuta ette limonaadi või õlleliini A. Le Coqis. Praegu lõppeb iga kontroll pabervormiga. Paneme igale olulisele masinale veekindla NFC-kleepsu. Puuduta seda, vajuta ühte rohelist nuppu ja kontroll on kirjas.</p>
-      <ol class="beats" aria-label="Demo sequence">
-        <li><b>1</b><span data-i18n="beat1">Puuduta kleepsu</span></li>
-        <li><b>2</b><span data-i18n="beat2">Roheline nupp, valmis 2 sekundiga</span></li>
-        <li><b>3</b><span data-i18n="beat3">Punane nupp ja viga listist</span></li>
-        <li><b>4</b><span data-i18n="beat4">Foto kui võimalik</span></li>
-        <li><b>5</b><span data-i18n="beat5">Kontrolli kirjet hiljem</span></li>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="hero-kicker" data-i18n="intro_kicker">Live demo, records stay on this device</p>
+        <h1 id="hero-title">Tap to<br>Prove</h1>
+        <p class="hero-note" data-i18n="hero_note">Tap the card. Say what you did. The record writes itself.</p>
+      </div>
+      <div class="hero-rail" aria-hidden="true"><span>TAP</span><span>PROVE</span><span>REPEAT</span></div>
+      <ol class="steps" aria-label="Demo sequence">
+        <li><b>01</b><span data-i18n="beat1">Tap the sticker</span></li>
+        <li><b>02</b><span data-i18n="beat2">Green button, done in 2 seconds</span></li>
+        <li><b>03</b><span data-i18n="beat3">Red button and a fault from the list</span></li>
+        <li><b>04</b><span data-i18n="beat4">Photo when one is possible</span></li>
+        <li><b>05</b><span data-i18n="beat5">Audit the record later</span></li>
       </ol>
     </section>
 
     <div class="workbench">
-      <section id="capture" class="panel capture" aria-labelledby="capture-title">
-        <div class="panel-head">
-          <h2 id="capture-title" data-i18n="capture_title">New check</h2>
-          <span id="chainBadge" class="badge">chain ready</span>
+      <section id="capture" class="station" aria-labelledby="capture-title">
+        <div class="section-head">
+          <h2 id="capture-title" data-i18n="capture_title">Tap station</h2>
+          <span id="chainBadge" class="tagpill">chain ready</span>
         </div>
 
-        <div class="asset-stamp" id="assetStamp">
+        <div class="readout" id="assetStamp">
           <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
-          <small id="assetSource" data-i18n="no_tag">No tag read yet</small>
+          <small id="assetSource">No tag read yet</small>
         </div>
 
-        <div class="row">
-          <button id="scanBtn" class="primary" type="button" data-i18n="scan">Tap NFC tag</button>
-          <button id="writeBtn" class="ghost" type="button" data-i18n="write_tag">Write tag</button>
+        <div class="toolrow">
+          <button id="scanBtn" class="action" type="button" data-i18n="scan">Tap card</button>
+          <button id="writeBtn" class="quiet" type="button" data-i18n="write_tag">Write card</button>
         </div>
         <p id="nfcNote" class="note" role="status"></p>
-        <div class="quick" aria-labelledby="quick-title">
-          <p id="quick-title" class="quick-title" data-i18n="quick_title">Ühe puudutusega kinnitus</p>
-          <p id="quickPrompt" class="quick-prompt" data-i18n="quick_prompt">Kõik on puhas ja korras</p>
-          <div class="quick-actions">
-            <button id="cleanBtn" class="confirm" type="button" data-i18n="confirm">KINNITA</button>
-            <button id="faultBtn" class="fault" type="button" data-i18n="fault">Probleem</button>
+
+        <div class="proof-pad" aria-labelledby="quick-title">
+          <p class="pad-title" id="quick-title" data-i18n="quick_title">Tap to confirm</p>
+          <p id="quickPrompt" class="pad-prompt" data-i18n="quick_prompt">Everything is clean and in order</p>
+          <div class="pad-actions">
+            <button id="cleanBtn" class="prove" type="button" data-i18n="confirm">PROVE CLEAN</button>
+            <button id="faultBtn" class="flag" type="button" data-i18n="fault">Problem</button>
           </div>
           <label class="field fault-field" id="faultField" hidden>
-            <span data-i18n="fault_type">Mis viga on</span>
+            <span data-i18n="fault_type">What is wrong</span>
             <select id="faultType">
-              <option value="vaht maas" data-i18n="fault_foam">vaht maas</option>
-              <option value="jäägid tihendil" data-i18n="fault_seal">jäägid tihendil</option>
-              <option value="mustus põrandal" data-i18n="fault_floor">mustus põrandal</option>
-              <option value="foto ei ole võimalik" data-i18n="fault_nophoto">foto ei ole võimalik</option>
+              <option value="vaht maas" data-i18n="fault_foam">foam on the floor</option>
+              <option value="jäägid tihendil" data-i18n="fault_seal">residue on the seal</option>
+              <option value="mustus põrandal" data-i18n="fault_floor">dirt on the floor</option>
+              <option value="foto ei ole võimalik" data-i18n="fault_nophoto">photo not possible</option>
             </select>
           </label>
-          <button id="faultSaveBtn" class="fault-save" type="button" data-i18n="fault_save" hidden>Salvesta viga</button>
+          <button id="faultSaveBtn" class="quiet" type="button" data-i18n="fault_save" hidden>Save fault</button>
           <p id="quickNote" class="note" role="status"></p>
         </div>
 
-        <details class="tag-kit">
-          <summary data-i18n="tag_kit_title">Kirjuta 5 silti</summary>
-          <p class="note" data-i18n="tag_kit_hint">Iga kaart saab oma nime ja allkirja. Silt avab telefoni otse selle koha kinnitusvaatele.</p>
+        <details class="card-rack">
+          <summary data-i18n="tag_kit_title">Write 5 cards</summary>
+          <p class="note" data-i18n="tag_kit_hint">Each card gets its own name and card ID. The ID opens this place on the phone. It is not a cryptographic signature. Real signing needs NTAG424.</p>
           <div id="tagSlots" class="tag-slots"></div>
         </details>
 
@@ -153,23 +154,23 @@
         </label>
 
         <div class="row save-row">
-          <button id="saveBtn" class="primary" type="button" data-i18n="save">Append record</button>
+          <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>
           <span id="saveNote" class="note" role="status"></span>
         </div>
       </section>
 
-      <aside class="panel ledger" aria-labelledby="ledger-title">
-        <div class="panel-head">
-          <h2 id="ledger-title" data-i18n="ledger_title">Audit console</h2>
-          <span id="chainCount" class="badge">0 records</span>
+      <aside class="chain" aria-labelledby="ledger-title">
+        <div class="section-head">
+          <h2 id="ledger-title" data-i18n="ledger_title">Proof chain</h2>
+          <span id="chainCount" class="tagpill">0 records</span>
         </div>
 
         <div class="chain-status" id="chainStatus" data-i18n="chain_empty">No records yet. The first one starts the chain.</div>
 
         <div class="audit-questions" aria-label="Auditor questions">
-          <button type="button" data-question="unsigned" data-i18n="q_unsigned">Allkirjastamata puhtad kontrollid</button>
-          <button type="button" data-question="tierc" data-i18n="q_tierc">C tase ilma allkirjata</button>
-          <button type="button" data-question="today" data-i18n="q_today">Kõik tänased</button>
+          <button type="button" data-question="unsigned" data-i18n="q_unsigned">Unsigned clean checks</button>
+          <button type="button" data-question="tierc" data-i18n="q_tierc">Tier C without signature</button>
+          <button type="button" data-question="today" data-i18n="q_today">Everything today</button>
         </div>
         <p id="answerNote" class="note" role="status"></p>
 
@@ -181,8 +182,8 @@
         <div id="records" class="records" aria-live="polite"></div>
 
         <div class="row ledger-actions">
-          <button id="exportBtn" class="ghost" type="button" data-i18n="export">Export JSONL</button>
-          <button id="tamperBtn" class="ghost" type="button" data-i18n="tamper">Show tamper break</button>
+          <button id="exportBtn" class="quiet" type="button" data-i18n="export">Export JSONL</button>
+          <button id="tamperBtn" class="quiet" type="button" data-i18n="tamper">Show tamper break</button>
         </div>
 
         <section class="sample" aria-labelledby="sample-title">
@@ -198,7 +199,7 @@
   </main>
 
   <footer>
-    <span data-i18n="footer">Built for Hack the Future of Food 2026. Tap, speak, keep the record.</span>
+    <span data-i18n="footer">Hack the Future of Food 2026. Tap to prove.</span>
   </footer>
 
   <script type="module" src="app.js"></script>
