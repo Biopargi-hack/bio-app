@@ -14,6 +14,7 @@ const WORDS = {
     offline_title: 'Works offline',
     offline_copy: 'Checks are written to the device first, even with no network.',
     line: 'Line',
+    worker: 'Worker',
     line_all: 'All lines',
     place_prompt: 'Choose a place',
     place_required: 'Choose a place or tap the NFC card.',
@@ -130,7 +131,7 @@ const WORDS = {
     media_ready_hint: 'This is what will be attached to the record.',
     photo_readable: 'Photo is readable and goes with the record.',
     video_readable: 'Video goes with the record.',
-    photo_unusable: 'Too flat or too dark for evidence. The record still saves, but as tier C.',
+    photo_unusable: 'Too flat or too dark for evidence. The record still saves.',
     media_unreadable: 'This file cannot be read. Choose another one.',
     saved_with_photo: 'saved with the photo',
     saved_with_video: 'saved with the video',
@@ -172,6 +173,7 @@ const WORDS = {
     offline_title: 'Töötab võrguta',
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
     line: 'Liin',
+    worker: 'Teostaja',
     line_all: 'Kõik liinid',
     place_prompt: 'Vali koht',
     place_required: 'Vali koht või puuduta NFC-kaarti.',
@@ -315,7 +317,7 @@ const WORDS = {
     media_ready_hint: 'See läheb kirje külge.',
     photo_readable: 'Pilt on loetav ja läheb kirje külge.',
     video_readable: 'Video läheb kirje külge.',
-    photo_unusable: 'Pilt on liiga ühtlane või liiga tume, et tõendina lugeda. Kirje salvestub ikka, aga tasemel C.',
+    photo_unusable: 'Pilt on liiga ühtlane või liiga tume, et tõendina lugeda. Kirje salvestub ikka.',
     media_unreadable: 'Seda faili ei saa lugeda. Vali teine.',
     saved_with_photo: 'salvestatud koos pildiga',
     saved_with_video: 'salvestatud koos videoga',
@@ -934,9 +936,6 @@ function clearMedia(index = null) {
   updateTier();
 }
 
-function tierFor() {
-  return mediaItems.some((item) => item.usable) ? 'B' : 'C';
-}
 
 function hasEvidence() {
   return mediaItems.some((item) => item.usable);
@@ -1052,6 +1051,7 @@ function resetCaptureInputs() {
   hideMediaPreview();
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
+  if ($('worker')) $('worker').value = '';
   updateTier();
 }
 
@@ -1076,7 +1076,6 @@ function quickRecord(kind, grade = 0) {
     const isDefault = kind === 'default';
     const noEvidence = !hasEvidence();
     const defaultAssessment = (isDefault || (isGrade && grade === 3)) && noEvidence;
-    const tier = isGrade ? 'C' : noEvidence ? 'C' : tierFor();
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
     const typed = $('transcript').value.trim();
     const transcript = isGrade ? (typed || gradeReason) : typed || WORDS[lang].default_reason;
@@ -1092,9 +1091,8 @@ function quickRecord(kind, grade = 0) {
       verdict,
       grade: isGrade ? grade : isDefault ? 3 : null,
       transcript,
-      tier,
       reason,
-      supervisor: '',
+      supervisor: $('worker')?.value.trim() || '',
       language: speechLang,
       default_assessment: defaultAssessment,
       quick: true,
@@ -1117,14 +1115,14 @@ async function refreshCount() {
    filled from this device's records. */
 const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
 const HYGIENE_ROWS = [
-  ['Pesu / Wash', 'Wash'],
-  ['Täitepea / Filler head', 'Filler head'],
-  ['Klapp / Valve', 'Valve'],
-  ['Drenaaž / Drain', 'Drain'],
-  ['Uks / Door', 'Door'],
-  ['Kätepesu / Hand wash sink', 'Hand wash sink'],
-  ['Kastipesu / Crate washer', 'Crate washer'],
-  ['Siirupituba / Syrup room wall', 'Syrup room wall']
+  ['Pesu', 'Pesu'],
+  ['Täitepea', 'Täitepea'],
+  ['Klapp', 'Klapp'],
+  ['Drenaaž', 'Drenaaž'],
+  ['Uks', 'Uks'],
+  ['Kätepesu', 'Kätepesu'],
+  ['Kastipesu', 'Kastipesu'],
+  ['Siirupituba', 'Siirupituba']
 ];
 const HYGIENE_LEGEND = 'Hinded: 3 korras, 2 must, 1 tõsine';
 /* Longest name first, so Kätepesu is not read as Pesu. */
@@ -1144,8 +1142,7 @@ function checkpointFor(asset) {
   const text = String(asset || '').toLocaleLowerCase('et');
   if (!text) return '';
   for (const [estonian, english] of CHECKPOINT_NAMES) {
-    if (text.includes(estonian.toLocaleLowerCase('et'))) return english;
-    if (text.includes(english.toLocaleLowerCase('et'))) return english;
+    if (text.includes(estonian.toLocaleLowerCase('et')) || text.includes(english.toLocaleLowerCase('et'))) return estonian;
   }
   return '';
 }
@@ -1194,6 +1191,7 @@ function hygieneSheet(records) {
     monday: isoMonday(year, bucket)
   }));
   const grades = new Map();
+  const times = new Map();
   for (const record of records) {
     const iso = isoWeekOf(record.created_at);
     if (!iso) continue;
@@ -1203,9 +1201,23 @@ function hygieneSheet(records) {
     const previous = grades.get(key);
     grades.set(key, previous === undefined ? grade : Math.min(previous, grade));
   }
+  for (const record of records) {
+    const iso = isoWeekOf(record.created_at);
+    if (!iso) continue;
+    const moment = new Date(record.created_at);
+    const stamp = String(moment.getUTCHours()).padStart(2, '0') + ':' + String(moment.getUTCMinutes()).padStart(2, '0');
+    const key = `${iso.year}-${hygieneBucket(iso.week)}`;
+    const list = times.get(key) || [];
+    list.push(stamp);
+    times.set(key, list);
+  }
   return {
     header: ['Kontrollpunktid', ...columns.map((column) => `N${String(column.bucket).padStart(2, '0')}`)],
     dates: ['Kuupäev', ...columns.map((column) => (column.monday ? excelDate(column.monday) : 'kuupäev puudub'))],
+    times: ['Töö aeg', ...columns.map((column) => {
+      const list = times.get(`${year}-${column.bucket}`) || [];
+      return list.length ? `${list[0]} kuni ${list[list.length - 1]}` : '';
+    })],
     rows: HYGIENE_ROWS.map(([label, checkpoint]) => [
       label,
       ...columns.map((column) => grades.get(`${checkpoint}|${year}-${column.bucket}`) ?? '')
@@ -1262,13 +1274,17 @@ function renderHygieneSheet(records) {
   dates.className = 'wb-dates';
   dates.append(workbookCell('th', '2', 'wb-rowhead'));
   sheet.dates.forEach((text, index) => dates.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
-  head.append(letters, heading, dates);
+  const timesRow = document.createElement('tr');
+  timesRow.className = 'wb-dates';
+  timesRow.append(workbookCell('th', '3', 'wb-rowhead'));
+  sheet.times.forEach((text, index) => timesRow.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
+  head.append(letters, heading, dates, timesRow);
   table.append(head);
 
   const body = document.createElement('tbody');
   sheet.rows.forEach((values, index) => {
     const row = document.createElement('tr');
-    row.append(workbookCell('th', String(index + 3), 'wb-rowhead'));
+    row.append(workbookCell('th', String(index + 4), 'wb-rowhead'));
     values.forEach((value, column) => {
       if (column === 0) {
         row.append(workbookCell('th', value, 'wb-label wb-pin'));
@@ -1284,7 +1300,7 @@ function renderHygieneSheet(records) {
   });
   const legend = document.createElement('tr');
   legend.className = 'wb-legend-row';
-  legend.append(workbookCell('th', String(sheet.rows.length + 3), 'wb-rowhead'));
+  legend.append(workbookCell('th', String(sheet.rows.length + 4), 'wb-rowhead'));
   const legendCell = workbookCell('td', HYGIENE_LEGEND, 'wb-legend');
   legendCell.colSpan = sheet.header.length;
   legend.append(legendCell);
@@ -1856,6 +1872,7 @@ async function start() {
   updateNetwork();
   if (asset && document.documentElement.dataset.mode === 'record') {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : 'link');
+    if (via === 'nfc') setGrade(3);
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });
   }
