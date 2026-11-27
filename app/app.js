@@ -10,6 +10,13 @@ const METHODS = ['Visual', 'ATP swab', 'Temperature', 'CIP cycle', 'Declared'];
 const WORDS = {
   en: {
     subtitle: 'Proof for the production line',
+    line: 'Line',
+    line_all: 'All lines',
+    line_1: 'Line 1',
+    line_2: 'Line 2',
+    line_3: 'Line 3',
+    line_4: 'Line 4',
+    line_5: 'Line 5',
     skip: 'Skip to capture',
     hero_alt: 'Worker taps a waterproof red NFC card on a clean machine; the phone shows a proof card that can only be appended to.',
     intro_kicker: 'Live demo, records stay on this device',
@@ -20,7 +27,6 @@ const WORDS = {
     beat2: 'Clean button, done in 2 seconds',
     beat3: 'Fault button and a fault from the list',
     beat4: 'No photo? Use the fixed default',
-    beat5: 'Audit the traceable record later',
     capture_title: 'Check capture',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
@@ -53,20 +59,9 @@ const WORDS = {
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
     photo_hint: 'A photo or video only counts as evidence if the app can read it.',
-    media_badge: 'Media',
-    audio_badge: 'Voice note',
     instrument: 'Instrument reading',
     tier: 'Evidence tier',
     save: 'Append record',
-    ledger_title: 'Traceable dataset',
-    chain_empty: 'No records yet. The first one starts the chain.',
-    filter: 'Filter by asset or checkpoint',
-    export: 'Export JSONL',
-    tamper: 'Show tamper break',
-    sample_title: 'Sample CIP month',
-    sample_label: 'Sample data, synthetic, not A. Le Coq',
-    cip_note: 'Cycles below the 72 °C hold are short; one record cannot be signed. Sample data, synthetic.',
-    paper: 'Print the paper form',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
     confirm: 'PROVE CLEAN',
@@ -88,33 +83,24 @@ const WORDS = {
     grade_note: 'Pick 3 clean, 2 dirty, or 1 serious.',
     grade_reason: 'Grade N recorded from the tagged place',
     grade_done: 'Grade N saved',
-    grade_short: 'grade',
     grade3_label: '3 clean',
     grade2_label: '2 dirty',
     grade1_label: '1 serious',
     record_added: 'Record',
-    record_one: 'record',
-    record_many: 'records',
-    chain_intact: 'chain intact, append only.',
-    chain_break_prev: 'Break at record',
-    chain_prev_detail: 'previous hash does not match.',
-    chain_break_hash: 'fields no longer match the stored hash.',
-    tamper_demo: 'Demo: record N was edited in a copy. The chain breaks at N. Stored records are untouched.',
     nfc_tag: 'NFC card',
-    q_unsigned: 'Unsigned clean checks',
-    q_tierc: 'Tier C without signature',
-    q_today: 'Everything today',
-    q_defaults: 'Fixed defaults',
-    q_media: 'Records with media',
-    empty_records: 'Nothing here yet. Tap a tag and append a check.',
-    answer_note: 'matching records. Answered in',
-    ms_from_device: 'ms from this device.',
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
   },
   et: {
     subtitle: 'Tõend tootmisliinile',
+    line: 'Liin',
+    line_all: 'Kõik liinid',
+    line_1: 'Liin 1',
+    line_2: 'Liin 2',
+    line_3: 'Liin 3',
+    line_4: 'Liin 4',
+    line_5: 'Liin 5',
     skip: 'Liigu salvestamise juurde',
     hero_alt: 'Töötaja puudutab puhastatud masinal vesikindlat punast NFC-kaarti; telefonis tekib muudatusi näitav, ainult lisatav puhas tõendikaart.',
     intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
@@ -125,7 +111,6 @@ const WORDS = {
     beat2: 'Puhas nupp, valmis 2 sekundiga',
     beat3: 'Probleeminupp ja viga listist',
     beat4: 'Pilti ei saa? Kasuta fikseeritud hinnangut',
-    beat5: 'Kontrolli jälgitavat kirjet hiljem',
     capture_title: 'Kontrolli salvestamine',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
@@ -228,8 +213,6 @@ let audioRecognition = null;
 let photoState = null;
 let audioRecorder = null;
 let audioState = null;
-let mediaUrls = new Set();
-let demoBreak = null;
 let currentTag = '';
 let currentSource = 'typed';
 let dbPromise = null;
@@ -346,15 +329,6 @@ async function putMedia(key, blob) {
   });
 }
 
-async function getMedia(key) {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction('media', 'readonly').objectStore('media').get(key);
-    req.onsuccess = () => resolve(req.result || null);
-    req.onerror = () => reject(req.error);
-  });
-}
-
 async function hashBlob(blob) {
   const buffer = await blob.arrayBuffer();
   if (globalThis.crypto?.subtle) {
@@ -462,23 +436,6 @@ function legacyHash(value) {
     h2 = Math.imul(h2 + code + i, 2246822519) >>> 0;
   }
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
-}
-
-async function checkChain(records) {
-  if (!records.length) return { valid: true, breakSeq: null, message: WORDS[lang].chain_empty };
-  for (let i = 0; i < records.length; i += 1) {
-    const record = records[i];
-    const { hash, ...body } = record;
-    const expectedPrev = i === 0 ? '0'.repeat(64) : records[i - 1].hash;
-    if (record.prev_hash !== expectedPrev) {
-      return { valid: false, breakSeq: record.seq, message: `${WORDS[lang].chain_break_prev} ${record.seq}: ${WORDS[lang].chain_prev_detail}` };
-    }
-    const recomputed = hash.length === 16 ? legacyHash(body) : await chainHash(body);
-    if (recomputed !== hash) {
-      return { valid: false, breakSeq: record.seq, message: `${WORDS[lang].chain_break_prev} ${record.seq}: ${WORDS[lang].chain_break_hash}` };
-    }
-  }
-  return { valid: true, breakSeq: null, message: `${records.length} ${records.length === 1 ? WORDS[lang].record_one : WORDS[lang].record_many}, ${WORDS[lang].chain_intact}` };
 }
 
 async function appendRecord(payload) {
@@ -732,7 +689,6 @@ function saveRecord() {
 }
 
 async function finishRecord(record, noteId, message) {
-  demoBreak = null;
   setFaultPanel(false);
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
@@ -746,7 +702,7 @@ async function finishRecord(record, noteId, message) {
   note('photoNote', t('photo_hint'));
   note('audioNote', t('audio_hint'));
   updateTier();
-  await refreshRecords();
+  await refreshCount();
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
 }
@@ -799,114 +755,10 @@ function quickRecord(kind, grade = 0) {
   });
 }
 
-function renderRecords(records) {
-  const host = $('records');
-  const query = $('filter').value.trim().toLowerCase();
-  const shown = records.filter((r) => !query || `${r.asset} ${r.checkpoint} ${r.transcript}`.toLowerCase().includes(query));
-  if (!shown.length) {
-    host.innerHTML = `<div class="empty-row">${WORDS[lang].empty_records}</div>`;
-    void hydrateMedia(host).catch(() => {});
-    return;
-  }
-  host.innerHTML = shown.map((r) => {
-    const broken = demoBreak !== null && r.seq >= demoBreak;
-    const thumb = r.photo_thumb ? `<img src="${r.photo_thumb}" width="30" height="30" alt="evidence thumbnail">` : '';
-    const reuse = r.photo_reuse_of ? `<br>reused photo from record ${r.photo_reuse_of}` : '';
-    const origin = r.source || 'typed';
-    const card = r.tag_sig ? ` · ${origin} ${escapeHtml(r.tag_sig)}` : '';
-    const defaultMark = r.default_assessment ? ` · <em class="default-flag">${WORDS[lang].default_done}</em>` : '';
-    const gradeMark = r.grade ? ` · <em class="default-flag">${WORDS[lang].grade_short} ${r.grade}</em>` : '';
-    const reason = r.reason ? ` · ${escapeHtml(r.reason)}` : '';
-    const speech = r.speech_lang ? ` · ${escapeHtml(r.speech_lang)}` : '';
-    const attachments = [
-      r.media_kind ? `<a class="media-link" href="#" data-media-key="${r.seq}:media">${WORDS[lang].media_badge}: ${escapeHtml(r.media_kind)}</a>` : '',
-      r.audio_hash ? `<a class="media-link" href="#" data-media-key="${r.seq}:audio">${WORDS[lang].audio_badge}</a>` : ''
-    ].join('');
-    return `<div class="record-row">
-      <span class="seq">#${r.seq}</span>
-      <span class="main"><strong>${escapeHtml(r.asset)} · ${escapeHtml(r.checkpoint)}</strong>
-      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${gradeMark}${defaultMark}${reason}${speech} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}${attachments}</small></span>
-      <span class="hash ${broken ? 'broken' : ''}">${r.hash.slice(0, 8)}<br>${broken ? 'BROKEN' : 'ok'}</span>
-    </div>`;
-  }).join('');
-  void hydrateMedia(host).catch(() => {});
-}
-
-async function hydrateMedia(host) {
-  for (const url of mediaUrls) URL.revokeObjectURL(url);
-  mediaUrls = new Set();
-  for (const link of host.querySelectorAll('[data-media-key]')) {
-    const item = await getMedia(link.dataset.mediaKey);
-    if (!item?.blob) {
-      link.hidden = true;
-      continue;
-    }
-    const url = URL.createObjectURL(item.blob);
-    mediaUrls.add(url);
-    link.href = url;
-    const ext = (item.blob.type.split('/')[1] || 'bin').split(';')[0];
-    link.download = `${link.dataset.mediaKey.replace(':', '-')}.${ext}`;
-  }
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-}
-
-async function refreshRecords() {
+async function refreshCount() {
   allRecordsCache = await allRecords();
-  const status = await checkChain(allRecordsCache);
-  const box = $('chainStatus');
-  const shown = demoBreak === null ? status : { valid: false, message: WORDS[lang].tamper_demo.replaceAll('N', demoBreak) };
-  box.textContent = shown.message;
-  box.classList.toggle('broken', !shown.valid);
-  $('chainBadge').textContent = `${allRecordsCache.length} ${allRecordsCache.length === 1 ? 'record' : 'records'}`;
-  $('chainBadge').className = `badge ${shown.valid ? 'good' : 'bad'}`;
-  $('chainCount').textContent = `${allRecordsCache.length} ${allRecordsCache.length === 1 ? 'record' : 'records'}`;
   $('queueCount').textContent = `${allRecordsCache.length} queued`;
-  renderRecords(allRecordsCache);
 }
-
-function localDate(value = new Date()) {
-  const date = value instanceof Date ? value : new Date(value);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
-function runQuestion(kind) {
-  const started = performance.now();
-  const today = localDate();
-  let found = [];
-  if (kind === 'unsigned') found = allRecordsCache.filter((r) => r.verdict === 'clean' && r.tier === 'C');
-  if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C');
-  if (kind === 'today') found = allRecordsCache.filter((r) => localDate(r.created_at) === today);
-  if (kind === 'defaults') found = allRecordsCache.filter((r) => r.default_assessment);
-  if (kind === 'media') found = allRecordsCache.filter((r) => r.media_hash || r.audio_hash);
-  const elapsed = (performance.now() - started).toFixed(1);
-  note('answerNote', `${found.length} ${WORDS[lang].answer_note} ${elapsed} ${WORDS[lang].ms_from_device}`);
-  $('filter').value = '';
-  renderRecords(found);
-}
-
-function exportJsonl() {
-  const body = allRecordsCache.map((r) => JSON.stringify(r)).join('\n') + '\n';
-  const url = URL.createObjectURL(new Blob([body], { type: 'application/x-ndjson' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'toend-records.jsonl';
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function showTamper() {
-  if (!allRecordsCache.length) {
-    note('answerNote', 'Append one record first, then break it.', true);
-    return;
-  }
-  demoBreak = allRecordsCache[0].seq;
-  void refreshRecords();
-}
-
-
 
 function sourceLabel() {
   if (currentSource === 'nfc') return currentTag ? `${WORDS[lang].nfc_tag} ${currentTag}` : WORDS[lang].nfc_tag;
@@ -1090,28 +942,6 @@ function updateNetwork() {
   el.classList.toggle('offline', !navigator.onLine);
 }
 
-// No chart: sample CIP shown as text summary only.
-
-let cipRows = [];
-
-async function loadCip() {
-  try {
-    const response = await fetch('sample_cip.csv');
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const text = await response.text();
-    cipRows = text.replace(/\r/g, '').trim().split('\n').slice(1).map((line) => {
-      const [day, cycle, peak, hold, conductivity, verdict] = line.split(',');
-      return { day: Number(day), cycle: Number(cycle), peak: Number(peak), hold: Number(hold), conductivity: Number(conductivity), verdict };
-    });
-    const short = cipRows.filter((r) => r.peak < 72).length;
-    const clean = cipRows.filter((r) => r.verdict === 'signed clean').length;
-    const unsigned = cipRows.filter((r) => r.verdict === 'cannot sign').length;
-    $('cipSummary').innerHTML = `<span>${cipRows.length} cycles</span><span class="warn">${short} short of 72 C</span><span>${clean} signed clean</span><span class="warn">${unsigned} cannot sign</span>`;
-  } catch (error) {
-    $('cipSummary').textContent = 'Sample CSV unavailable.';
-  }
-}
-
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   try {
@@ -1134,7 +964,7 @@ function bind() {
     lang = lang === 'en' ? 'et' : 'en';
     applyLanguage();
     if (recognition) toggleVoice();
-    refreshRecords();
+    refreshCount();
   });
   $('asset').addEventListener('input', () => {
     currentTag = '';
@@ -1178,12 +1008,10 @@ function bind() {
   });
   for (const id of ['instrument', 'method', 'verdict']) $(id).addEventListener('change', updateTier);
   $('saveBtn').addEventListener('click', saveRecord);
-  $('filter').addEventListener('input', () => renderRecords(allRecordsCache));
-  $('exportBtn').addEventListener('click', exportJsonl);
-  $('tamperBtn').addEventListener('click', showTamper);
-  for (const button of document.querySelectorAll('[data-question]')) {
-    button.addEventListener('click', () => runQuestion(button.dataset.question));
-  }
+  $('line').addEventListener('change', () => {
+    const value = $('line').value;
+    setAsset(t(value === 'all' ? 'line_all' : `line_${value}`), '', 'typed');
+  });
   window.addEventListener('online', updateNetwork);
   window.addEventListener('offline', updateNetwork);
 }
@@ -1213,8 +1041,7 @@ async function start() {
     if (gradeMode) $('grade3').focus({ preventScroll: true });
     else $('cleanBtn').focus({ preventScroll: true });
   }
-  await refreshRecords();
-  await loadCip();
+  await refreshCount();
   await registerServiceWorker();
 }
 
