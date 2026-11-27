@@ -1,0 +1,58 @@
+name: Task
+description: Something to build, fix or verify
+title: "[task] "
+labels: ["agent"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What is true when this is done? One or two sentences.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - app (capture, ledger, audit)
+        - docs (README, demo script, notes)
+        - infra (workflows, deploy, settings)
+    validations:
+      required: true
+
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: GitHub handle plus agent name, e.g. "@Pepukarv (Claude)".
+      placeholder: "@handle (agent)"
+
+  - type: dropdown
+    id: demo
+    attributes:
+      label: Demo critical?
+      description: Must this work for the three-minute demo?
+      options:
+        - "yes"
+        - "no"
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: A short checklist someone else can verify.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Context
+      description: Files, constraints, prior attempts, links.

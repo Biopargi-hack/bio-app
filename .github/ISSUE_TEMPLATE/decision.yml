@@ -1,0 +1,37 @@
+name: Decision
+description: A choice the whole team must follow, recorded in DECISIONS.md
+title: "[decision] "
+labels: ["decision"]
+body:
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision
+      description: State the choice in one sentence, as if it is already true.
+    validations:
+      required: true
+
+  - type: textarea
+    id: options
+    attributes:
+      label: Options considered
+      description: What else was on the table, and why it lost.
+    validations:
+      required: true
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+      description: What becomes easier, what becomes impossible, what must change now.
+    validations:
+      required: true
+
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: Who makes sure this is followed.
+      placeholder: "@handle"
+    validations:
+      required: true
