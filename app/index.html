@@ -78,6 +78,13 @@
             <textarea id="gradeComment" rows="2" data-i18n-placeholder="grade_comment_placeholder" placeholder="what you saw"></textarea>
           </label>
           <button id="gradeSaveBtn" class="quiet" type="button" data-i18n="grade_save" hidden>Save grade</button>
+          <div class="grade-done" id="gradeDone" hidden>
+            <span class="grade-done-mark" aria-hidden="true">✓</span>
+            <span>
+              <strong data-i18n="grade_closed_title">Tag closed</strong>
+              <small id="gradeDoneDetail" data-i18n="grade_closed_hint">Tap a new sticker for a new check.</small>
+            </span>
+          </div>
           <label class="field fault-field" id="faultField" hidden>
             <span data-i18n="fault_type">What is wrong</span>
             <select id="faultType">

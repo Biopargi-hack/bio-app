@@ -103,6 +103,9 @@ const WORDS = {
     grade_save: 'Save grade',
     grade_locked_note: 'Grade saved. This tag is closed. Tap a new tag for a new check.',
     grade3_closed: 'Grade 3 saved. Nothing else is needed.',
+    grade_closed_title: 'Tag closed',
+    grade_closed_hint: 'Tap a new sticker for a new check.',
+    grade_closed_record: 'Record',
     record_added: 'Record',
     nfc_tag: 'NFC card',
     qr_link: 'QR link',
@@ -216,6 +219,9 @@ const WORDS = {
     grade_save: 'Salvesta hinne',
     grade_locked_note: 'Hinne salvestatud. See kleeps on kinni. Uueks kontrolliks puuduta uut kleepsu.',
     grade3_closed: 'Hinne 3 salvestatud. Rohkem sisestada ei pea.',
+    grade_closed_title: 'Kleeps on kinni',
+    grade_closed_hint: 'Uueks kontrolliks puuduta uut kleepsu.',
+    grade_closed_record: 'Kirje',
     record_added: 'Kirje',
     record_one: 'kirje',
     record_many: 'kirjet',
@@ -259,6 +265,7 @@ let audioToken = 0;
 let gradeMode = false;
 let pendingGrade = 0;
 let gradeLocked = false;
+let lastGradeSeq = 0;
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
   for (const el of document.querySelectorAll('[data-i18n]')) {
@@ -278,6 +285,9 @@ function applyLanguage() {
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
   if (gradeMode && $('quickPrompt')) $('quickPrompt').textContent = WORDS[lang].grade_prompt;
+  if (lastGradeSeq && $('gradeDone') && !$('gradeDone').hidden) {
+    $('gradeDoneDetail').textContent = `${WORDS[lang].grade_closed_record} ${lastGradeSeq}. ${WORDS[lang].grade_closed_hint}`;
+  }
 }
 
 function note(id, text, isError = false) {
@@ -817,7 +827,12 @@ function quickRecord(kind, grade = 0) {
       $('gradeRow').hidden = true;
       $('gradeCommentField').hidden = true;
       $('gradeSaveBtn').hidden = true;
+      $('gradePerformerField').hidden = true;
       $('faultBtn').hidden = true;
+      $('gradeDoneDetail').textContent = `${WORDS[lang].grade_closed_record} ${record.seq}. ${WORDS[lang].grade_closed_hint}`;
+      lastGradeSeq = record.seq;
+      $('gradeDone').hidden = false;
+      navigator.vibrate?.(18);
     }
     const done = isGrade ? (grade === 3 ? WORDS[lang].grade3_closed : WORDS[lang].grade_done.replace('N', grade)) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
@@ -842,7 +857,9 @@ function resetGradeUi() {
   if ($('gradeCommentField')) $('gradeCommentField').hidden = true;
   if ($('gradeSaveBtn')) $('gradeSaveBtn').hidden = true;
   if ($('gradeComment')) $('gradeComment').value = '';
-  if ($('faultBtn')) $('faultBtn').hidden = false;
+  if ($('gradePerformerField')) $('gradePerformerField').hidden = !gradeMode;
+  if ($('gradeDone')) $('gradeDone').hidden = true;
+  if ($('faultBtn')) $('faultBtn').hidden = gradeMode;
 }
 
 function setAsset(name, tagId = '', origin = 'typed') {
@@ -1158,6 +1175,7 @@ async function start() {
   const tag = params.get('tag');
   const via = params.get('via');
   gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
+  document.body.classList.toggle('grade-mode', gradeMode);
   populateSelects();
   applyLanguage();
   bind();
@@ -1168,7 +1186,7 @@ async function start() {
     $('gradeRow').hidden = false;
     $('cleanBtn').hidden = true;
     $('defaultBtn').hidden = true;
-    $('faultBtn').hidden = false;
+    $('faultBtn').hidden = true;
     $('gradePerformerField').hidden = false;
     $('gradeCommentField').hidden = true;
     $('gradeSaveBtn').hidden = true;

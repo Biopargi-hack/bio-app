@@ -469,6 +469,12 @@ main { max-width: 1120px; padding-bottom: 80px; }
 .flag { min-height: 56px; border-color: var(--accent); color: var(--accent); }
 .default-assessment { border-style: dashed; border-color: var(--accent); color: var(--accent); }
 .grade-btn { min-height: 52px; border-radius: var(--control-radius); }
+.grade-btn:active { transform: scale(.96); }
+.grade-done { display: flex; gap: 14px; align-items: center; margin: 14px 0 18px; padding: 14px 16px; border: 1px solid var(--mint); border-left: 4px solid var(--mint); border-radius: 14px; background: var(--mint-wash); }
+.grade-done[hidden] { display: none; }
+.grade-done-mark { flex: 0 0 34px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--mint); color: var(--paper); font: 700 20px/1 var(--display); }
+.grade-done strong { display: block; font: 700 16px/1.2 var(--display); color: var(--mint); }
+.grade-done small { display: block; margin-top: 4px; font: 500 12px/1.4 var(--mono); color: var(--muted); }
 
 /* boxed fields give a clear tap area and a calmer reading rhythm */
 .field > span { letter-spacing: .04em; text-transform: uppercase; }
@@ -533,6 +539,22 @@ main { max-width: 1120px; padding-bottom: 80px; }
   background: var(--wash);
 }
 footer { background: var(--paper); }
+/* After an NFC tap the page is one focused check, not the full demo. */
+body.grade-mode .hero,
+body.grade-mode .capture-rail,
+body.grade-mode .capture-main > .field,
+body.grade-mode .capture-main > .field-grid,
+body.grade-mode .capture-main > .voice-controls,
+body.grade-mode .capture-main > .file-field,
+body.grade-mode .capture-main > .note,
+body.grade-mode .capture-main > .save-row,
+body.grade-mode footer { display: none; }
+body.grade-mode .capture-layout { display: block; }
+body.grade-mode .proof-pad { margin-top: 0; }
+body.grade-mode .readout { margin-bottom: 16px; }
+body.grade-mode .pad-actions { display: none; }
+body.grade-mode #gradePerformerField { margin-top: 14px; }
+#gradeDone:not([hidden]) ~ #quickNote { display: none; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }

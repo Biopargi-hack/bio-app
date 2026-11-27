@@ -72,3 +72,5 @@ Format:
 - **2026-11-27 15:22**, Follow-up fix for the grade flow. Grade 3 from an NFC tap with no photo now writes the fixed default flag and reason, matching the runbook and the mission. The fault control stays visible in grade mode. Gate reports 19 passed, browser check on the grade URL showed the default flag and no page errors. Owner will use admin merge because the demo needs this live now.
 
 - **2026-11-27 16:20** — Grade 3 now saves once and closes the tag. Grades 2 and 1 require a comment before save. Added performer field in grade mode with ET and EN copy. Verified with verify 20 passed and browser flows at 390px and 1280px.
+
+- **2026-11-27 16:28** — After an NFC tap the page hides the demo hero, guidance rail, long form and footer. Grade buttons sit directly under the tag readout. A saved grade now shows a clear closed card with record number, hides the old note, and keeps its text correct after language toggle. Verified with verify 20 passed and browser checks at 390px and 1280px.
