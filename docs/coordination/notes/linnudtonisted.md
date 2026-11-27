@@ -27,3 +27,5 @@ Format:
 - **2026-11-27 15:35** — Issue #27: speech sessions now use continuous=true, interimResults=true and a 2500ms silence timer that resets on speech; final results join into one paragraph without duplicates; language buttons, main speak button and voice-note transcription share the helper. verify 19/19; Playwright fake continuous results confirmed mic stays open through pauses and closes after ~2.5s, early stop, voice note, offline. Real device not tested.
 
 - **2026-11-27 16:03** — Issue #45: restored the hidden transcript textarea so speech and typing are visible; removed the Evidence tier label/output from the capture card while keeping tierFor() for records. verify 20/20; Playwright confirmed field visible at 390px and desktop, ET speech lands in it, manual typing works, tier absent, save and offline reload pass. Real device not tested.
+
+- **2026-11-27 17:19** — Issue #66: switched README production URL, NFC card URL, demo links and deployment details to taptoprove.ee; verify gate now requires the taptoprove.ee demo link. Confirmed taptoprove.ee serves the app and nfc.arle.top redirects to it. verify 23/23.

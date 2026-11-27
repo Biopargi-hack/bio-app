@@ -25,6 +25,20 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — taptoprove.ee is the production domain
+
+**Decision.** All live-site and NFC-tag references point to
+`https://taptoprove.ee`. `nfc.arle.top` is kept only as a redirect alias for
+already-written cards. The verify gate requires the taptoprove.ee demo link.
+
+**Why.** The registrar DNS switch completed and the new domain serves the app;
+README and the gate still described it as pending.
+
+**Consequence.** New tags and docs use taptoprove.ee. Old cards with the alias
+still reach the same site because the alias redirects.
+
+---
+
 ## 2026-11-27 — Minimal capture app: ledger removed, line selector added
 
 **Decision.** The main app no longer shows the proof-chain panel: no record list, audit questions, filter, JSONL export, tamper-break demo or sample CIP summary. Those functions were removed from `app.js` and the gate was updated. A **Line** dropdown (All lines, Line 1–5) was added above the asset field; choosing a line pre-fills the asset in both Estonian and English. Records are still appended with a hash chain.
