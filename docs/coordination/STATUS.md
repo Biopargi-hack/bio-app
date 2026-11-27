@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Kirjete ahel removed from the landing; the card tap demo stays, nothing else moved | `fix/landing_no_chain` | none |
+| @AARenor | omp | review | Landing: Hügieen-only workbook, no TAP-DEMO-01 card, fixed Estonian speech | `feat/hygiene-only` | none |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN voice buttons | `fix/restore_language_buttons` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove speech language selector | `fix/remove-speech-selector` | device speech test |

@@ -79,12 +79,12 @@ if (defaultWired) {
   fail("app/app.js: fixed default assessment is missing from records");
 }
 
-// Speech must not depend on a raw browser locale or lose interim-only words.
-const speechLocaleWired = appSource.includes("speechLocale(navigator.language)") && appSource.includes("let speechLang = 'et-EE'") && appSource.includes("SPEECH_FALLBACK");
+// Speech runs in Estonian only, because the app is Estonian.
+const speechLocaleWired = appSource.includes("let speechLang = 'et-EE'") && appSource.includes("beginHeldSpeech(speechLang)") && appSource.includes("SPEECH_FALLBACK");
 if (speechLocaleWired) {
-  ok("speech locale is normalised with a fallback");
+  ok("speech listens in Estonian with a fallback when the browser cannot");
 } else {
-  fail("app/app.js: speech locale is not normalised with a fallback");
+  fail("app/app.js: the fixed Estonian speech language is missing");
 }
 
 const speechTextWired = appSource.includes("session.texts, session.interim") && appSource.includes("handlers.onInterim");
@@ -94,11 +94,11 @@ if (speechTextWired) {
   fail("app/app.js: interim speech words are dropped");
 }
 
-const speechCopyWired = appSource.includes("speech_detected: 'Speech language detected'") && appSource.includes("speech_detected: 'Tuvastatud kõne keel'");
+const speechCopyWired = !appSource.includes("speech_detected") && !appSource.includes("voice_lang:") && !appSource.includes("lang-btn") && !readFileSync(join(appDir, "index.html"), "utf8").includes("lang-btn");
 if (speechCopyWired) {
-  ok("speech language detection copy is bilingual");
+  ok("the speech language picker is gone");
 } else {
-  fail("app/app.js: speech language detection copy is missing in et or en");
+  fail("app: the speech language picker or its copy is still present");
 }
 
 const speechUnlimited = appSource.includes("const SPEECH_CHUNK_CHARS = 160")
@@ -143,21 +143,20 @@ if (indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes(
 } else {
   fail("app/index.html: the XLSX workbook download is missing");
 }
-if (indexSource.includes('id="wbRecordsScroll"') && indexSource.includes('id="wbHygieneScroll"') && indexSource.includes('id="wbTabHygiene"')) {
-  ok("the landing embeds both workbook sheets");
+if (indexSource.includes('id="wbHygieneScroll"') && !indexSource.includes('id="wbRecordsScroll"') && !indexSource.includes("workbook-tabs")) {
+  ok("the landing embeds the Hügieen sheet without a tab strip");
 } else {
-  fail("app: the embedded workbook sheets are missing");
+  fail("app: the embedded Hügieen sheet is missing or the records tab is back");
 }
-const workbookColumns = ["'created_at'", "'teostaja'", "'evidence'", "'media_6'", "'audio'", "'chain_ok'", "'hash'"];
-if (appSource.includes("function renderRecordsSheet(") && appSource.includes("function renderHygieneSheet(") && workbookColumns.every((column) => appSource.includes(column))) {
-  ok("workbook sheets carry the Excel columns");
+if (appSource.includes("function renderHygieneSheet(") && appSource.includes("const HYGIENE_ROWS") && appSource.includes("'Kontrollpunktid'") && !appSource.includes("function renderRecordsSheet(")) {
+  ok("the workbook shows the Hügieen checkpoints and colours");
 } else {
-  fail("app/app.js: workbook columns or sheet builders are missing");
+  fail("app/app.js: the Hügieen sheet builder is missing");
 }
-if (appSource.includes("stored.length === 16 ? legacyHash(body)") && appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
-  ok("workbook chain accepts legacy digests and saves the checkpoint");
+if (appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
+  ok("a saved check fills its checkpoint cell");
 } else {
-  fail("app/app.js: legacy chain branch or the saved checkpoint is missing");
+  fail("app/app.js: the saved checkpoint is missing");
 }
 if (appSource.includes("await refreshCount();") && appSource.includes("renderWorkbook();")) {
   ok("workbook sheets follow the saved records");

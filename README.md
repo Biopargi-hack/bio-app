@@ -75,7 +75,7 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 | `app/landing.css` | Black, white and red landing view on taptoprove.ee; imports `styles.css` as a layer for the capture form and workbook |
 | `app/landing.js` | Landing demo: simulated card tap onto a phone mock with a grade, nothing saved |
 | `app/sheet.html` | Live records table, Excel CSV and JSONL with attachments |
-| `app/app.js` | Capture, photo and video preview, hash chain, broadcast and the workbook sheets |
+| `app/app.js` | Capture, photo and video preview, hash chain, broadcast and the workbook sheet |
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Excel friendly synthetic CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
@@ -111,7 +111,7 @@ handoffs use the issue template. PR comments are the async conversation.
 2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
 4. Use the asset field or tap a sticker, then append one record. Show the queued count on the device.
-5. Scroll to the Tööraamat block on the same page. Press a grade in the capture form, then press Append record. The new row appears in the Kirjed sheet without a reload and the row flashes; tap the card named after a checkpoint (`Pesu`, `Filler head`, and so on) and the `Hügieen` tab shows that grade in the current week column. Open `/sheet` when you also want the Proof column and the Excel CSV and JSONL exports, then print the paper form and time five checks against the app.
+5. Scroll to the Tööraamat block on the same page. Press a grade in the capture form, then press Append record. The grade lands in the `Hügieen` sheet cell for the current week without a reload; tap the card named after a checkpoint (`Täitepea`, `Kastipesu`) and the phone mock plays the tap. Open `/sheet` when you also want the record table, the Proof column and the Excel CSV and JSONL exports, then print the paper form and time five checks against the app.
 
 ## What is real and what is sample
 
@@ -119,7 +119,7 @@ Records, tags and photos the judge makes during the demo are live, stored in Ind
 
 The sample CSV is Excel friendly with a UTF-8 BOM, semicolon separators and comma decimals. It is static demo data, not synced with the app. The Excel CSV button exports current records from that device at the moment of the click. It is a download, not a live spreadsheet link.
 
-The Tööraamat section on `taptoprove.ee` embeds the workbook itself: the `Hügieen` and `Kirjed` sheets as two tabs, with the column letters, row numbers, blue header row, 5 week columns, checkpoint rows and legend the Excel file has. `Kirjed` lists every record in workbook order with the same 22 columns and the same cell text, including the `foto 1`, `foto 2` and `hääl` labels the sync writes. A save from the capture form fills the row at once, and a second tab on the same device follows through the browser broadcast. `chain_ok` is computed in the browser from the record hash and the `prev_hash` links, and it recomputes a 16 character pre SHA-256 digest the way `sync_ledger.py` does, so page and file agree. A record's `checkpoint` comes from the place name (`Pesu` becomes `Wash`, `Filler head` stays `Filler head`), which is what fills the `Hügieen` grid.
+The Tööraamat section on `taptoprove.ee` embeds the workbook's `Hügieen` sheet: the column letters, row numbers, blue header row, 5 week columns, checkpoint rows and legend the Excel file has. A save from the capture form fills the cell at once, and a second tab on the same device follows through the browser broadcast. A record's `checkpoint` comes from the place name (`Pesu` becomes `Wash`, `Filler head` stays `Filler head`), which is what fills the grid. The `Kirjed` record list is not on the landing; both sheets are in the downloadable `.xlsx`, and `/sheet` shows the records of this device.
 
 The live sheet at `/sheet` reads the same IndexedDB store as the capture app and follows new records on that device through a browser broadcast. It is same device only, same browser profile only. Cross device sync needs a shared store such as Supabase. There is no server yet.
 

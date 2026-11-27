@@ -60,11 +60,6 @@
         <h2 id="demo-title" class="sr-only" data-i18n="demo_title">Proovi siin</h2>
         <div class="demo-stage">
           <div class="demo-cards" role="group" aria-labelledby="demoHint">
-            <button class="tag" type="button" data-place="Pesu" data-place-en="Wash" data-tag="TAP-DEMO-01">
-              <span class="tag-mark" aria-hidden="true"></span>
-              <span class="tag-place">Pesu</span>
-              <span class="tag-id">TAP-DEMO-01</span>
-            </button>
             <button class="tag" type="button" data-place="Täitepea" data-place-en="Filler head" data-tag="TAP-DEMO-02">
               <span class="tag-mark" aria-hidden="true"></span>
               <span class="tag-place">Täitepea</span>
@@ -183,16 +178,8 @@
           </section>
 
           <div class="voice-controls">
-            <div class="field">
-              <span data-i18n="voice_lang">Speech language</span>
-              <div class="lang-buttons" role="group" aria-label="Speech language">
-                <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
-                <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
-                <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
-              </div>
-            </div>
             <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Räägi</button>
-            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta ET, RU või EN ja räägi. Mikrofon sulgub umbes 3 sekundi vaikuse järel.</p>
+            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.</p>
           </div>
 
           <label class="field text-field">
@@ -241,14 +228,9 @@
         <h2 id="workbook-title" data-i18n="workbook_title">Tööraamat</h2>
         <a class="link-button ghost small" href="taptoprove_ledger.xlsx" download data-i18n="hygiene_download">Laadi tööraamat alla</a>
       </div>
-      <p class="note" data-i18n="workbook_note">Tööraamatu lehed Hügieen ja Kirjed, samad veerud ja väärtused mis Exceli failis. Salvestus täidab rea kohe. Keri tabelit külgsuunas.</p>
+      <p class="note" data-i18n="workbook_note">Tööraamatu leht Hügieen, samad veerud ja värvid mis Exceli failis. Hinne lisandub lahtrisse kohe pärast salvestamist. Mõlemad lehed on allalaaditavas failis. Keri tabelit külgsuunas.</p>
       <div class="workbook">
-        <div class="workbook-tabs" role="tablist" aria-label="Tööraamat">
-          <button class="workbook-tab" type="button" role="tab" id="wbTabHygiene" aria-controls="wbHygieneScroll" aria-selected="false">Hügieen</button>
-          <button class="workbook-tab" type="button" role="tab" id="wbTabRecords" aria-controls="wbRecordsScroll" aria-selected="true">Kirjed</button>
-        </div>
-        <div class="workbook-scroll" id="wbHygieneScroll" role="tabpanel" aria-labelledby="wbTabHygiene" tabindex="0" hidden></div>
-        <div class="workbook-scroll" id="wbRecordsScroll" role="tabpanel" aria-labelledby="wbTabRecords" tabindex="0"></div>
+        <div class="workbook-scroll" id="wbHygieneScroll" tabindex="0" aria-label="Hügieen"></div>
       </div>
       <p id="workbookStatus" class="note" role="status"></p>
     </section>
@@ -270,7 +252,7 @@
       </div>
       <figure class="qr">
         <svg viewBox="-2 -2 37 37" role="img" aria-labelledby="qrCaption" shape-rendering="crispEdges"><path stroke="#000" d="M0 0.5h7m2 0h2m2 0h1m1 0h1m2 0h2m2 0h2m2 0h7m-33 1h1m5 0h1m4 0h5m1 0h1m3 0h3m2 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m2 0h3m3 0h3m1 0h2m1 0h2m2 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m3 0h1m3 0h2m3 0h2m2 0h2m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m5 0h5m1 0h1m1 0h1m5 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m1 0h1m2 0h1m2 0h3m1 0h4m2 0h1m1 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-24 1h1m4 0h5m2 0h1m1 0h1m-24 1h1m2 0h1m1 0h2m1 0h2m2 0h4m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m-28 1h1m1 0h1m1 0h1m2 0h2m2 0h1m4 0h2m2 0h1m1 0h1m1 0h4m-28 1h2m3 0h2m1 0h2m4 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1m1 0h1m-29 1h1m3 0h6m1 0h1m5 0h6m1 0h2m2 0h1m-32 1h1m1 0h2m1 0h1m1 0h1m1 0h1m3 0h1m1 0h2m1 0h1m3 0h5m1 0h1m1 0h1m-31 1h1m1 0h1m3 0h2m9 0h2m1 0h4m1 0h1m1 0h2m1 0h2m-32 1h1m1 0h2m1 0h3m2 0h1m2 0h1m1 0h1m3 0h1m1 0h5m2 0h3m-30 1h1m6 0h1m2 0h1m1 0h4m1 0h3m1 0h2m1 0h1m4 0h1m-31 1h1m1 0h1m1 0h3m2 0h2m1 0h1m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m2 0h1m-31 1h1m1 0h3m1 0h1m3 0h2m1 0h1m1 0h1m4 0h3m1 0h1m1 0h1m1 0h1m-30 1h3m2 0h5m1 0h1m1 0h1m3 0h1m2 0h1m5 0h1m3 0h1m1 0h1m-32 1h4m3 0h1m1 0h4m3 0h1m1 0h1m1 0h2m2 0h1m1 0h1m-25 1h1m2 0h3m1 0h4m1 0h2m6 0h1m1 0h1m5 0h1m-31 1h1m1 0h2m11 0h2m3 0h1m1 0h5m3 0h2m-33 1h3m1 0h7m1 0h1m3 0h1m2 0h1m2 0h1m4 0h1m1 0h2m1 0h1m-32 1h2m1 0h2m3 0h2m1 0h1m1 0h3m1 0h1m2 0h1m2 0h2m3 0h1m1 0h1m-32 1h1m5 0h3m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m1 0h7m1 0h1m-24 1h4m2 0h1m1 0h1m2 0h6m3 0h2m1 0h2m-33 1h7m2 0h2m1 0h1m4 0h2m5 0h1m1 0h1m1 0h4m-32 1h1m5 0h1m1 0h1m3 0h1m1 0h1m1 0h4m1 0h2m1 0h1m3 0h1m-29 1h1m1 0h3m1 0h1m4 0h3m1 0h3m1 0h2m1 0h1m1 0h6m2 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h3m4 0h1m4 0h1m1 0h1m1 0h1m-29 1h1m1 0h3m1 0h1m5 0h1m1 0h1m6 0h1m1 0h2m3 0h2m2 0h1m-33 1h1m5 0h1m3 0h1m2 0h1m1 0h4m1 0h2m2 0h2m-26 1h7m1 0h4m2 0h1m1 0h1m1 0h4m1 0h4m1 0h1m2 0h1"/></svg>
-        <figcaption id="qrCaption" data-i18n="try_caption">Näidiskoht Pesu, kaart TAP-DEMO-01</figcaption>
+        <figcaption id="qrCaption" data-i18n="try_caption">Näidiskoht ja kaart</figcaption>
       </figure>
     </section>
   </main>
