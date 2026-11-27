@@ -90,3 +90,5 @@ Format:
 - **2026-11-27 18:07** — Admin squash merge by AARenor. No separate reviewer approval; the owner merged this landing copy directly for the demo.
 
 - **2026-11-27 18:16** — Embedded the Excel friendly sample CIP month directly on the landing page as a 28 row table with a CSV download button. Verdicts and summary counts translate with the language switch. Upstream landing copy removed the checkpoint list, so there is no checkpoint path left to align. The NFC link with asset Pesu still writes Pesu to IndexedDB. Verify passed 30 checks and headless mobile showed 28 rows, no errors and no overflow.
+
+- **2026-11-27 18:23** — Embedded the real taptoprove_ledger.xlsx Hügieen grid on the landing page with N1 to N53 week columns, eight checkpoint rows and grades 3, 2, 1. Cells fill live from IndexedDB by asset and ISO week. The hero now has a View table link to the #hygieen section and the section has a workbook download link. Removed the unrelated sample CIP table. Verify passed 32 checks and headless desktop plus mobile showed no errors or page overflow.

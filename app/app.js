@@ -101,24 +101,14 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
-    sample_title: 'Sample CIP month',
-    sample_label: 'Synthetic sample data, not A. Le Coq',
-    sample_download: 'Download CSV',
-    cip_note: 'Cycles below 72 C are short. One record cannot be signed. Synthetic sample data.',
-    sample_day: 'Day',
-    sample_cycle: 'Cycle',
-    sample_peak: 'Peak C',
-    sample_hold: 'Hold min',
-    sample_conductivity: 'Conductivity mS',
-    sample_verdict: 'Verdict',
-    sample_cycles: 'cycles',
-    sample_short: 'short',
-    sample_signed: 'signed clean',
-    sample_unsigned: 'cannot sign',
-    verdict_signed: 'signed clean',
-    verdict_short: 'short',
-    verdict_cannot: 'cannot sign',
-    sample_unavailable: 'Sample CSV unavailable.',
+    hygiene_title: 'Hygiene log',
+    hygiene_note: 'The real workbook grid. Weeks N1 to N53, eight checkpoints, grades 3 clean, 2 needs review, 1 not clean.',
+    hygiene_download: 'Download workbook',
+    hygiene_live: 'Cells fill from records saved on this device. Scroll the table sideways. The workbook file stays the master copy.',
+    hygiene_checkpoint: 'Checkpoint',
+    hygiene_date: 'Date',
+    hygiene_unavailable: 'Hygiene grid data is unavailable.',
+    landing_table: 'View table',
   },
   et: {
     subtitle: 'Tõend tootmisliinile',
@@ -195,24 +185,14 @@ const WORDS = {
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
-    sample_title: 'Näidis CIP kuu',
-    sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
-    cip_note: '72 °C kuumutusest lühemale jäävad tsüklid on lühikesed; ühte kirjet ei saa allkirjastada. Näidisandmed, sünteetilised.',
-    sample_download: 'Laadi CSV alla',
-    sample_day: 'Päev',
-    sample_cycle: 'Tsükkel',
-    sample_peak: 'Tipp °C',
-    sample_hold: 'Hoide min',
-    sample_conductivity: 'Juhtivus mS',
-    sample_verdict: 'Otsus',
-    sample_cycles: 'tsüklit',
-    sample_short: 'lühikest',
-    sample_signed: 'allkirjastatud puhtad',
-    sample_unsigned: 'ei saa allkirjastada',
-    verdict_signed: 'allkirjastatud puhas',
-    verdict_short: 'lühike',
-    verdict_cannot: 'ei saa allkirjastada',
-    sample_unavailable: 'Näidis CSV ei ole saadaval.',
+    hygiene_title: 'Hügieenipäevik',
+    hygiene_note: 'Päris tööraamatu vaade. Nädalad N1 kuni N53, kaheksa kontrollpunkti ja hinded 3 korras, 2 vajab ülevaatamist, 1 ei ole korras.',
+    hygiene_download: 'Laadi tööraamat alla',
+    hygiene_live: 'Lahtrid täituvad selle seadme kirjetest. Kerige tabelit paremale. Tööraamatu fail jääb peamiseks allikaks.',
+    hygiene_checkpoint: 'Kontrollpunkt',
+    hygiene_date: 'Kuupäev',
+    hygiene_unavailable: 'Hügieenitabeli andmed pole saadaval.',
+    landing_table: 'Vaata tabelit',
     paper: 'Prindi pabervorm',
     quick_title: 'Dokumenteeri kontroll',
     quick_prompt: 'Kõik on puhas ja korras',
@@ -299,7 +279,7 @@ let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
 let currentSource = 'typed';
-let sampleRows = [];
+let hygieneData = null;
 let dbPromise = null;
 let saving = false;
 let audioToken = 0;
@@ -327,7 +307,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  renderSampleRows();
+  renderHygieneGrid();
 }
 
 function note(id, text, isError = false) {
@@ -792,51 +772,93 @@ function quickRecord(kind, grade = 0) {
 
 async function refreshCount() {
   allRecordsCache = await allRecords();
+  fillHygieneFromRecords();
 }
 
 
-function parseSampleCsv(text) {
-  return text.replace(/^\uFEFF/, '').trim().split(/\r?\n/).slice(1).map((line) => {
-    const [day, cycle, peak, hold, conductivity, verdict] = line.split(';');
-    return {
-      day, cycle, peak, hold, conductivity, verdict,
-      peakValue: Number(peak.replace(',', '.'))
-    };
-  });
+
+function isoWeek(value) {
+  const source = new Date(value);
+  if (Number.isNaN(source.getTime())) return null;
+  const date = new Date(Date.UTC(source.getUTCFullYear(), source.getUTCMonth(), source.getUTCDate()));
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
 }
 
-function verdictLabel(verdict) {
-  const map = {
-    'signed clean': t('verdict_signed'),
-    short: t('verdict_short'),
-    'cannot sign': t('verdict_cannot')
+function gradeClass(grade) {
+  return Number(grade) === 3 ? 'good' : Number(grade) === 2 ? 'warn' : Number(grade) === 1 ? 'bad' : '';
+}
+
+function setHygieneCell(cell, grade) {
+  if (!cell || !grade) return;
+  cell.textContent = String(grade);
+  cell.className = gradeClass(grade);
+}
+
+function hygieneKey(asset) {
+  if (!hygieneData) return null;
+  const lower = String(asset || '').toLocaleLowerCase('et');
+  const aliases = {
+    siirupiruumi_sein: 'Siirupituba',
+    syrup_room_wall: 'Siirupituba'
   };
-  return map[verdict] || verdict;
+  const alias = aliases[lower.replace(/\s+/g, '_')];
+  if (alias) return alias;
+  for (const label of hygieneData.rows) {
+    const parts = label.split('/').map((part) => part.trim().toLocaleLowerCase('et'));
+    if (parts.includes(lower)) return label.split('/')[0].trim();
+  }
+  return null;
 }
 
-function renderSampleRows() {
-  const body = document.querySelector('#cipTable tbody');
-  if (!body || !sampleRows.length) return;
-  body.innerHTML = sampleRows.map((row) => {
-    const cls = row.verdict === 'signed clean' ? 'good' : 'warn';
-    return `<tr><td>${row.day}</td><td>${row.cycle}</td><td>${row.peak}</td><td>${row.hold}</td><td>${row.conductivity}</td><td class="${cls}">${verdictLabel(row.verdict)}</td></tr>`;
+function gradeFromRecord(record) {
+  if (record.grade) return Number(record.grade);
+  if (record.verdict === 'clean') return 3;
+  if (record.verdict === 'not clean') return 2;
+  if (record.verdict === 'serious') return 1;
+  return null;
+}
+
+function renderHygieneGrid() {
+  const host = $('hygieneGrid');
+  if (!host || !hygieneData) return;
+  const weeks = hygieneData.weeks;
+  const head = `<tr><th class="cp-col">${t('hygiene_checkpoint')}</th>${weeks.map((week) => `<th>${week}</th>`).join('')}</tr>`;
+  const dates = `<tr><td class="cp-col">${t('hygiene_date')}</td>${weeks.map((week) => `<td class="date-cell">${hygieneData.dates?.[week] || ''}</td>`).join('')}</tr>`;
+  const rows = hygieneData.rows.map((label) => {
+    const key = label.split('/')[0].trim();
+    const cells = weeks.map((week) => {
+      const grade = hygieneData.seed?.[key]?.[week] || '';
+      return `<td class="${gradeClass(grade)}" data-asset="${key}" data-week="${week}">${grade}</td>`;
+    }).join('');
+    return `<tr><th class="cp-col">${label}</th>${cells}</tr>`;
   }).join('');
-  const short = sampleRows.filter((row) => row.peakValue < 72).length;
-  const clean = sampleRows.filter((row) => row.verdict === 'signed clean').length;
-  const unsigned = sampleRows.filter((row) => row.verdict === 'cannot sign').length;
-  const summary = $('sampleSummary');
-  if (summary) summary.innerHTML = `<span>${sampleRows.length} ${t('sample_cycles')}</span><span>${short} ${t('sample_short')}</span><span>${clean} ${t('sample_signed')}</span><span>${unsigned} ${t('sample_unsigned')}</span>`;
+  host.innerHTML = `<table id="hygieneTable"><thead>${head}${dates}</thead><tbody>${rows}</tbody></table>`;
+  fillHygieneFromRecords();
 }
 
-async function loadSampleSheet() {
+function fillHygieneFromRecords() {
+  if (!hygieneData || !allRecordsCache) return;
+  for (const record of allRecordsCache) {
+    const key = hygieneKey(record.asset);
+    const week = isoWeek(record.created_at);
+    if (!key || !week) continue;
+    const cell = document.querySelector(`#hygieneTable td[data-asset="${key}"][data-week="N${week}"]`);
+    setHygieneCell(cell, gradeFromRecord(record));
+  }
+}
+
+async function loadHygieneGrid() {
   try {
-    const response = await fetch('sample_cip.csv');
+    const response = await fetch('hygieen.json');
     if (!response.ok) throw new Error(String(response.status));
-    sampleRows = parseSampleCsv(await response.text());
-    renderSampleRows();
+    hygieneData = await response.json();
+    renderHygieneGrid();
   } catch (error) {
-    const summary = $('sampleSummary');
-    if (summary) summary.textContent = t('sample_unavailable');
+    const host = $('hygieneGrid');
+    if (host) host.textContent = t('hygiene_unavailable');
   }
 }
 
@@ -1140,7 +1162,7 @@ async function start() {
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });
   }
-  await loadSampleSheet();
+  await loadHygieneGrid();
   await refreshCount();
   await registerServiceWorker();
 }

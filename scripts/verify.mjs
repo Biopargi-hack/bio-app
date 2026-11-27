@@ -31,6 +31,8 @@ const REQUIRED_FILES = [
   "app/showcase.html",
   "app/sample_cip.csv",
   "app/sheet.html",
+  "app/hygieen.json",
+  "app/taptoprove_ledger.xlsx",
 ];
 
 for (const file of REQUIRED_FILES) {
@@ -110,10 +112,10 @@ if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.include
 } else {
   fail("app/sample_cip.csv: expected UTF-8 BOM, semicolon separators and comma decimals");
 }
-if (indexSource.includes('id="cipTable"') && indexSource.includes('href="sample_cip.csv"') && appSource.includes("fetch('sample_cip.csv')")) {
-  ok("sample CIP is embedded as a table with a CSV download");
+if (indexSource.includes('id="hygieneGrid"') && indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes("fetch('hygieen.json')")) {
+  ok("hygiene workbook grid is embedded with an XLSX download");
 } else {
-  fail("app/index.html: sample CIP table or CSV download is missing");
+  fail("app/index.html: hygiene workbook grid or XLSX download is missing");
 }
 
 const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
