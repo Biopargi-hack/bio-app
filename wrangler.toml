@@ -1,6 +1,6 @@
 name = "toend"
 pages_build_output_dir = "./app"
-
+compatibility_flags = ["nodejs_compat"]
 [[kv_namespaces]]
 binding = "EVIDENCE"
 id = "1459dffb10b545baae2bb245020de728"

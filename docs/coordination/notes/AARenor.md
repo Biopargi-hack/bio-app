@@ -137,3 +137,4 @@ Format:
 
 
 - **2026-11-27 22:10** — Live save test found two issues. Preview and production skipped evidence links because wrangler.toml had no pages_build_output_dir so Cloudflare ignored the KV binding, and a second origin with its own local store collided on seq 1 and was dropped as a duplicate. Added the build output key, removed the deploy dir override, changed dedupe to device plus seq, and will verify both live domains after deploy. verify 57 passed, worker and app syntax clean, TOML clean.
+- **2026-11-27 22:12** — PR 133 deploy failed with `No such module node:stream` because the Pages config was now active but had no Node compatibility flag. Added `compatibility_flags = ["nodejs_compat"]` to wrangler.toml and will rerun the deploy check before merge.
