@@ -1,3 +1,5 @@
+import { imageHashBits, isoWeekKey } from './data.js';
+
 const $ = (id) => document.getElementById(id);
 
 const WORDS = {
@@ -310,7 +312,7 @@ function detectSpokenLang(text) {
   return 'en-US';
 }
 
-let lang = 'et';
+let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
 let speechLang = speechLocale(navigator.language);
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
@@ -534,10 +536,12 @@ function notifyRecords(record) {
   } catch (error) {
     console.warn('record broadcast failed', error);
   }
-  try {
-    localStorage.setItem('toend-records-event', JSON.stringify(event));
-  } catch (error) {
-    console.warn('record event fallback failed', error);
+  if (!recordsChannel) {
+    try {
+      localStorage.setItem('toend-records-event', JSON.stringify(event));
+    } catch (error) {
+      console.warn('record event fallback failed', error);
+    }
   }
 }
 
@@ -583,7 +587,7 @@ async function appendRecord(payload, mediaFile, audioBlob) {
       record = { ...body, hash: sha256Sync(body) };
       store.put(record);
       const media = tx.objectStore('media');
-      if (mediaFile) media.put({ key: `${seq}:media`, blob: mediaFile });
+      if (mediaFile && !payload.photo_reuse_of) media.put({ key: `${seq}:media`, blob: mediaFile });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
     };
     tx.oncomplete = () => resolve(record);
@@ -621,7 +625,7 @@ function imageHash(canvas) {
   for (let y = 0; y < 8; y += 1) {
     for (let x = 0; x < 8; x += 1) bits += lum[y * 9 + x] > lum[y * 9 + x + 1] ? '1' : '0';
   }
-  return parseInt(bits, 2).toString(16).padStart(16, '0');
+  return imageHashBits(bits);
 }
 
 async function analysePhoto(file) {
@@ -775,6 +779,7 @@ function resetCaptureInputs() {
   $('photo').value = '';
   photoState = null;
   audioState = null;
+  photoFailed = false;
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
   updateTier();
@@ -826,6 +831,7 @@ function quickRecord(kind, grade = 0) {
       quick: true,
       ...mediaPayload()
     }, photoState?.file, audioState?.blob);
+    notifyRecords(record);
     const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
     if (record.selected_grade === 2) note('quickNote', t('grade_escalated'));
@@ -840,13 +846,11 @@ async function refreshCount() {
 
 
 function isoWeek(value) {
-  const source = new Date(value);
-  if (Number.isNaN(source.getTime())) return null;
-  const date = new Date(Date.UTC(source.getUTCFullYear(), source.getUTCMonth(), source.getUTCDate()));
-  const day = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+  try {
+    return Number(isoWeekKey(value).split('-W')[1]);
+  } catch {
+    return null;
+  }
 }
 
 function gradeClass(grade) {
@@ -911,14 +915,24 @@ function renderHygieneGrid() {
 
 function fillHygieneFromRecords() {
   if (!hygieneData || !allRecordsCache) return;
+  const workbookYear = Object.values(hygieneData.dates || {})[0]?.split('.').pop() || String(new Date().getFullYear());
+  let unmapped = 0;
   for (const record of allRecordsCache) {
     const key = hygieneKey(record.asset);
-    const week = isoWeek(record.created_at);
-    if (!key || !week) continue;
+    let week = null;
+    try {
+      const weekKey = isoWeekKey(record.created_at);
+      if (weekKey.startsWith(`${workbookYear}-W`)) week = Number(weekKey.split('-W')[1]);
+    } catch { /* A bad date cannot be painted. */ }
+    if (!key || !week) { unmapped += 1; continue; }
     const cell = document.querySelector(`#hygieneTable td[data-asset="${key}"][data-week="N${week}"]`);
+    if (!cell) { unmapped += 1; continue; }
     setHygieneCell(cell, gradeFromRecord(record));
   }
+  const note = $('hygieneUnmapped');
+  if (note) note.textContent = unmapped ? `${unmapped} ${lang === 'et' ? 'kirjet ei näidatud päevikus' : 'records not shown in the workbook'}` : '';
 }
+
 
 async function loadHygieneGrid() {
   try {
@@ -1168,6 +1182,7 @@ function saveFromForm() {
 function bind() {
   $('langToggle').addEventListener('click', () => {
     lang = lang === 'en' ? 'et' : 'en';
+    localStorage.setItem('toend-lang', lang);
     applyLanguage();
     if (speechSession) toggleVoice();
     refreshCount();
@@ -1232,6 +1247,7 @@ async function start() {
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });
   }
+  navigator.storage?.persist?.().catch(() => {});
   await loadHygieneGrid();
   await refreshCount();
   await registerServiceWorker();

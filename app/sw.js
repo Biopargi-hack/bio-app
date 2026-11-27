@@ -1,9 +1,10 @@
-const CACHE = 'tap-to-prove-v11';
+const CACHE = 'tap-to-prove-5bc5e05d75ba';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
+  './data.js',
   './manifest.webmanifest',
   './icon.svg',
   './illustration.svg',
@@ -13,6 +14,9 @@ const ASSETS = [
   './paper.html',
   './showcase.html',
   './sheet.html',
+  './paper',
+  './showcase',
+  './sheet',
   './sample_cip.csv',
   './hygieen.json',
   './taptoprove_ledger.xlsx',
@@ -63,7 +67,10 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(async () => {
-        const cached = await caches.match(event.request, { ignoreSearch: true });
+        let cached = await caches.match(event.request, { ignoreSearch: true });
+        if (!cached && (event.request.mode === 'navigate' || event.request.destination === 'document')) {
+          cached = await caches.match(`${url.pathname.replace(/\/+$/, '')}.html`, { ignoreSearch: true });
+        }
         if (cached) return cached;
         if (event.request.mode === 'navigate' || event.request.destination === 'document') {
           const shell = await caches.match('./index.html') || await caches.match('./');

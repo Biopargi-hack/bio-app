@@ -65,8 +65,8 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 |---|---|
 | `app/index.html` | Screens and copy |
 | `app/styles.css` | Visual system |
-| `app/sheet.html` | Live records table for a second Chrome tab, with Excel CSV export |
-| `app/app.js` | Capture, photo check, hash chain, broadcast, Excel CSV export and audit console |
+| `app/sheet.html` | Live records table, Excel CSV and JSONL with attachments |
+| `app/app.js` | Capture, photo check, hash chain, broadcast and hygiene grid |
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Excel friendly synthetic CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
@@ -101,7 +101,7 @@ handoffs use the issue template. PR comments are the async conversation.
 1. Give a judge an NFC sticker written with your own NFC tool. Tap it and the URL opens with the asset and card ID prefilled and grade buttons 3, 2 and 1 ready. If NFC is unavailable, use the asset field or a QR link. iPhone background reading is not device tested.
 2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
-4. Use the line dropdown or tap a sticker, then append one record. Show the queued count on the device.
+4. Use the asset field or tap a sticker, then append one record. Show the queued count on the device.
 5. Open the live sheet in a second tab from the footer link. Press a grade in the capture tab, then press Append record. The new row appears in the sheet without a reload. Press Excel CSV in the sheet to download current records, then print the paper form and time five checks against the app.
 
 ## What is real and what is sample
@@ -123,7 +123,8 @@ Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain
 
 Secrets are stored in the GitHub repo as `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, set from the machine's `~/.config/opencode/api-keys.env` without printing values. If a secret is ever rotated, update the repo secret too.
 
-To deploy by hand from this machine:
+Automatic deploy happens on every push to `main` and on same-repo pull requests
+through `.github/workflows/deploy.yml`. The command below is a manual fallback:
 
 ```bash
 cd app
