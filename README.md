@@ -73,7 +73,7 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 | `app/index.html` | Screens and copy |
 | `app/styles.css` | Visual system |
 | `app/sheet.html` | Live records table, Excel CSV and JSONL with attachments |
-| `app/app.js` | Capture, photo check, hash chain, broadcast and hygiene grid |
+| `app/app.js` | Capture, photo and video preview, hash chain, broadcast and hygiene grid |
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Excel friendly synthetic CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
@@ -123,6 +123,17 @@ The JSONL export keeps inspection records unchanged and adds a separate
 `type: "attachment"` line for each photo, video or voice note. Each attachment
 line contains its record sequence, storage key and a `data_url` holding the
 original file. Export fails visibly if a referenced attachment is missing.
+
+The capture screen shows the chosen photo or video straight away, with its file
+name and size, and marks a photo the app cannot read as evidence. After saving,
+a small card keeps the thumbnail and says whether the record went in with the
+photo, with the video or without media. The live sheet has a Proof column with
+that thumbnail; pressing it opens the full photo, video or voice note from
+device storage.
+
+The ledger sync reads those attachment lines, writes each file next to the
+workbook under `media/`, uploads it to Drive and puts a hyperlink in the table.
+The row then shows `foto` or `video` as a clickable link instead of a hash.
 
 ## Deployment details
 

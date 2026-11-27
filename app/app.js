@@ -113,6 +113,19 @@ const WORDS = {
     grade2_label: '2 dirty',
     grade1_label: '1 serious',
     record_added: 'Record',
+    media_photo_ready: 'Photo added',
+    media_video_ready: 'Video added',
+    media_rejected: 'Attached, but it does not count as evidence',
+    media_clear: 'Remove',
+    media_ready_hint: 'This is what will be attached to the record.',
+    photo_readable: 'Photo is readable and goes with the record.',
+    video_readable: 'Video goes with the record.',
+    photo_unusable: 'Too flat or too dark for evidence. The record still saves, but as tier C.',
+    media_unreadable: 'This file cannot be read. Choose another one.',
+    saved_with_photo: 'saved with the photo',
+    saved_with_video: 'saved with the video',
+    saved_no_media: 'saved without media',
+    open_sheet: 'See the records',
     nfc_tag: 'NFC card',
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
@@ -251,6 +264,19 @@ const WORDS = {
     grade2_label: '2 must',
     grade1_label: '1 tõsine',
     record_added: 'Kirje',
+    media_photo_ready: 'Pilt lisatud',
+    media_video_ready: 'Video lisatud',
+    media_rejected: 'Lisatud, aga tõendina ei loe',
+    media_clear: 'Eemalda',
+    media_ready_hint: 'See läheb kirje külge.',
+    photo_readable: 'Pilt on loetav ja läheb kirje külge.',
+    video_readable: 'Video läheb kirje külge.',
+    photo_unusable: 'Pilt on liiga ühtlane või liiga tume, et tõendina lugeda. Kirje salvestub ikka, aga tasemel C.',
+    media_unreadable: 'Seda faili ei saa lugeda. Vali teine.',
+    saved_with_photo: 'salvestatud koos pildiga',
+    saved_with_video: 'salvestatud koos videoga',
+    saved_no_media: 'salvestatud ilma meediata',
+    open_sheet: 'Vaata kirjeid',
     record_one: 'kirje',
     record_many: 'kirjet',
     chain_intact: 'ahel terve, ainult lisamine.',
@@ -327,6 +353,8 @@ let audioStarting = false;
 
 let gradeMode = false;
 let selectedGrade = 0;
+let previewUrl = null;
+let lastSavedRecord = null;
 
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
@@ -346,6 +374,9 @@ function applyLanguage() {
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   setSpeechLang(speechLang);
   renderHygieneGrid();
+  renderMediaPreview();
+  showMediaNote();
+  refreshSavedRecord();
 }
 
 function note(id, text, isError = false) {
@@ -656,7 +687,8 @@ async function analysePhoto(file) {
       name: file.name,
       mime: file.type,
       size: file.size,
-      reason: usable ? 'Usable photo' : `Unusable: variance ${variance.toFixed(0)}, edge ${edges.toFixed(1)}, light ${mean.toFixed(0)}`
+      reason: usable ? 'ok' : 'unusable',
+      detail: `variance ${variance.toFixed(0)}, edge ${edges.toFixed(1)}, light ${mean.toFixed(0)}`
     };
   } catch (error) {
     return {
@@ -669,7 +701,8 @@ async function analysePhoto(file) {
       name: file.name,
       mime: file.type,
       size: file.size,
-      reason: `Could not read photo: ${error.message}`
+      reason: 'unreadable',
+      detail: error.message
     };
   }
 }
@@ -680,13 +713,30 @@ async function analyseVideo(file) {
   const url = URL.createObjectURL(file);
   try {
     const video = document.createElement('video');
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.muted = true;
+    video.playsInline = true;
     video.src = url;
     await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('video decode timeout')), 3000);
       video.onloadeddata = () => { clearTimeout(timer); resolve(); };
       video.onerror = () => { clearTimeout(timer); reject(new Error('video decode failed')); };
+    });
+    // A frame at time zero is often black, so seek into the clip before drawing.
+    await new Promise((resolve) => {
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        video.removeEventListener('seeked', done);
+        resolve();
+      };
+      const timer = setTimeout(done, 1200);
+      video.addEventListener('seeked', done);
+      const target = Math.min(0.2, (video.duration || 0) / 2);
+      if (target > 0) video.currentTime = target;
+      else done();
     });
     const canvas = document.createElement('canvas');
     canvas.width = 72;
@@ -694,11 +744,108 @@ async function analyseVideo(file) {
     canvas.getContext('2d').drawImage(video, 0, 0, 72, 72);
     const thumb = canvas.toDataURL('image/png');
     URL.revokeObjectURL(url);
-    return { ...meta, usable: file.size > 0, hash: byteHash, thumb, reason: `Video ${file.name}` };
+    return { ...meta, usable: file.size > 0, hash: byteHash, thumb, reason: 'ok', detail: `${file.type} ${formatBytes(file.size)}` };
   } catch (error) {
     URL.revokeObjectURL(url);
-    return { ...meta, usable: false, hash: byteHash, thumb: '', reason: `Could not read video: ${error.message}` };
+    return { ...meta, usable: false, hash: byteHash, thumb: '', reason: 'unreadable', detail: error.message };
   }
+}
+
+function formatBytes(bytes) {
+  const size = Number(bytes);
+  if (!Number.isFinite(size) || size <= 0) return '';
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} kB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function releasePreviewUrl() {
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+  }
+}
+
+function hideMediaPreview() {
+  const box = $('mediaPreview');
+  const image = $('mediaPreviewImage');
+  const video = $('mediaPreviewVideo');
+  if (image) {
+    image.hidden = true;
+    image.removeAttribute('src');
+  }
+  if (video) {
+    video.pause?.();
+    video.hidden = true;
+    video.removeAttribute('src');
+  }
+  releasePreviewUrl();
+  if (box) box.hidden = true;
+}
+
+// The chosen photo or video stays on screen, so the checker sees the attachment
+// before the record is appended.
+function renderMediaPreview() {
+  const box = $('mediaPreview');
+  if (!box) return;
+  if (!photoState?.file) {
+    hideMediaPreview();
+    return;
+  }
+  const image = $('mediaPreviewImage');
+  const video = $('mediaPreviewVideo');
+  releasePreviewUrl();
+  previewUrl = URL.createObjectURL(photoState.file);
+  if (photoState.kind === 'video') {
+    video.src = previewUrl;
+    video.hidden = false;
+    image.hidden = true;
+    image.removeAttribute('src');
+  } else {
+    image.src = previewUrl;
+    image.hidden = false;
+    video.pause?.();
+    video.hidden = true;
+    video.removeAttribute('src');
+  }
+  const readyKey = photoState.kind === 'video' ? 'media_video_ready' : 'media_photo_ready';
+  $('mediaPreviewTitle').textContent = photoState.usable ? t(readyKey) : t('media_rejected');
+  $('mediaPreviewDetail').textContent = `${photoState.name || ''} ${formatBytes(photoState.size)}`.trim();
+  box.hidden = false;
+}
+
+function showSavedRecord(record) {
+  const card = $('lastRecord');
+  if (!card) return;
+  lastSavedRecord = record;
+  const thumb = $('lastRecordThumb');
+  if (record.photo_thumb) {
+    thumb.src = record.photo_thumb;
+    thumb.hidden = false;
+  } else {
+    thumb.removeAttribute('src');
+    thumb.hidden = true;
+  }
+  $('lastRecordTitle').textContent = `${t('record_added')} ${record.seq}`;
+  const mediaWord = record.media_kind === 'video' ? 'saved_with_video' : record.media_kind === 'image' ? 'saved_with_photo' : 'saved_no_media';
+  const detail = [t(mediaWord), record.media_name || '', formatBytes(record.media_size)]
+    .filter(Boolean)
+    .join(' · ');
+  $('lastRecordDetail').textContent = detail;
+  card.hidden = false;
+}
+
+function refreshSavedRecord() {
+  if (lastSavedRecord) showSavedRecord(lastSavedRecord);
+}
+
+function clearMedia() {
+  $('photo').value = '';
+  photoState = null;
+  photoPending = false;
+  photoFailed = false;
+  hideMediaPreview();
+  updateTier();
 }
 
 function tierFor() {
@@ -709,10 +856,22 @@ function hasEvidence() {
   return Boolean(photoState?.usable);
 }
 
+function mediaNoteText(state) {
+  if (!state) return '';
+  if (state.reason === 'unreadable') return t('media_unreadable');
+  if (state.reason === 'unusable') return t('photo_unusable');
+  return state.kind === 'video' ? t('video_readable') : t('photo_readable');
+}
+
+function showMediaNote() {
+  const el = $('photoNote');
+  if (!el) return;
+  el.title = photoState?.detail || '';
+  note('photoNote', mediaNoteText(photoState), Boolean(photoState && !photoState.usable));
+}
+
 function updateTier() {
-  if (photoState) {
-    note('photoNote', photoState.reason, !photoState.usable);
-  }
+  showMediaNote();
 }
 
 function reusedPhoto(photo) {
@@ -774,6 +933,7 @@ function resetCaptureInputs() {
   photoState = null;
   audioState = null;
   photoFailed = false;
+  hideMediaPreview();
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
   updateTier();
@@ -782,6 +942,7 @@ function resetCaptureInputs() {
 async function finishRecord(record, noteId, message) {
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   resetCaptureInputs();
+  showSavedRecord(record);
   await refreshCount();
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
@@ -1245,7 +1406,8 @@ function bind() {
       const result = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
       if (token !== photoToken) return;
       photoState = result;
-      note('photoNote', `${file.name ? `${file.name} — ` : ''}${result.reason}`, !result.usable);
+      renderMediaPreview();
+      showMediaNote();
     } catch (error) {
       if (token === photoToken) {
         photoFailed = true;
@@ -1256,6 +1418,7 @@ function bind() {
     }
   });
   $('saveBtn').addEventListener('click', saveFromForm);
+  $('mediaClearBtn')?.addEventListener('click', clearMedia);
   window.addEventListener('online', updateNetwork);
   window.addEventListener('offline', updateNetwork);
 }
