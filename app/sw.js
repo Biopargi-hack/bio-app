@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-v7';
+const CACHE = 'tap-to-prove-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const ASSETS = [
   './icon_512.png',
   './paper.html',
   './showcase.html',
+  './sheet.html',
   './sample_cip.csv',
   './fonts/barlow_condensed_600_latin.woff2',
   './fonts/barlow_condensed_600_latin_ext.woff2',

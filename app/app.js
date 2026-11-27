@@ -74,6 +74,7 @@ const WORDS = {
     excel_empty: 'No records yet. Append one first.',
     excel_done: 'Excel CSV ready. Rows:',
     excel_failed: 'Excel export failed.',
+    sheet: 'Live records',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
     confirm: 'PROVE CLEAN',
@@ -174,6 +175,7 @@ const WORDS = {
     excel_empty: 'Kirjeid veel pole. Lisa esmalt üks kirje.',
     excel_done: 'Excel CSV on valmis. Ridu:',
     excel_failed: 'Exceli eksport ebaõnnestus.',
+    sheet: 'Elavad kirjed',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
     filter: 'Otsi koha või kontrollpunkti järgi',
@@ -500,6 +502,22 @@ function legacyHash(value) {
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
 }
 
+const recordsChannel = 'BroadcastChannel' in window ? new BroadcastChannel('toend-records') : null;
+
+function notifyRecords(record) {
+  const event = { type: 'record', seq: record.seq, at: Date.now() };
+  try {
+    recordsChannel?.postMessage(event);
+  } catch (error) {
+    console.warn('record broadcast failed', error);
+  }
+  try {
+    localStorage.setItem('toend-records-event', JSON.stringify(event));
+  } catch (error) {
+    console.warn('record event fallback failed', error);
+  }
+}
+
 async function appendRecord(payload, mediaFile, audioBlob) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -762,6 +780,7 @@ async function finishRecord(record, noteId, message) {
     audioSpeechSession = null;
     audioRecognition = null;
   }
+  notifyRecords(record);
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
   spokenLangs = new Set();

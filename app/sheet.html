@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#a30029">
+  <meta name="description" content="Tõend live records: a same-device sheet that follows new checks.">
+  <title>Tõend live records</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .sheet-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .sheet-head h1 { margin: 0; font: 700 clamp(28px, 5vw, 46px)/.95 var(--display); text-transform: uppercase; letter-spacing: -.02em; }
+    .sheet-head p { max-width: 52ch; margin: 10px 0 0; color: var(--muted); font: 400 14px/1.5 var(--mono); }
+    .sheet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sheet-actions a, .sheet-actions button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: 600 12px/1 var(--mono); text-decoration: none; text-transform: uppercase; cursor: pointer; }
+    .sheet-actions button { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+    .sheet-actions a:hover, .sheet-actions button:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .sheet-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 0 18px; border-bottom: 1px solid var(--ink); color: var(--muted); font: 500 12px/1.3 var(--mono); }
+    .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-tint); }
+    .live-dot.pulse { animation: livePulse .6s ease-out; }
+    @keyframes livePulse { from { box-shadow: 0 0 0 0 var(--accent); } to { box-shadow: 0 0 0 10px transparent; } }
+    .table-wrap { overflow-x: auto; margin-top: 18px; }
+    table { width: 100%; min-width: 920px; border-collapse: collapse; font: 400 12px/1.4 var(--mono); }
+    th { padding: 10px 12px; border-bottom: 2px solid var(--ink); color: var(--muted); text-align: left; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td.hash { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+    tr.fresh { background: var(--accent-tint); }
+    .empty { padding: 40px 0; color: var(--muted); font: 500 15px/1.5 var(--display); }
+    .sheet-foot { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font: 400 12px/1.5 var(--mono); }
+    footer a { color: var(--accent); text-decoration: none; }
+    @media (max-width: 720px) {
+      .sheet-head { align-items: flex-start; }
+      .sheet-actions { width: 100%; }
+      .sheet-actions a, .sheet-actions button { flex: 1 1 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#sheet-table" data-i18n="skip">Jump to records</a>
+  <header class="topbar">
+    <div class="identity">
+      <div class="wordmark">TÕEND<small data-i18n="subtitle">Proof for the production line</small></div>
+    </div>
+    <div class="topbar-meta">
+      <span class="tagpill" data-i18n="localOnly">This device</span>
+      <button class="switch" id="langBtn" type="button">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="sheet-head">
+      <div>
+        <h1 data-i18n="title">Live records</h1>
+        <p data-i18n="intro">This page follows new checks on this device. Open the capture app in another tab and append a record. The row appears here without a reload.</p>
+      </div>
+      <div class="sheet-actions">
+        <a href="/" data-i18n="capture">Open capture</a>
+        <button id="sheetExcelBtn" type="button" data-i18n="excel">Excel CSV</button>
+      </div>
+    </div>
+
+    <div class="sheet-status" role="status">
+      <span class="live-dot" id="liveDot" aria-hidden="true"></span>
+      <span id="liveText" data-i18n="live">Live</span>
+      <span id="countText"></span>
+      <span id="updatedText"></span>
+    </div>
+
+    <div class="table-wrap" id="sheet-table">
+      <table aria-label="Live records">
+        <thead>
+          <tr>
+            <th data-i18n="seq">#</th>
+            <th data-i18n="time">Time</th>
+            <th data-i18n="asset">Asset</th>
+            <th data-i18n="checkpoint">Checkpoint</th>
+            <th data-i18n="verdict">Verdict</th>
+            <th data-i18n="grade">Grade</th>
+            <th data-i18n="tier">Tier</th>
+            <th data-i18n="tag">Tag</th>
+            <th data-i18n="note">Note</th>
+            <th data-i18n="hash">Hash</th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody"></tbody>
+      </table>
+      <div class="empty" id="emptyState" data-i18n="empty">No records yet. Open the capture app and append one.</div>
+    </div>
+
+    <p class="sheet-foot" data-i18n="foot">Same device only. Records live in this browser. Cross-device sync needs a shared store.</p>
+  </main>
+
+  <footer>
+    <span data-i18n="footer">Hack the Future of Food 2026. Tap to prove.</span>
+    <a href="/paper" data-i18n="onePager">One pager</a>
+  </footer>
+
+  <script type="module">
+    const $ = (id) => document.getElementById(id);
+    const EVENT_KEY = 'toend-records-event';
+    const CHANNEL = 'toend-records';
+
+    const WORDS = {
+      en: {
+        skip: 'Jump to records', subtitle: 'Proof for the production line', localOnly: 'This device',
+        title: 'Live records', intro: 'This page follows new checks on this device. Open the capture app in another tab and append a record. The row appears here without a reload.',
+        capture: 'Open capture', excel: 'Excel CSV', live: 'Live', seq: '#', time: 'Time', asset: 'Asset',
+        checkpoint: 'Checkpoint', verdict: 'Verdict', grade: 'Grade', tier: 'Tier', tag: 'Tag', note: 'Note',
+        hash: 'Hash', empty: 'No records yet. Open the capture app and append one.',
+        foot: 'Same device only. Records live in this browser. Cross-device sync needs a shared store.',
+        footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'One pager',
+        count: (n) => `${n} record${n === 1 ? '' : 's'}`, updated: (s) => `Updated ${s}`,
+        excel_empty: 'No records to export yet.', excel_done: 'Excel CSV ready.', excel_failed: 'Excel CSV failed.',
+        saveNote: 'Live records'
+      },
+      et: {
+        skip: 'Hüppa kirjete juurde', subtitle: 'Tõend tootmisliinile', localOnly: 'See seade',
+        title: 'Elavad kirjed', intro: 'See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.',
+        capture: 'Ava salvestus', excel: 'Excel CSV', live: 'Otseülekanne', seq: '#', time: 'Aeg', asset: 'Seade',
+        checkpoint: 'Kontrollpunkt', verdict: 'Otsus', grade: 'Hinne', tier: 'Tase', tag: 'Silt', note: 'Märkus',
+        hash: 'Räsikood', empty: 'Kirjeid veel pole. Ava salvestusleht ja lisa kirje.',
+        foot: 'Ainult samas seadmes. Kirjed on selles brauseris. Erinevate seadmete vaheliseks sünkroniseerimiseks on vaja jagatud hoidlat.',
+        footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'Üheleht',
+        count: (n) => `${n} kirjet`, updated: (s) => `Uuendatud ${s}`,
+        excel_empty: 'Eksportimiseks pole kirjeid.', excel_done: 'Excel CSV on valmis.', excel_failed: 'Excel CSV ebaõnnestus.',
+        saveNote: 'Elavad kirjed'
+      }
+    };
+
+    let lang = localStorage.getItem('toend-lang') === 'et' ? 'et' : 'en';
+    let records = [];
+    let lastSeq = 0;
+    const channel = 'BroadcastChannel' in window ? new BroadcastChannel('toend-records') : null;
+
+    function t(key, ...args) {
+      const value = WORDS[lang][key] ?? WORDS.en[key] ?? key;
+      return typeof value === 'function' ? value(...args) : value;
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = lang;
+      $('langBtn').textContent = lang === 'et' ? 'EN' : 'ET';
+      document.querySelectorAll('[data-i18n]').forEach((node) => {
+        node.textContent = t(node.dataset.i18n);
+      });
+      render();
+    }
+
+    function openDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('toend', 2);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'seq' });
+          if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'key' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function allRecords() {
+      const db = await openDb();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction('records', 'readonly').objectStore('records').getAll();
+        req.onsuccess = () => resolve(req.result.sort((a, b) => a.seq - b.seq));
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function cell(row, value) {
+      const td = document.createElement('td');
+      td.textContent = value === null || value === undefined || value === '' ? '—' : String(value);
+      return td;
+    }
+
+    function render() {
+      $('recordsBody').replaceChildren();
+      $('emptyState').hidden = records.length > 0;
+      $('countText').textContent = t('count', records.length);
+      for (const record of records) {
+        const row = document.createElement('tr');
+        if (record.seq > lastSeq) row.className = 'fresh';
+        row.append(
+          cell(row, record.seq),
+          cell(row, record.created_at ? new Date(record.created_at).toLocaleString(lang === 'et' ? 'et-EE' : 'en-GB') : ''),
+          cell(row, record.asset),
+          cell(row, record.checkpoint),
+          cell(row, record.verdict),
+          cell(row, record.grade),
+          cell(row, record.tier),
+          cell(row, record.tag_sig),
+          cell(row, record.transcript || record.method),
+          cell(row, record.hash ? record.hash.slice(0, 12) : '')
+        );
+        row.lastElementChild.classList.add('hash');
+        $('recordsBody').append(row);
+      }
+    }
+
+    function pulse() {
+      $('liveDot').classList.remove('pulse');
+      void $('liveDot').offsetWidth;
+      $('liveDot').classList.add('pulse');
+      $('updatedText').textContent = t('updated', new Date().toLocaleTimeString(lang === 'et' ? 'et-EE' : 'en-GB'));
+    }
+
+    async function refresh(announce = false) {
+      try {
+        const next = await allRecords();
+        const newest = next.reduce((max, record) => Math.max(max, Number(record.seq) || 0), 0);
+        if (announce && newest > lastSeq) pulse();
+        records = next;
+        lastSeq = newest;
+        render();
+      } catch (error) {
+        console.warn('live sheet refresh failed', error);
+      }
+    }
+
+    function csvCell(value) {
+      const text = value === null || value === undefined ? '' : String(value);
+      return `"${text.replaceAll('"', '""')}"`;
+    }
+
+    async function exportExcel() {
+      if (!records.length) {
+        console.info(t('excel_empty'));
+        return;
+      }
+      const headers = ['seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier', 'tag_sig', 'source', 'transcript', 'instrument', 'language', 'device_id', 'hash'];
+      const rows = [headers.map(csvCell).join(';')];
+      for (const record of records) rows.push(headers.map((key) => csvCell(record[key])).join(';'));
+      const blob = new Blob(['\ufeff' + rows.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `toend-records-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      console.info(t('excel_done'));
+    }
+
+    $('langBtn').addEventListener('click', () => {
+      lang = lang === 'et' ? 'en' : 'et';
+      localStorage.setItem('toend-lang', lang);
+      applyLanguage();
+    });
+    $('sheetExcelBtn').addEventListener('click', exportExcel);
+
+    channel?.addEventListener('message', (event) => {
+      if (event.data?.type === 'record') refresh(true);
+    });
+    window.addEventListener('storage', (event) => {
+      if (event.key === EVENT_KEY) refresh(true);
+    });
+    window.addEventListener('focus', () => refresh(true));
+    setInterval(() => refresh(false), 2500);
+
+    applyLanguage();
+    refresh(false);
+  </script>
+</body>
+</html>
