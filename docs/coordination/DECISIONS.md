@@ -5,6 +5,17 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 taptoprove.ee only
+
+**Decision.** The Biopargi hack app uses taptoprove.ee as its only production domain. The old nfc.arle.top Pages domain and its DNS record were removed. Repository links and the verify gate accept only taptoprove.ee.
+
+**Why.** The owner asked that the project be associated only with taptoprove.ee and that old entries be removed.
+
+**Consequence.** Old coordination notes keep their historical wording, but live docs and generated NFC links use the new domain. The `www.taptoprove.ee` alias remains part of the same new domain.
+
+---
+
+
 ## 2026-11-27 — Three-point picture, no visible C tier
 
 **Decision.** The right-side illustration now shows three grades (3 clean, 2 fault, 1 serious) instead of five stations. The visible "Evidence tier" field is hidden, and the fixed-default card no longer mentions tier C. The underlying tier value is still computed for records.
