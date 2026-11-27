@@ -36,17 +36,24 @@ Say plainly: the card ID shows which card was tapped. It is not a cryptographic 
 
 ## Fast change loop
 
+Always start from the current `main`. The old local checkout is stale after squash merges.
+
 ```bash
-git fetch origin
-git worktree add -b feat/<task> ../bio_<task> origin/main
-cd ../bio_<task>
-node scripts/verify.mjs
-node scripts/note.mjs --as <handle> "what you did"
+node scripts/start_task.mjs feat/my_task
+cd ../bio_my_task
+node scripts/note.mjs --as <handle> "what you started"
 ```
 
-Push the branch, open a PR, let the checks finish, then squash merge. Each PR gets a preview URL in the Action log. Production updates from `main` in under a minute.
+Make the change, then open the PR with the helper:
 
-Do not branch from a stale local `main`. The old local checkout was left behind after squash merges.
+```bash
+node scripts/verify.mjs
+node scripts/open_pr.mjs "feat(app): short title" app/index.html app/styles.css
+```
+
+`open_pr.mjs` stages only the paths you list, commits them, pushes the branch and creates a PR with all four required sections. Do not use `gh pr create --fill`. It produces a body that fails the `pr-notes` check.
+
+Each PR gets a preview URL in the Action log. Production updates from `main` in under a minute after an approval and a squash merge.
 
 ## Review reality
 
