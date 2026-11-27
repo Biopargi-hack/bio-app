@@ -2,7 +2,6 @@ const $ = (id) => document.getElementById(id);
 
 const WORDS = {
   en: {
-    subtitle: 'Proof for the production line',
     rail_caption: 'One tap, one record.',
     flow_title: 'How it works',
     flow1: 'Stick the card on the place you check.',
@@ -80,10 +79,8 @@ const WORDS = {
     note_hint: 'Press Speak and talk. Estonian, Russian and English are detected from the first words; recognition may need an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
-    evidence: 'Photo or video evidence',
     take_photo: 'Take photo',
     record_video: 'Record video',
-    photo_hint: 'A photo or video only counts as evidence if the app can read it.',
     instrument: 'Instrument reading',
     save: 'Append record',
     excel: 'Excel CSV',
@@ -133,7 +130,6 @@ const WORDS = {
     landing_table: 'View table',
   },
   et: {
-    subtitle: 'Tõend tootmisliinile',
     rail_caption: 'Üks puudutus, üks kirje.',
     flow_title: 'Kuidas see töötab',
     flow1: 'Kleebi kaart kontrollitava koha külge.',
@@ -211,10 +207,8 @@ const WORDS = {
     note_hint: 'Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
-    evidence: 'Foto või video tõend',
     take_photo: 'Tee foto',
-    record_video: 'Film video',
-    photo_hint: 'Foto või video loeb tõendina ainult siis, kui rakendus suudab selle lugeda.',
+    record_video: 'Filmi video',
     media_badge: 'Meedia',
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
@@ -758,7 +752,7 @@ function resetCaptureInputs() {
   $('photo').value = '';
   photoState = null;
   audioState = null;
-  note('photoNote', t('photo_hint'));
+  note('photoNote', '');
   note('audioNote', t('audio_hint'));
   updateTier();
 }
