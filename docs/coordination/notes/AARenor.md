@@ -17,3 +17,7 @@ Format:
 - **2026-11-27 09:55** — Localized all generated NFC, chain and audit messages. verify 13 passed, browser checks at 1280 and 390 clean, offline capture kept two records.
 
 - **2026-11-27 09:56** — Admin merged PR 3 under demo emergency because branch rules require review and the hackathon demo is live today.
+
+- **2026-11-27 10:19** — Five tag writer slots now store a name and unique signature per card and write URL plus text records. Query link opens with asset filled and KINNITA focused. Browser check with mocked NDEF passed, physical phone still untested.
+
+- **2026-11-27 10:21** — Admin merged PR 5 under demo emergency because branch rules require review and the hackathon demo is live today.

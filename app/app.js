@@ -6,6 +6,9 @@ const CHECKPOINTS = [
 ];
 const METHODS = ['Visual', 'ATP swab', 'Temperature', 'CIP cycle', 'Declared'];
 
+const TAGS_KEY = 'toend-tags';
+const TAG_DEFAULTS = ['Täitepea', 'Klapp', 'Drenaaž', 'Uks', 'Kätepesu'];
+
 const WORDS = {
   en: {
     subtitle: 'Production line flight recorder',
@@ -86,6 +89,14 @@ const WORDS = {
     empty_records: 'Nothing here yet. Tap a tag and append a check.',
     answer_note: 'matching records. Answered in',
     ms_from_device: 'ms from this device.',
+    tag_kit_title: 'Write 5 tags',
+    tag_kit_hint: 'Each card gets its own name and signature. The tag opens this place straight on the phone.',
+    tag_slot: 'Tag',
+    tag_sign: 'Signature',
+    tag_write: 'Write tag',
+    tag_written: 'Wrote tag',
+    qr_link: 'QR link',
+    tag_read_sign: 'Tag read',
     footer: 'Built for Hack the Future of Food 2026. Tap the sticker, confirm, keep the record.'
   },
   et: {
@@ -167,6 +178,14 @@ const WORDS = {
     empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
     answer_note: 'vastavat kirjet. Vastus leiti',
     ms_from_device: 'ms jooksul seadmest.',
+    tag_kit_title: 'Kirjuta 5 silti',
+    tag_kit_hint: 'Iga kaart saab oma nime ja allkirja. Silt avab telefoni otse selle koha kinnitusvaatele.',
+    tag_slot: 'Silt',
+    tag_sign: 'Allkiri',
+    tag_write: 'Kirjuta silt',
+    tag_written: 'Kirjutasime sildi',
+    qr_link: 'QR link',
+    tag_read_sign: 'Silt loetud',
     footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta kleepsu, kinnita puhtus, hoia kirje alles.'
   }
 };
@@ -570,10 +589,24 @@ async function initNfc() {
   try {
     await reader.scan();
     reader.onreading = (event) => {
-      const text = event.message.records.find((r) => r.recordType === 'text');
-      const value = text ? new TextDecoder().decode(text.data) : WORDS[lang].nfc_tagged_asset;
-      setAsset(value, WORDS[lang].nfc_tag);
-      note('nfcNote', `${WORDS[lang].nfc_tag_read}: ${value}`);
+      const records = event.message.records;
+      const urlRecord = records.find((r) => r.recordType === 'url' || r.recordType === 'absolute-url');
+      const textRecord = records.find((r) => r.recordType === 'text');
+      let asset = textRecord ? new TextDecoder().decode(textRecord.data) : WORDS[lang].nfc_tagged_asset;
+      let signature = '';
+      if (urlRecord) {
+        const raw = typeof urlRecord.data === 'string' ? urlRecord.data : new TextDecoder().decode(urlRecord.data);
+        try {
+          const url = new URL(raw);
+          asset = url.searchParams.get('asset') || asset;
+          signature = url.searchParams.get('tag') || '';
+        } catch {
+          asset = raw;
+        }
+      }
+      const source = signature ? `${WORDS[lang].nfc_tag} ${signature}` : WORDS[lang].nfc_tag;
+      setAsset(asset, source);
+      note('nfcNote', `${WORDS[lang].tag_read_sign}: ${asset}${signature ? ', ' + signature : ''}`);
     };
     ndefReader = reader;
     note('nfcNote', WORDS[lang].nfc_armed);
@@ -592,8 +625,12 @@ async function writeTag() {
     note('nfcNote', WORDS[lang].nfc_write_no_asset, true);
     return;
   }
+  const url = `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=MANUAL`;
   try {
-    await ndefReader.write({ records: [{ recordType: 'text', data: name }] });
+    await ndefReader.write({ records: [
+      { recordType: 'url', data: url },
+      { recordType: 'text', data: name }
+    ] });
     note('nfcNote', `${WORDS[lang].nfc_write_done} ${name}`);
   } catch (error) {
     note('nfcNote', `${WORDS[lang].nfc_write_failed}: ${error.message}`, true);
@@ -604,6 +641,75 @@ function setAsset(name, source) {
   $('asset').value = name;
   $('assetStampName').textContent = name;
   $('assetSource').textContent = source;
+}
+
+let tags = [];
+
+function loadTags() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TAGS_KEY) || '[]');
+    if (Array.isArray(saved) && saved.length === 5) return saved;
+  } catch {
+    // A broken saved list is replaced by fresh signatures.
+  }
+  return TAG_DEFAULTS.map((name, index) => ({
+    name,
+    sig: `T${index + 1} ${Math.random().toString(16).slice(2, 6).toUpperCase()}`
+  }));
+}
+
+function saveTags() {
+  localStorage.setItem(TAGS_KEY, JSON.stringify(tags));
+}
+
+function tagUrl(tag) {
+  return `https://nfc.arle.top/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}`;
+}
+
+function renderTagSlots() {
+  const host = $('tagSlots');
+  if (!host) return;
+  host.innerHTML = tags.map((tag, index) => `
+    <div class="tag-slot">
+      <span class="tag-index" aria-hidden="true">${index + 1}</span>
+      <label class="field">
+        <span>${WORDS[lang].tag_slot} ${index + 1}</span>
+        <input data-tag-name="${index}" value="${escapeHtml(tag.name)}" spellcheck="false">
+      </label>
+      <span class="tag-sign">${escapeHtml(tag.sig)}</span>
+      <button class="ghost small" type="button" data-tag-write="${index}">${WORDS[lang].tag_write}</button>
+    </div>`).join('');
+  for (const input of host.querySelectorAll('[data-tag-name]')) {
+    input.addEventListener('change', () => {
+      const index = Number(input.dataset.tagName);
+      tags[index].name = input.value.trim() || TAG_DEFAULTS[index];
+      input.value = tags[index].name;
+      saveTags();
+    });
+  }
+  for (const button of host.querySelectorAll('[data-tag-write]')) {
+    button.addEventListener('click', () => writeTagSlot(Number(button.dataset.tagWrite)));
+  }
+}
+
+async function writeTagSlot(index) {
+  if (!ndefReader) await initNfc();
+  if (!ndefReader) {
+    note('nfcNote', WORDS[lang].nfc_write_no_reader, true);
+    return;
+  }
+  const tag = tags[index];
+  tag.name = tag.name.trim() || TAG_DEFAULTS[index];
+  saveTags();
+  try {
+    await ndefReader.write({ records: [
+      { recordType: 'url', data: tagUrl(tag) },
+      { recordType: 'text', data: tag.name }
+    ] });
+    note('nfcNote', `${WORDS[lang].tag_written} ${index + 1}: ${tag.name}, ${tag.sig}`);
+  } catch (error) {
+    note('nfcNote', `${WORDS[lang].nfc_write_failed}: ${error.message}`, true);
+  }
 }
 
 function toggleVoice() {
@@ -696,6 +802,7 @@ function bind() {
   $('langToggle').addEventListener('click', () => {
     lang = lang === 'en' ? 'et' : 'en';
     applyLanguage();
+    renderTagSlots();
     if (recognition) toggleVoice();
     refreshRecords();
   });
@@ -731,8 +838,9 @@ function bind() {
 }
 
 async function start() {
-  populateSelects();
+  tags = loadTags();
   applyLanguage();
+  renderTagSlots();
   bind();
   updateTier();
   updateNetwork();
@@ -741,7 +849,12 @@ async function start() {
   await registerServiceWorker();
   const params = new URLSearchParams(location.search);
   const asset = params.get('asset');
-  if (asset) setAsset(asset, 'QR link');
+  const tag = params.get('tag');
+  if (asset) {
+    setAsset(asset, tag ? `${WORDS[lang].nfc_tag} ${tag}` : WORDS[lang].qr_link);
+    document.querySelector('.quick')?.scrollIntoView({ block: 'center' });
+    $('cleanBtn').focus({ preventScroll: true });
+  }
   initNfc();
 }
 
