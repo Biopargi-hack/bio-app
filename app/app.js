@@ -70,6 +70,10 @@ const WORDS = {
     photo_hint: 'A photo or video only counts as evidence if the app can read it.',
     instrument: 'Instrument reading',
     save: 'Append record',
+    excel: 'Excel CSV',
+    excel_empty: 'No records yet. Append one first.',
+    excel_done: 'Excel CSV ready. Rows:',
+    excel_failed: 'Excel export failed.',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
     confirm: 'PROVE CLEAN',
@@ -166,6 +170,10 @@ const WORDS = {
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     save: 'Lisa kirje',
+    excel: 'Excel CSV',
+    excel_empty: 'Kirjeid veel pole. Lisa esmalt üks kirje.',
+    excel_done: 'Excel CSV on valmis. Ridu:',
+    excel_failed: 'Exceli eksport ebaõnnestus.',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
     filter: 'Otsi koha või kontrollpunkti järgi',
@@ -344,6 +352,34 @@ async function allRecords() {
     req.onsuccess = () => resolve(req.result.sort((a, b) => a.seq - b.seq));
     req.onerror = () => reject(req.error);
   });
+}
+
+function csvCell(value) {
+  const text = value === null || value === undefined ? '' : String(value);
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+async function exportExcel() {
+  try {
+    const records = await allRecords();
+    if (!records.length) {
+      note('saveNote', WORDS[lang].excel_empty, true);
+      return;
+    }
+    const headers = ['seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier', 'tag_sig', 'source', 'transcript', 'instrument', 'language', 'device_id', 'hash'];
+    const rows = [headers.map(csvCell).join(';')];
+    for (const record of records) rows.push(headers.map((key) => csvCell(record[key])).join(';'));
+    const blob = new Blob(['\ufeff' + rows.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `toend-records-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    note('saveNote', `${WORDS[lang].excel_done} ${records.length}`);
+  } catch (error) {
+    note('saveNote', `${WORDS[lang].excel_failed} ${error.message}`, true);
+  }
 }
 
 async function mediaDataUrl(blob) {
@@ -1104,6 +1140,7 @@ function bind() {
   });
   for (const id of ['instrument', 'method', 'verdict']) $(id).addEventListener('change', updateTier);
   $('saveBtn').addEventListener('click', saveRecord);
+  $('excelBtn').addEventListener('click', exportExcel);
   $('line').addEventListener('change', () => {
     const value = $('line').value;
     setAsset(t(value === 'all' ? 'line_all' : `line_${value}`), '', 'typed');

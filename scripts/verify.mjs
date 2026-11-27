@@ -86,6 +86,18 @@ if (indexSource.includes('id="line"')) {
   fail("app/index.html: line selector is missing");
 }
 
+const cipRaw = existsSync(join(appDir, "sample_cip.csv")) ? readFileSync(join(appDir, "sample_cip.csv")) : Buffer.alloc(0);
+if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.includes(0x3b) && cipRaw.includes(0x2c)) {
+  ok("sample CIP is Excel friendly with BOM, semicolon and comma decimals");
+} else {
+  fail("app/sample_cip.csv: expected UTF-8 BOM, semicolon separators and comma decimals");
+}
+if (appSource.includes("function exportExcel") && indexSource.includes('id="excelBtn"')) {
+  ok("app exports current records as Excel CSV");
+} else {
+  fail("app: Excel CSV export button or function is missing");
+}
+
 // The showcase page must carry the demo NFC link and its tag id.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
 if (showcase.includes("TAP-DEMO-01") && (showcase.includes("nfc.arle.top/?asset=") || showcase.includes("taptoprove.ee/?asset="))) {
