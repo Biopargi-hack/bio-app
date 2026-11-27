@@ -24,7 +24,7 @@ Pull requests get their own preview URL printed in the Action log. Branch name b
 
 ## Näide ja NFC link
 
-Näide on lehel https://nfc.arle.top/showcase.html. NFC demo link on `https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1, pildi, hääle, video ja teksti ning automaatset üleminekut hindele 1 pärast nelja musta märkust. Andmed on ainult näite lehel.
+Näide on lehel https://nfc.arle.top/showcase. NFC demo link on `https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1, pildi, hääle, video ja teksti ning automaatset üleminekut hindele 1 pärast nelja musta märkust. Andmed on ainult näite lehel.
 
 ## Four contributors
 
