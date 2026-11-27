@@ -233,14 +233,14 @@
       <div class="tag-card">
         <div class="tag-sticker">
           <span>TAP-DEMO-01</span>
-          <small id="stickerNote">kleebis kontrollikohal</small>
+          <small id="stickerNote">näidislink, füüsilist kleebist pole</small>
         </div>
         <div>
           <p class="rule" id="nfcLead">Avab õige koha ja kaardiga.</p>
           <code id="nfcUrl"></code>
           <div class="action-row">
             <button class="solid" type="button" id="copyBtn">Kopeeri link</button>
-            <a class="ghost" href="https://nfc.arle.top/?asset=Villimisliin%201%2C%20koht%2017&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
+            <a class="ghost" href="https://taptoprove.ee/?asset=Villimisliin%201%2C%20koht%2017&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
           </div>
           <p class="copy-note" id="copyNote" role="status"></p>
           <div class="machine-links" id="machineLinks"></div>
@@ -284,9 +284,9 @@
         viewerTitle: 'Vaataja', viewerText: 'Näeb kõik andmed.',
         thPlace: 'Koht', thLine: 'Liin', thGrade: 'Hinne', thProof: 'Tõend', thNote: 'Märkus',
         emptyRows: 'Märkusi pole.',
-        nfcTitle: 'NFC link', stickerNote: 'kleebis kontrollikohal',
+        nfcTitle: 'NFC link', stickerNote: 'näidislink, füüsilist kleebist pole',
         nfcLead: 'Avab õige koha ja kaardiga.',
-        copy: 'Kopeeri link', open: 'Ava näide', other_machines: 'Teised masinad',
+        copy: 'Kopeeri link', open: 'Ava näide', other_machines: 'Teised masinad, näidis',
         footerNote: 'Näide. Andmebaas on Supabase, ühendus tuleb.', footerLink: 'Ava töövaade',
         dirty: 'must', serious: 'tõsine', clean: 'korras', none: 'märkusi pole',
         viewerOnly: 'Vaataja õigus, muutmist ei võimaldata.', saved: 'Salvestatud', photo: 'pilt', voice: 'hääl 00:04', video: 'video 00:12', text: 'tekst', dirty_note: 'must koht, vaata tõendit',
@@ -309,9 +309,9 @@
         viewerTitle: 'Viewer', viewerText: 'Sees all data.',
         thPlace: 'Spot', thLine: 'Line', thGrade: 'Grade', thProof: 'Proof', thNote: 'Note',
         emptyRows: 'No notes.',
-        nfcTitle: 'NFC link', stickerNote: 'sticker on the checkpoint',
+        nfcTitle: 'NFC link', stickerNote: 'demo link, no physical sticker',
         nfcLead: 'Opens with the right spot and card.',
-        copy: 'Copy link', open: 'Open example', other_machines: 'Other machines',
+        copy: 'Copy link', open: 'Open example', other_machines: 'Other machines, demo',
         footerNote: 'Example. Supabase database, connection next.', footerLink: 'Open work view',
         dirty: 'dirty', serious: 'serious', clean: 'clean', none: 'no notes',
         viewerOnly: 'Viewer role, editing is disabled.', saved: 'Saved', photo: 'photo', voice: 'voice 00:04', video: 'video 00:12', text: 'text', dirty_note: 'dirty spot, see proof',
@@ -320,7 +320,7 @@
     };
 
     const $ = (id) => document.getElementById(id);
-    const NFC_URL = 'https://nfc.arle.top/?asset=Villimisliin%201%2C%20koht%2017&tag=TAP-DEMO-01&via=nfc';
+    const NFC_URL = 'https://taptoprove.ee/?asset=Villimisliin%201%2C%20koht%2017&tag=TAP-DEMO-01&via=nfc';
 
     const MACHINE_LINKS = [
       ['Pesu', 'TAP-DEMO-02'],
@@ -334,7 +334,7 @@
     ];
 
     function machineUrl(name, tag) {
-      return `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=${tag}&via=nfc`;
+      return `https://taptoprove.ee/?asset=${encodeURIComponent(name)}&tag=${tag}&via=nfc`;
     }
 
     function renderMachineLinks() {
