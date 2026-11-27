@@ -6,8 +6,8 @@ start. Keep them current.
 
 ## Mission
 
-**Tõend** is a production-line flight recorder for the A. Le Coq challenge at
-Hack the Future of Food 2026. Tap a sticker, say what you did, attach evidence,
+**Tap to Prove** is a production-line proof app for the A. Le Coq challenge at
+Hack the Future of Food 2026. Tap a card, say what you did, attach evidence,
 and keep an append-only record with an evidence tier and a hash chain.
 
 Win the demo: **tap → speak → bad photo refused → audit → tamper break**, in
@@ -30,8 +30,22 @@ node scripts/verify.mjs                 # the gate: syntax, links, manifest, sec
 node scripts/note.mjs "what you did"    # append to your coordination note
 ```
 
-There is no `bun install` and no test runner. `verify.mjs` is dependency-free on
-purpose. If you add tooling, justify it in the commit message.
+There is no `bun install` and no test runner. `verify.mjs` is dependency-free on purpose.
+
+## Fast demo loop
+
+Start every task from the current remote tip, not from a stale local `main`:
+
+```bash
+git fetch origin
+git worktree add -b feat/<task> ../bio_<task> origin/main
+cd ../bio_<task>
+node scripts/verify.mjs
+node scripts/note.mjs --as <handle> "what you did"
+```
+
+PRs deploy a preview per branch. Squash merge to `main` for production. Delete
+merged branches when GitHub does not do it automatically.
 
 ## Non-negotiables
 
@@ -88,7 +102,10 @@ The repo is the message bus. Four people, four agents, no chat history shared.
   scoped, e.g. `feat(app): refuse unusable photos`.
 - Every PR fills the template: what changed, how it was verified, what was
   **not** tested, and the handoff. CI rejects PRs that skip these sections.
-- Keep PRs small enough to review in five minutes. One logical change.
+
+During this hackathon the owner has twice used admin merge to ship faster.
+Say that plainly in the PR and in your own note file. Do not hide it behind
+the phrase demo emergency.
 
 ## Definition of done
 
@@ -102,8 +119,9 @@ The repo is the message bus. Four people, four agents, no chat history shared.
 
 ## Do not
 
-- Push to `main`, force-push, or bypass the ruleset except during a demo
-  emergency (then say so in the PR and the note file).
+- Push to `main`, force-push, or bypass the ruleset without saying so in the
+  PR and your own note file. The owner has bypassed review twice to ship faster;
+  name that fact when it happens again.
 - Add a framework, package manager or backend during the hackathon unless the
   brief changes.
 - Commit `.env`, tokens, photos of real people or real production data.

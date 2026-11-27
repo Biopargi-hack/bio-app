@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tõend paper form</title>
+  <title>Tap to Prove paper form</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    body { background: #fff; }
+    body { background: #edf6f5; color: #0d1b22; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; }
     main { max-width: 760px; padding: 24px; }
-    h1 { font: 700 34px/1 var(--display); margin: 0 0 4px; }
-    .paper-head { display: flex; justify-content: space-between; align-items: end; border-bottom: 3px solid var(--ink); padding-bottom: 10px; }
-    .timer { font: 700 26px/1 var(--mono); }
+    h1 { font: 700 34px/1 'Barlow Condensed', sans-serif; margin: 0 0 4px; text-transform: uppercase; }
+    .paper-head { display: flex; justify-content: space-between; align-items: end; border-bottom: 3px solid #0d1b22; padding-bottom: 10px; }
+    .timer { font: 700 26px/1 'IBM Plex Mono', monospace; }
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { border: 1px solid var(--ink); padding: 10px; text-align: left; vertical-align: top; height: 54px; font-size: 13px; }
-    th { background: var(--steel); }
+    th, td { border: 1px solid #0d1b22; padding: 10px; text-align: left; vertical-align: top; height: 54px; font-size: 13px; }
+    th { background: #0d1b22; color: #edf6f5; }
     .print-btn { margin: 14px 0; }
     @media print { .print-btn { display: none; } body { font-size: 11px; } }
   </style>
@@ -22,7 +22,7 @@
   <main>
     <div class="paper-head">
       <div>
-        <h1>Tõend, paper check</h1>
+        <h1>Tap to Prove, paper check</h1>
         <p>Same five checkpoints, timed against the app.</p>
       </div>
       <span class="timer">Time: ______ s</span>

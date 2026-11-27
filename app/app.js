@@ -11,16 +11,17 @@ const TAG_DEFAULTS = ['Täitepea', 'Klapp', 'Drenaaž', 'Uks', 'Kätepesu'];
 
 const WORDS = {
   en: {
-    subtitle: 'Production line flight recorder',
+    subtitle: 'Proof for the production line',
     intro_kicker: 'Live demo, records stay on this device',
-    intro_title: 'Cleanliness confirmed in two seconds.',
-    intro_body: 'Imagine a lemonade or beer line at A. Le Coq. Today every check ends in a paper form. We put a waterproof NFC sticker on each important machine. Tap it, press one green button, and the check is recorded.',
+    hero_note: 'Tap the card. Say what you did. The record writes itself.',
+    intro_title: 'One tap. One record. No paper.',
+    intro_body: 'A waterproof NFC card sits on every place that gets checked. Tap it, say what you did, and the record writes itself. The wash is the hard case, because the machine is closed and there is no photo to take.',
     beat1: 'Tap the sticker',
     beat2: 'Green button, done in 2 seconds',
     beat3: 'Red button and a fault from the list',
     beat4: 'Photo when one is possible',
     beat5: 'Audit the record later',
-    capture_title: 'New check',
+    capture_title: 'Tap station',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
     scan: 'Tap NFC tag',
@@ -51,9 +52,9 @@ const WORDS = {
     sample_label: 'Sample data, synthetic, not A. Le Coq',
     cip_note: 'Three cycles short of temperature. One record cannot be signed.',
     paper: 'Print the paper form',
-    quick_title: 'One tap confirmation',
+    quick_title: 'Tap to confirm',
     quick_prompt: 'Everything is clean and in order',
-    confirm: 'CONFIRM',
+    confirm: 'PROVE CLEAN',
     fault: 'Problem',
     fault_type: 'What is wrong',
     fault_foam: 'foam on the floor',
@@ -77,7 +78,7 @@ const WORDS = {
     nfc_tap_again: 'Reader armed. Tap a sticker.',
     nfc_tag_read: 'Tag read',
     nfc_tagged_asset: 'tagged asset',
-    nfc_tag: 'NFC tag',
+    nfc_tag: 'NFC card',
     nfc_permission: 'NFC needs permission and HTTPS',
     nfc_write_no_reader: 'Write needs a working NFC reader first.',
     nfc_write_no_asset: 'Type the asset name before writing the tag.',
@@ -89,27 +90,28 @@ const WORDS = {
     empty_records: 'Nothing here yet. Tap a tag and append a check.',
     answer_note: 'matching records. Answered in',
     ms_from_device: 'ms from this device.',
-    tag_kit_title: 'Write 5 tags',
-    tag_kit_hint: 'Each card gets its own name and signature. The tag opens this place straight on the phone.',
-    tag_slot: 'Tag',
-    tag_sign: 'Signature',
+    tag_kit_title: 'Write 5 cards',
+    tag_kit_hint: 'Each card gets its own name and card ID. The ID opens this place on the phone. It is not a cryptographic signature. Real signing needs NTAG424.',
+    tag_slot: 'Card',
+    tag_sign: 'Card ID',
     tag_write: 'Write tag',
     tag_written: 'Wrote tag',
     qr_link: 'QR link',
     tag_read_sign: 'Tag read',
-    footer: 'Built for Hack the Future of Food 2026. Tap the sticker, confirm, keep the record.'
+    footer: 'Hack the Future of Food 2026. Tap to prove.',
   },
   et: {
-    subtitle: 'Tootmisliini lennuregistraator',
+    subtitle: 'Tõend tootmisliinile',
     intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
-    intro_title: 'Puhtus kinnitatakse kahe sekundiga.',
-    intro_body: 'Kujuta ette limonaadi või õlleliini A. Le Coqis. Praegu lõppeb iga kontroll pabervormiga. Paneme igale olulisele masinale veekindla NFC-kleepsu. Puuduta seda, vajuta ühte rohelist nuppu ja kontroll on kirjas.',
+    hero_note: 'Puuduta kaarti. Ütle, mis tegid. Kirje kirjutab end ise.',
+    intro_title: 'Üks puudutus. Üks kirje. Ei paberit.',
+    intro_body: 'Iga kontrollitava koha küljes on veekindel NFC kaart. Puuduta seda, ütle, mis tegid, ja kirje kirjutab end ise. Pesu on raske näide, sest masin on suletud ja fotot ei saa teha.',
     beat1: 'Puuduta kleepsu',
     beat2: 'Roheline nupp, valmis 2 sekundiga',
     beat3: 'Punane nupp ja viga listist',
     beat4: 'Foto kui võimalik',
     beat5: 'Kontrolli kirjet hiljem',
-    capture_title: 'Uus kontroll',
+    capture_title: 'Puudutusjaam',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
     scan: 'Puuduta NFC silti',
@@ -140,9 +142,9 @@ const WORDS = {
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
     cip_note: 'Kolm tsüklit jäid temperatuurist lühemaks. Ühte kirjet ei saa allkirjastada.',
     paper: 'Prindi pabervorm',
-    quick_title: 'Ühe puudutusega kinnitus',
+    quick_title: 'Puuduta kinnitamiseks',
     quick_prompt: 'Kõik on puhas ja korras',
-    confirm: 'KINNITA',
+    confirm: 'KINNITA PUHAS',
     fault: 'Probleem',
     fault_type: 'Mis viga on',
     fault_foam: 'vaht maas',
@@ -166,7 +168,7 @@ const WORDS = {
     nfc_tap_again: 'Lugeja on valmis. Puuduta kleepsu.',
     nfc_tag_read: 'Silt loetud',
     nfc_tagged_asset: 'märgistatud koht',
-    nfc_tag: 'NFC silt',
+    nfc_tag: 'NFC kaart',
     nfc_permission: 'NFC vajab luba ja HTTPS ühendust',
     nfc_write_no_reader: 'Silti saab kirjutada ainult töötava NFC lugejaga.',
     nfc_write_no_asset: 'Kirjuta enne sildile kirjutamist masina nimi.',
@@ -178,15 +180,15 @@ const WORDS = {
     empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
     answer_note: 'vastavat kirjet. Vastus leiti',
     ms_from_device: 'ms jooksul seadmest.',
-    tag_kit_title: 'Kirjuta 5 silti',
-    tag_kit_hint: 'Iga kaart saab oma nime ja allkirja. Silt avab telefoni otse selle koha kinnitusvaatele.',
-    tag_slot: 'Silt',
-    tag_sign: 'Allkiri',
+    tag_kit_title: 'Kirjuta 5 kaarti',
+    tag_kit_hint: 'Iga kaart saab oma nime ja kaardi ID. ID avab telefoni otse selle koha vaatele. See ei ole krüptograafiline allkiri. Päris allkirjastamine vajab NTAG424.',
+    tag_slot: 'Kaart',
+    tag_sign: 'Kaardi ID',
     tag_write: 'Kirjuta silt',
     tag_written: 'Kirjutasime sildi',
     qr_link: 'QR link',
     tag_read_sign: 'Silt loetud',
-    footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta kleepsu, kinnita puhtus, hoia kirje alles.'
+    footer: 'Hack the Future of Food 2026. Tap to prove.',
   }
 };
 
@@ -195,7 +197,8 @@ let ndefReader = null;
 let recognition = null;
 let photoState = null;
 let demoBreak = null;
-let cipRows = [];
+let currentTag = '';
+let currentSource = 'typed';
 
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
@@ -205,6 +208,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
+  if ($('assetSource')) $('assetSource').textContent = sourceLabel();
 }
 
 function note(id, text, isError = false) {
@@ -441,6 +445,8 @@ async function saveRecord() {
   const effectiveTier = previous ? 'C' : tier;
   const record = await appendRecord({
     asset,
+    tag_sig: currentTag,
+    source: currentSource,
     checkpoint: $('checkpoint').value,
     method: $('method').value,
     verdict,
@@ -487,6 +493,8 @@ async function quickRecord(kind) {
   const transcript = isClean ? WORDS[lang].quick_prompt : $('faultType').value;
   const record = await appendRecord({
     asset,
+    tag_sig: currentTag,
+    source: currentSource,
     checkpoint: $('checkpoint').value,
     method: isClean ? 'Declared' : 'Visual',
     verdict: isClean ? 'clean' : 'not clean',
@@ -519,10 +527,12 @@ function renderRecords(records) {
     const broken = demoBreak !== null && r.seq >= demoBreak;
     const thumb = r.photo_thumb ? `<img src="${r.photo_thumb}" width="30" height="30" alt="evidence thumbnail">` : '';
     const reuse = r.photo_reuse_of ? `<br>reused photo from record ${r.photo_reuse_of}` : '';
+    const origin = r.source || 'typed';
+    const card = r.tag_sig ? ` · ${origin} ${escapeHtml(r.tag_sig)}` : '';
     return `<div class="record-row">
       <span class="seq">#${r.seq}</span>
       <span class="main"><strong>${escapeHtml(r.asset)} · ${escapeHtml(r.checkpoint)}</strong>
-      <small>${escapeHtml(r.verdict)} · tier ${r.tier} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
+      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
       <span class="hash ${broken ? 'broken' : ''}">${r.hash.slice(0, 8)}<br>${broken ? 'BROKEN' : 'ok'}</span>
     </div>`;
   }).join('');
@@ -604,8 +614,7 @@ async function initNfc() {
           asset = raw;
         }
       }
-      const source = signature ? `${WORDS[lang].nfc_tag} ${signature}` : WORDS[lang].nfc_tag;
-      setAsset(asset, source);
+      setAsset(asset, signature, 'nfc');
       note('nfcNote', `${WORDS[lang].tag_read_sign}: ${asset}${signature ? ', ' + signature : ''}`);
     };
     ndefReader = reader;
@@ -625,7 +634,7 @@ async function writeTag() {
     note('nfcNote', WORDS[lang].nfc_write_no_asset, true);
     return;
   }
-  const url = `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=MANUAL`;
+  const url = `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=MANUAL&via=nfc`;
   try {
     await ndefReader.write({ records: [
       { recordType: 'url', data: url },
@@ -637,10 +646,18 @@ async function writeTag() {
   }
 }
 
-function setAsset(name, source) {
+function sourceLabel() {
+  if (currentSource === 'nfc') return currentTag ? `${WORDS[lang].nfc_tag} ${currentTag}` : WORDS[lang].nfc_tag;
+  if (currentSource === 'link') return currentTag ? `${WORDS[lang].qr_link} ${currentTag}` : WORDS[lang].qr_link;
+  return WORDS[lang].no_tag;
+}
+
+function setAsset(name, tagId = '', origin = 'typed') {
+  currentTag = tagId;
+  currentSource = origin;
   $('asset').value = name;
   $('assetStampName').textContent = name;
-  $('assetSource').textContent = source;
+  $('assetSource').textContent = sourceLabel();
 }
 
 let tags = [];
@@ -663,7 +680,7 @@ function saveTags() {
 }
 
 function tagUrl(tag) {
-  return `https://nfc.arle.top/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}`;
+  return `https://nfc.arle.top/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}&via=nfc`;
 }
 
 function renderTagSlots() {
@@ -676,7 +693,7 @@ function renderTagSlots() {
         <span>${WORDS[lang].tag_slot} ${index + 1}</span>
         <input data-tag-name="${index}" value="${escapeHtml(tag.name)}" spellcheck="false">
       </label>
-      <span class="tag-sign">${escapeHtml(tag.sig)}</span>
+      <span class="tag-sign"><small>${WORDS[lang].tag_sign}</small>${escapeHtml(tag.sig)}</span>
       <button class="ghost small" type="button" data-tag-write="${index}">${WORDS[lang].tag_write}</button>
     </div>`).join('');
   for (const input of host.querySelectorAll('[data-tag-name]')) {
@@ -811,6 +828,11 @@ function bind() {
     else note('nfcNote', WORDS[lang].nfc_tap_again);
   });
   $('writeBtn').addEventListener('click', writeTag);
+  $('asset').addEventListener('input', () => {
+    currentTag = '';
+    currentSource = 'typed';
+    $('assetSource').textContent = sourceLabel();
+  });
   $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
   $('faultBtn').addEventListener('click', () => {
     $('faultField').hidden = false;
@@ -850,9 +872,10 @@ async function start() {
   const params = new URLSearchParams(location.search);
   const asset = params.get('asset');
   const tag = params.get('tag');
+  const via = params.get('via');
   if (asset) {
-    setAsset(asset, tag ? `${WORDS[lang].nfc_tag} ${tag}` : WORDS[lang].qr_link);
-    document.querySelector('.quick')?.scrollIntoView({ block: 'center' });
+    setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : tag ? 'link' : 'typed');
+    document.querySelector('.proof-pad')?.scrollIntoView({ block: 'center' });
     $('cleanBtn').focus({ preventScroll: true });
   }
   initNfc();

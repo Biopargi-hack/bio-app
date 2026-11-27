@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Dependency-free gate for the Tõend static app.
+ * Dependency-free gate for the Tap to Prove static app.
  *
  * Checks that the files we ship are the files we reference: JS parses, the
  * manifest is valid, local links and icons exist, the service worker precache
@@ -47,6 +47,14 @@ for (const file of ["app/app.js", "app/sw.js"]) {
     const detail = error.stderr?.toString().trim() || error.message;
     fail(`${file} has a syntax error:\n${detail}`);
   }
+}
+
+// Card ID must survive from the tap into every appended record.
+const appSource = existsSync(join(root, "app/app.js")) ? readFileSync(join(root, "app/app.js"), "utf8") : "";
+if (appSource.includes("tag_sig: currentTag") && appSource.includes("r.tag_sig")) {
+  ok("card ID is written to records and shown in the ledger");
+} else {
+  fail("app/app.js: card ID is missing from records or the ledger row");
 }
 
 // Manifest: valid JSON and every icon actually exists.
@@ -166,7 +174,7 @@ for (const file of tracked) {
 ok(`${tracked.length} tracked file(s) scanned for secrets`);
 
 // Report.
-console.log(`Tõend verify — ${passed.length} passed, ${failed.length} failed\n`);
+console.log(`Tap to Prove verify — ${passed.length} passed, ${failed.length} failed\n`);
 
 if (failed.length > 0) {
   for (const problem of failed) console.error(`  ✗ ${problem}`);

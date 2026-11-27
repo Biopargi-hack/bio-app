@@ -1,12 +1,12 @@
 {
-  "name": "Tõend, production line flight recorder",
-  "short_name": "Tõend",
-  "description": "Tap a tag, speak a check, attach evidence, keep an append only record.",
+  "name": "Tap to Prove",
+  "short_name": "Tap to Prove",
+  "description": "Tap an NFC card, say what you did, and keep an append-only proof record.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f2e9",
-  "theme_color": "#121712",
+  "background_color": "#0d1b22",
+  "theme_color": "#0d1b22",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "icon_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
