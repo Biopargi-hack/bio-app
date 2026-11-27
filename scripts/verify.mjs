@@ -143,21 +143,26 @@ if (indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes(
 } else {
   fail("app/index.html: the XLSX workbook download is missing");
 }
-if (indexSource.includes('id="workbookTable"') && indexSource.includes('id="workbookBody"') && appSource.includes("function renderWorkbook()")) {
-  ok("the landing embeds the workbook records table");
+if (indexSource.includes('id="wbRecordsScroll"') && indexSource.includes('id="wbHygieneScroll"') && indexSource.includes('id="wbTabHygiene"')) {
+  ok("the landing embeds both workbook sheets");
 } else {
-  fail("app: the embedded workbook records table is missing");
+  fail("app: the embedded workbook sheets are missing");
 }
-const workbookColumns = ["'seq'", "'created_at'", "'teostaja'", "'evidence'", "'chain_ok'", "'hash'"];
-if (workbookColumns.every((column) => appSource.includes(column)) && appSource.includes("await refreshCount();") && appSource.includes("renderWorkbook();")) {
-  ok("workbook rows follow the saved records with the Excel columns");
+const workbookColumns = ["'created_at'", "'teostaja'", "'evidence'", "'media_6'", "'audio'", "'chain_ok'", "'hash'"];
+if (appSource.includes("function renderRecordsSheet(") && appSource.includes("function renderHygieneSheet(") && workbookColumns.every((column) => appSource.includes(column))) {
+  ok("workbook sheets carry the Excel columns");
 } else {
-  fail("app/app.js: workbook columns or the save refresh is missing");
+  fail("app/app.js: workbook columns or sheet builders are missing");
 }
-if (appSource.includes("recordsChannel?.addEventListener") && appSource.includes("workbookChain(records)")) {
-  ok("the workbook table follows other tabs and verifies the hash chain");
+if (appSource.includes("stored.length === 16 ? legacyHash(body)") && appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
+  ok("workbook chain accepts legacy digests and saves the checkpoint");
 } else {
-  fail("app/app.js: workbook live update or chain check is missing");
+  fail("app/app.js: legacy chain branch or the saved checkpoint is missing");
+}
+if (appSource.includes("await refreshCount();") && appSource.includes("renderWorkbook();")) {
+  ok("workbook sheets follow the saved records");
+} else {
+  fail("app/app.js: the save refresh is missing");
 }
 const stylesSource = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
 

@@ -141,13 +141,8 @@ const WORDS = {
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     workbook_title: 'Workbook',
     hygiene_download: 'Download workbook',
-    workbook_note: 'The Kirjed sheet of the workbook, 22 columns. A row appears here right after a check is saved. Scroll the table sideways.',
-    workbook_empty: 'No records yet. Pick a grade and press Append record: the row appears here at once.',
+    workbook_note: 'The Hügieen and Kirjed sheets of the workbook, same columns and values as the Excel file. A save fills the row at once. Scroll sideways for more columns.',
     workbook_count: 'N records on this device',
-    workbook_shown: 'latest N shown',
-    workbook_photo: 'photo',
-    workbook_video: 'video',
-    workbook_voice: 'voice',
     landing_table: 'View table',
     paper: 'Print the paper form',
     grade_short: 'grade',
@@ -265,13 +260,8 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     workbook_title: 'Tööraamat',
     hygiene_download: 'Laadi tööraamat alla',
-    workbook_note: 'Tööraamatu leht Kirjed, 22 veergu. Rida ilmub siia kohe pärast kontrolli salvestamist. Keri tabelit külgsuunas.',
-    workbook_empty: 'Kirjeid veel pole. Vali hinne ja vajuta „Lisa kirje“: rida ilmub siia kohe.',
+    workbook_note: 'Tööraamatu lehed Hügieen ja Kirjed, samad veerud ja väärtused mis Exceli failis. Salvestus täidab rea kohe. Keri tabelit külgsuunas.',
     workbook_count: 'Selles seadmes N kirjet',
-    workbook_shown: 'näidatud viimased N',
-    workbook_photo: 'foto',
-    workbook_video: 'video',
-    workbook_voice: 'hääl',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
     grade2_word: 'must',
@@ -626,10 +616,13 @@ function legacyHash(value) {
   const text = JSON.stringify(stable(value));
   let h1 = 0x811c9dc5;
   let h2 = 0x01000193;
-  for (let i = 0; i < text.length; i += 1) {
-    const code = text.charCodeAt(i);
+  let index = 0;
+  // Python counts code points, so iterate characters rather than UTF-16 units.
+  for (const char of text) {
+    const code = char.codePointAt(0);
     h1 = Math.imul(h1 ^ code, 16777619) >>> 0;
-    h2 = Math.imul(h2 + code + i, 2246822519) >>> 0;
+    h2 = Math.imul(h2 + code + index, 2246822519) >>> 0;
+    index += 1;
   }
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
 }
@@ -1110,6 +1103,8 @@ async function finishRecord(record, noteId, message) {
   resetCaptureInputs();
   showSavedRecord(record);
   await refreshCount();
+  const sheet = $('wbRecordsScroll');
+  if (sheet) sheet.scrollTop = sheet.scrollHeight;
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
 }
@@ -1135,6 +1130,7 @@ function quickRecord(kind, grade = 0) {
     const previous = reusedPhoto(mediaItems[0]);
     const record = await appendRecord({
       asset,
+      checkpoint: checkpointFor(asset),
       tag_sig: currentTag,
       source: currentSource,
       method: isGrade ? 'Rated' : isDefault ? 'Declared' : 'Visual',
@@ -1161,124 +1157,314 @@ async function refreshCount() {
   renderWorkbook();
 }
 
-// The embedded workbook: the Kirjed sheet, newest rows first, built from the
-// same device store the capture form writes and refreshed after every save.
+/* The embedded workbook mirrors app/taptoprove_ledger.xlsx: the Hügieen and
+   Kirjed sheets, with the same columns, cell values and order that
+   sync_ledger.py writes, filled from this device's records. */
 const WORKBOOK_COLUMNS = [
   'seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier',
   'reason', 'transcript', 'source', 'teostaja', 'evidence', 'media', 'media_2',
   'media_3', 'media_4', 'media_5', 'media_6', 'audio', 'chain_ok', 'hash'
 ];
-const WORKBOOK_LIMIT = 12;
-const WORKBOOK_LONG = new Set(['reason', 'transcript', 'evidence']);
 const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
+const WORKBOOK_LONG = new Set(['reason', 'transcript', 'evidence', 'hash']);
+const HYGIENE_ROWS = [
+  ['Pesu / Wash', 'Wash'],
+  ['Täitepea / Filler head', 'Filler head'],
+  ['Klapp / Valve', 'Valve'],
+  ['Drenaaž / Drain', 'Drain'],
+  ['Uks / Door', 'Door'],
+  ['Kätepesu / Hand wash sink', 'Hand wash sink'],
+  ['Kastipesu / Crate washer', 'Crate washer'],
+  ['Siirupituba / Syrup room wall', 'Syrup room wall']
+];
+const HYGIENE_LEGEND = 'Hinded: 3 korras, 2 must, 1 tõsine';
+/* Longest name first, so Kätepesu is not read as Pesu. */
+const CHECKPOINT_NAMES = [
+  ['Kätepesu', 'Hand wash sink'],
+  ['Siirupituba', 'Syrup room wall'],
+  ['Kastipesu', 'Crate washer'],
+  ['Täitepea', 'Filler head'],
+  ['Drenaaž', 'Drain'],
+  ['Klapp', 'Valve'],
+  ['Pesu', 'Wash'],
+  ['Uks', 'Door']
+];
 
-function recordAttachments(record) {
+/* The workbook grades the Hügieen sheet on the record's checkpoint field. */
+function checkpointFor(asset) {
+  const text = String(asset || '').toLocaleLowerCase('et');
+  if (!text) return '';
+  for (const [estonian, english] of CHECKPOINT_NAMES) {
+    if (text.includes(estonian.toLocaleLowerCase('et'))) return english;
+    if (text.includes(english.toLocaleLowerCase('et'))) return english;
+  }
+  return '';
+}
+
+/* ISO week and the 5 week bucket the workbook puts a check in. */
+function isoWeekOf(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const weekday = day.getUTCDay() || 7;
+  day.setUTCDate(day.getUTCDate() + 4 - weekday);
+  const yearStart = Date.UTC(day.getUTCFullYear(), 0, 1);
+  const week = Math.ceil(((day.getTime() - yearStart) / 86400000 + 1) / 7);
+  return { year: day.getUTCFullYear(), week };
+}
+
+function hygieneBucket(week) {
+  return Math.min(53, Math.max(1, Math.floor((week + 4) / 5) * 5));
+}
+
+function isoMonday(year, week) {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const weekday = jan4.getUTCDay() || 7;
+  const monday = new Date(Date.UTC(year, 0, 4 - weekday + 1 + (week - 1) * 7));
+  return monday.getUTCFullYear() === year ? monday : null;
+}
+
+function excelDate(date) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${pad(date.getUTCDate())}.${pad(date.getUTCMonth() + 1)}.${date.getUTCFullYear()}`;
+}
+
+function recordMediaSpecs(record) {
   const items = Array.isArray(record.media_items) ? record.media_items : [];
-  if (items.length) return items;
+  if (items.length) {
+    return items
+      .filter((item) => item && typeof item === 'object')
+      .map((item, position) => ({ position, label: item.kind === 'video' ? 'video' : 'foto' }));
+  }
   if (!record.media_hash) return [];
-  return [{ kind: record.media_kind || 'image', name: record.media_name || '' }];
+  return [{ position: 0, label: record.media_kind === 'video' ? 'video' : 'foto' }];
 }
 
-function workbookEvidence(record) {
-  return [['photo', record.photo_hash], ['media', record.media_hash], ['audio', record.audio_hash]]
-    .filter(([, value]) => value)
-    .map(([label, value]) => `${label}:${value}`)
-    .join(' ');
-}
-
-function workbookMedia(record, position) {
-  const item = recordAttachments(record)[position];
-  if (!item) return '';
-  if (item.name) return item.name;
-  return t(item.kind === 'video' ? 'workbook_video' : 'workbook_photo');
-}
-
-function workbookAudio(record) {
-  if (!record.audio_hash) return '';
-  const seconds = Number(record.audio_duration) || 0;
-  return seconds ? `${Math.round(seconds)} s` : t('workbook_voice');
+/* The workbook writes one label per attachment, numbered when a record has several. */
+function mediaLabel(record, position) {
+  const specs = recordMediaSpecs(record);
+  const spec = specs[position];
+  if (!spec) return '';
+  return specs.length === 1 ? spec.label : `${spec.label} ${spec.position + 1}`;
 }
 
 function workbookValue(record, field) {
   if (field === 'grade') return record.grade || WORKBOOK_GRADE[record.verdict] || '';
   if (field === 'teostaja') return record.supervisor || record.device_id || '';
-  if (field === 'evidence') return workbookEvidence(record);
-  if (field === 'audio') return workbookAudio(record);
+  if (field === 'evidence') {
+    return [['photo', record.photo_hash], ['media', record.media_hash], ['audio', record.audio_hash]]
+      .filter(([, value]) => value)
+      .map(([label, value]) => `${label}:${value}`)
+      .join(' ');
+  }
+  if (field === 'audio') return record.audio_hash ? 'hääl' : '';
   if (field === 'media' || field.startsWith('media_')) {
-    return workbookMedia(record, field === 'media' ? 0 : Number(field.split('_')[1]) - 1);
+    return mediaLabel(record, field === 'media' ? 0 : Number(field.split('_')[1]) - 1);
   }
   return record[field] ?? '';
 }
 
-// TRUE when the row hash recomputes and every prev_hash links to its neighbour.
-// Rows after a broken link stay FALSE, as in the workbook's chain_ok column.
+/* TRUE when the stored hash recomputes and prev_hash links to the row above.
+   A 16 character digest is the pre SHA-256 format, so it is recomputed the way
+   sync_ledger.py checks it. Rows after a break stay FALSE, as in the workbook. */
 function workbookChain(records) {
   const status = new Map();
-  const shown = new Set(records.slice(-WORKBOOK_LIMIT).map((record) => record.seq));
   let previous = '0'.repeat(64);
   let broken = false;
   for (const record of records) {
     const { hash, ...body } = record;
-    let valid = !broken && Boolean(hash) && record.prev_hash === previous;
-    if (valid && shown.has(record.seq)) valid = sha256Sync(body) === hash;
+    const stored = String(hash || '');
+    let valid = !broken && stored.length > 0 && record.prev_hash === previous;
+    if (valid) {
+      const recomputed = stored.length === 16 ? legacyHash(body) : sha256Sync(body);
+      valid = recomputed === stored;
+    }
     if (!valid) broken = true;
     status.set(record.seq, valid);
-    previous = hash || '';
+    previous = stored;
   }
   return status;
 }
 
-function renderWorkbook() {
-  const head = $('workbookHead');
-  const body = $('workbookBody');
-  if (!head || !body) return;
-  if (head.dataset.lang !== lang) {
-    head.replaceChildren(...WORKBOOK_COLUMNS.map((field) => {
-      const cell = document.createElement('th');
-      cell.scope = 'col';
-      cell.textContent = field;
-      return cell;
-    }));
-    head.dataset.lang = lang;
+/* The Hügieen sheet: weeks in 5 week buckets, worst grade per checkpoint. */
+function hygieneSheet(records) {
+  const years = records.map((record) => isoWeekOf(record.created_at)?.year).filter((year) => Number.isFinite(year));
+  const year = years.length ? Math.min(...years) : new Date().getUTCFullYear();
+  const buckets = new Set([15, 20, 25, 30, 35, 40, 45, 50]);
+  for (const record of records) {
+    const iso = isoWeekOf(record.created_at);
+    if (!iso) continue;
+    const bucket = hygieneBucket(iso.week);
+    if (bucket < 15 || bucket > 50) buckets.add(bucket);
   }
-  const records = allRecordsCache;
-  const empty = $('workbookEmpty');
-  const box = $('workbookScroll');
-  if (!records.length) {
-    body.replaceChildren();
-    if (box) box.hidden = true;
-    if (empty) {
-      empty.textContent = t('workbook_empty');
-      empty.hidden = false;
-    }
-    note('workbookStatus', '');
-    return;
+  const columns = [...buckets].sort((a, b) => a - b).map((bucket) => ({
+    bucket,
+    monday: isoMonday(year, bucket)
+  }));
+  const grades = new Map();
+  for (const record of records) {
+    const iso = isoWeekOf(record.created_at);
+    if (!iso) continue;
+    const grade = [1, 2, 3].includes(record.grade) ? record.grade : WORKBOOK_GRADE[record.verdict];
+    if (!record.checkpoint || !grade) continue;
+    const key = `${record.checkpoint}|${iso.year}-${hygieneBucket(iso.week)}`;
+    const previous = grades.get(key);
+    grades.set(key, previous === undefined ? grade : Math.min(previous, grade));
   }
-  if (box) box.hidden = false;
-  if (empty) empty.hidden = true;
+  return {
+    header: ['Kontrollpunktid', ...columns.map((column) => `N${String(column.bucket).padStart(2, '0')}`)],
+    dates: ['Kuupäev', ...columns.map((column) => (column.monday ? excelDate(column.monday) : 'kuupäev puudub'))],
+    rows: HYGIENE_ROWS.map(([label, checkpoint]) => [
+      label,
+      ...columns.map((column) => grades.get(`${checkpoint}|${year}-${column.bucket}`) ?? '')
+    ])
+  };
+}
+
+function workbookLetter(index) {
+  let value = index;
+  let letters = '';
+  do {
+    letters = String.fromCharCode(65 + (value % 26)) + letters;
+    value = Math.floor(value / 26) - 1;
+  } while (value >= 0);
+  return letters;
+}
+
+function workbookCell(tag, text, className) {
+  const cell = document.createElement(tag);
+  if (className) cell.className = className;
+  cell.textContent = String(text ?? '');
+  return cell;
+}
+
+function workbookColgroup(widths) {
+  const group = document.createElement('colgroup');
+  for (const width of widths) {
+    const column = document.createElement('col');
+    column.style.width = width;
+    group.append(column);
+  }
+  return group;
+}
+
+/* Kirjed: the record sheet, rows in the order the workbook writes them. */
+function renderRecordsSheet(records) {
+  const host = $('wbRecordsScroll');
+  if (!host) return;
   const chain = workbookChain(records);
-  const shown = records.slice(-WORKBOOK_LIMIT).reverse();
-  body.replaceChildren(...shown.map((record) => {
+  const values = records.map((record) => WORKBOOK_COLUMNS.map((field) => {
+    if (field === 'chain_ok') return chain.get(record.seq) ? 'TRUE' : 'FALSE';
+    return String(workbookValue(record, field));
+  }));
+
+  const table = document.createElement('table');
+  table.className = 'wb-sheet wb-kirjed';
+
+  const head = document.createElement('thead');
+  const letters = document.createElement('tr');
+  letters.className = 'wb-letters';
+  letters.append(workbookCell('th', '', 'wb-corner'));
+  WORKBOOK_COLUMNS.forEach((_, index) => letters.append(workbookCell('th', workbookLetter(index))));
+  const heading = document.createElement('tr');
+  heading.className = 'wb-header';
+  heading.append(workbookCell('th', '1', 'wb-rowhead'));
+  WORKBOOK_COLUMNS.forEach((field) => heading.append(workbookCell('th', field, 'wb-head')));
+  head.append(letters, heading);
+  table.append(head);
+
+  const body = document.createElement('tbody');
+  records.forEach((record, rowIndex) => {
     const row = document.createElement('tr');
     row.dataset.seq = String(record.seq);
     if (record.seq === freshSeq) row.classList.add('fresh');
-    for (const field of WORKBOOK_COLUMNS) {
-      const cell = document.createElement('td');
-      if (field === 'chain_ok') {
-        const ok = chain.get(record.seq);
-        cell.textContent = ok ? 'TRUE' : 'FALSE';
-        cell.className = ok ? 'chain-ok' : 'chain-bad';
-      } else {
-        cell.textContent = String(workbookValue(record, field));
-        if (field === 'transcript') cell.className = 'transcript';
-        else if (WORKBOOK_LONG.has(field) || field === 'hash') cell.className = 'long';
-        if (cell.textContent.length > 40) cell.title = cell.textContent;
+    row.append(workbookCell('th', String(rowIndex + 2), 'wb-rowhead'));
+    WORKBOOK_COLUMNS.forEach((field, column) => {
+      const text = values[rowIndex][column];
+      const cell = workbookCell('td', text);
+      if (field === 'chain_ok') cell.className = text === 'TRUE' ? 'chain-ok' : 'chain-bad';
+      if (WORKBOOK_LONG.has(field)) {
+        // Excel caps a column at 42 characters, so long cells are clipped the same way.
+        const clip = document.createElement('span');
+        clip.className = 'wb-clip';
+        clip.textContent = text;
+        cell.replaceChildren(clip);
+        if (text.length > 30) cell.title = text;
       }
       row.append(cell);
-    }
-    return row;
-  }));
-  note('workbookStatus', `${t('workbook_count').replace('N', records.length)} · ${t('workbook_shown').replace('N', shown.length)}`);
+    });
+    body.append(row);
+  });
+  table.append(body);
+  host.replaceChildren(table);
+}
+
+/* Hügieen: header, dates, the eight checkpoints and the legend row. */
+function renderHygieneSheet(records) {
+  const host = $('wbHygieneScroll');
+  if (!host) return;
+  const sheet = hygieneSheet(records);
+  const table = document.createElement('table');
+  table.className = 'wb-sheet wb-hygiene';
+  table.append(workbookColgroup(['3.5ch', '28ch', ...sheet.header.slice(1).map(() => '14ch')]));
+
+  const head = document.createElement('thead');
+  const letters = document.createElement('tr');
+  letters.className = 'wb-letters';
+  letters.append(workbookCell('th', '', 'wb-corner'));
+  sheet.header.forEach((_, index) => letters.append(workbookCell('th', workbookLetter(index), index === 0 ? 'wb-pin' : '')));
+  const heading = document.createElement('tr');
+  heading.className = 'wb-header';
+  heading.append(workbookCell('th', '1', 'wb-rowhead'));
+  sheet.header.forEach((text, index) => heading.append(workbookCell('th', text, index === 0 ? 'wb-head wb-pin' : 'wb-head')));
+  const dates = document.createElement('tr');
+  dates.className = 'wb-dates';
+  dates.append(workbookCell('th', '2', 'wb-rowhead'));
+  sheet.dates.forEach((text, index) => dates.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
+  head.append(letters, heading, dates);
+  table.append(head);
+
+  const body = document.createElement('tbody');
+  sheet.rows.forEach((values, index) => {
+    const row = document.createElement('tr');
+    row.append(workbookCell('th', String(index + 3), 'wb-rowhead'));
+    values.forEach((value, column) => {
+      if (column === 0) {
+        row.append(workbookCell('th', value, 'wb-label wb-pin'));
+        return;
+      }
+      const cell = workbookCell('td', value === '' ? '' : String(value));
+      if (value === 3) cell.className = 'g3';
+      if (value === 2) cell.className = 'g2';
+      if (value === 1) cell.className = 'g1';
+      row.append(cell);
+    });
+    body.append(row);
+  });
+  const legend = document.createElement('tr');
+  legend.className = 'wb-legend-row';
+  legend.append(workbookCell('th', String(sheet.rows.length + 3), 'wb-rowhead'));
+  const legendCell = workbookCell('td', HYGIENE_LEGEND, 'wb-legend');
+  legendCell.colSpan = sheet.header.length;
+  legend.append(legendCell);
+  body.append(legend);
+  table.append(body);
+  host.replaceChildren(table);
+}
+
+function renderWorkbook() {
+  renderHygieneSheet(allRecordsCache);
+  renderRecordsSheet(allRecordsCache);
+  note('workbookStatus', t('workbook_count').replace('N', allRecordsCache.length));
+}
+
+/* The tab strip mirrors the workbook's sheet tabs. */
+function selectWorkbookSheet(id) {
+  const hygiene = id === 'wbTabHygiene';
+  $('wbTabHygiene').setAttribute('aria-selected', String(hygiene));
+  $('wbTabRecords').setAttribute('aria-selected', String(!hygiene));
+  $('wbHygieneScroll').hidden = !hygiene;
+  $('wbRecordsScroll').hidden = hygiene;
 }
 
 
@@ -1727,6 +1913,18 @@ function bind() {
   window.addEventListener('storage', (event) => {
     if (event.key === 'toend-records-event') refreshCount().catch(() => {});
   });
+  const tabs = [$('wbTabHygiene'), $('wbTabRecords')];
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => selectWorkbookSheet(tab.id));
+    tab.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const step = event.key === 'ArrowRight' ? 1 : tabs.length - 1;
+      const next = tabs[(tabs.indexOf(tab) + step) % tabs.length];
+      selectWorkbookSheet(next.id);
+      next.focus();
+    });
+  }
   $('asset').addEventListener('input', () => {
     currentTag = '';
     currentSource = 'typed';
