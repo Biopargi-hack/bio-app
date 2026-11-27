@@ -1,4 +1,4 @@
-const CACHE = 'toend-v2';
+const CACHE = 'toend-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(new Request(event.request, { cache: 'reload' }))
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
