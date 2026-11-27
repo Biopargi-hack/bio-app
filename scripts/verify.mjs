@@ -30,6 +30,7 @@ const REQUIRED_FILES = [
   "app/manifest.webmanifest",
   "app/showcase.html",
   "app/sample_cip.csv",
+  "app/sheet.html",
 ];
 
 for (const file of REQUIRED_FILES) {
@@ -96,6 +97,18 @@ if (appSource.includes("function exportExcel") && indexSource.includes('id="exce
   ok("app exports current records as Excel CSV");
 } else {
   fail("app: Excel CSV export button or function is missing");
+}
+
+const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
+if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetExcelBtn"')) {
+  ok("live sheet reads IndexedDB, listens for records and exports Excel CSV");
+} else {
+  fail("app/sheet.html: live sheet wiring is missing");
+}
+if (appSource.includes("new BroadcastChannel('toend-records')") && appSource.includes("postMessage(event)") && indexSource.includes('id="sheetLink"')) {
+  ok("capture app broadcasts records and links to live sheet");
+} else {
+  fail("app: record broadcast or live sheet link is missing");
 }
 
 // The showcase page must carry the demo NFC link and its tag id.
