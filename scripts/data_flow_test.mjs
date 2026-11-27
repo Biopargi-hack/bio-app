@@ -17,7 +17,7 @@ test("imageHashBits keeps all 64 bits distinct", () => {
 });
 
 test("recordHeaders keeps useful fields but omits hashes and attachment internals", () => {
-  const rows = [{ seq: 1, asset: "Pesu", grade: 2, transcript: "Must", hash: "h", prev_hash: "0", reason: "declared", media_hash: "m", photo_hash: "p", audio_hash: "a", media_items: [{ kind: "image" }], photo_thumb: "data:image/png;base64,AA" }];
+  const rows = [{ seq: 1, asset: "Pesu", grade: 2, transcript: "Must", hash: "h", prev_hash: "0", reason: "declared", media_hash: "m", photo_hash: "p", audio_hash: "a", media_items: [{ kind: "image" }], photo_thumb: "data:image/png;base64,AA", language: "et", speech_lang: "et-EE", default_assessment: true, local_seq: 1, quick: true, supervisor: "name" }];
   assert.deepEqual(recordHeaders(rows), ["seq", "asset", "reason", "grade", "transcript"]);
 });
 
