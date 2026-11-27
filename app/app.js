@@ -191,7 +191,7 @@ function checkChain(records) {
       return { valid: false, breakSeq: record.seq, message: `Break at record ${record.seq}: fields no longer match the stored hash.` };
     }
   }
-  return { valid: true, breakSeq: null, message: `${records.length} records, chain intact, append only.` };
+  return { valid: true, breakSeq: null, message: `${records.length} ${records.length === 1 ? 'record' : 'records'}, chain intact, append only.` };
 }
 
 // Hash check must be synchronous for the demo view, so use a small non-crypto
@@ -407,9 +407,9 @@ async function refreshRecords() {
   const box = $('chainStatus');
   box.textContent = status.message;
   box.classList.toggle('broken', !status.valid);
-  $('chainBadge').textContent = `${allRecordsCache.length} records`;
+  $('chainBadge').textContent = `${allRecordsCache.length} ${allRecordsCache.length === 1 ? 'record' : 'records'}`;
   $('chainBadge').className = `badge ${status.valid ? 'good' : 'bad'}`;
-  $('chainCount').textContent = `${allRecordsCache.length} records`;
+  $('chainCount').textContent = `${allRecordsCache.length} ${allRecordsCache.length === 1 ? 'record' : 'records'}`;
   $('queueCount').textContent = `${allRecordsCache.length} queued`;
   renderRecords(allRecordsCache);
 }
