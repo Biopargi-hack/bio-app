@@ -101,6 +101,24 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
+    sample_title: 'Sample CIP month',
+    sample_label: 'Synthetic sample data, not A. Le Coq',
+    sample_download: 'Download CSV',
+    cip_note: 'Cycles below 72 C are short. One record cannot be signed. Synthetic sample data.',
+    sample_day: 'Day',
+    sample_cycle: 'Cycle',
+    sample_peak: 'Peak C',
+    sample_hold: 'Hold min',
+    sample_conductivity: 'Conductivity mS',
+    sample_verdict: 'Verdict',
+    sample_cycles: 'cycles',
+    sample_short: 'short',
+    sample_signed: 'signed clean',
+    sample_unsigned: 'cannot sign',
+    verdict_signed: 'signed clean',
+    verdict_short: 'short',
+    verdict_cannot: 'cannot sign',
+    sample_unavailable: 'Sample CSV unavailable.',
   },
   et: {
     subtitle: 'Tõend tootmisliinile',
@@ -180,6 +198,21 @@ const WORDS = {
     sample_title: 'Näidis CIP kuu',
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
     cip_note: '72 °C kuumutusest lühemale jäävad tsüklid on lühikesed; ühte kirjet ei saa allkirjastada. Näidisandmed, sünteetilised.',
+    sample_download: 'Laadi CSV alla',
+    sample_day: 'Päev',
+    sample_cycle: 'Tsükkel',
+    sample_peak: 'Tipp °C',
+    sample_hold: 'Hoide min',
+    sample_conductivity: 'Juhtivus mS',
+    sample_verdict: 'Otsus',
+    sample_cycles: 'tsüklit',
+    sample_short: 'lühikest',
+    sample_signed: 'allkirjastatud puhtad',
+    sample_unsigned: 'ei saa allkirjastada',
+    verdict_signed: 'allkirjastatud puhas',
+    verdict_short: 'lühike',
+    verdict_cannot: 'ei saa allkirjastada',
+    sample_unavailable: 'Näidis CSV ei ole saadaval.',
     paper: 'Prindi pabervorm',
     quick_title: 'Dokumenteeri kontroll',
     quick_prompt: 'Kõik on puhas ja korras',
@@ -266,6 +299,7 @@ let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
 let currentSource = 'typed';
+let sampleRows = [];
 let dbPromise = null;
 let saving = false;
 let audioToken = 0;
@@ -293,6 +327,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
+  renderSampleRows();
 }
 
 function note(id, text, isError = false) {
@@ -760,6 +795,51 @@ async function refreshCount() {
 }
 
 
+function parseSampleCsv(text) {
+  return text.replace(/^\uFEFF/, '').trim().split(/\r?\n/).slice(1).map((line) => {
+    const [day, cycle, peak, hold, conductivity, verdict] = line.split(';');
+    return {
+      day, cycle, peak, hold, conductivity, verdict,
+      peakValue: Number(peak.replace(',', '.'))
+    };
+  });
+}
+
+function verdictLabel(verdict) {
+  const map = {
+    'signed clean': t('verdict_signed'),
+    short: t('verdict_short'),
+    'cannot sign': t('verdict_cannot')
+  };
+  return map[verdict] || verdict;
+}
+
+function renderSampleRows() {
+  const body = document.querySelector('#cipTable tbody');
+  if (!body || !sampleRows.length) return;
+  body.innerHTML = sampleRows.map((row) => {
+    const cls = row.verdict === 'signed clean' ? 'good' : 'warn';
+    return `<tr><td>${row.day}</td><td>${row.cycle}</td><td>${row.peak}</td><td>${row.hold}</td><td>${row.conductivity}</td><td class="${cls}">${verdictLabel(row.verdict)}</td></tr>`;
+  }).join('');
+  const short = sampleRows.filter((row) => row.peakValue < 72).length;
+  const clean = sampleRows.filter((row) => row.verdict === 'signed clean').length;
+  const unsigned = sampleRows.filter((row) => row.verdict === 'cannot sign').length;
+  const summary = $('sampleSummary');
+  if (summary) summary.innerHTML = `<span>${sampleRows.length} ${t('sample_cycles')}</span><span>${short} ${t('sample_short')}</span><span>${clean} ${t('sample_signed')}</span><span>${unsigned} ${t('sample_unsigned')}</span>`;
+}
+
+async function loadSampleSheet() {
+  try {
+    const response = await fetch('sample_cip.csv');
+    if (!response.ok) throw new Error(String(response.status));
+    sampleRows = parseSampleCsv(await response.text());
+    renderSampleRows();
+  } catch (error) {
+    const summary = $('sampleSummary');
+    if (summary) summary.textContent = t('sample_unavailable');
+  }
+}
+
 
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
@@ -1060,6 +1140,7 @@ async function start() {
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });
   }
+  await loadSampleSheet();
   await refreshCount();
   await registerServiceWorker();
 }
