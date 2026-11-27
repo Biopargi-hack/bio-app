@@ -1,0 +1,7 @@
+﻿check;value
+records;2
+chain_ok;TRUE
+break_seq;
+checked_at;2026-11-27T16:34:18+00:00
+source;Tap to Prove Export JSONL
+direction;app export to sheets, append only, no write back
