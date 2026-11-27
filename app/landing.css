@@ -1,7 +1,7 @@
 /* Landing view for taptoprove.ee. Every rule is scoped to the landing host.
    On nfc.taptoprove.ee index.html disables this file and links styles.css directly.
 
-   The landing also embeds the capture form (#capture) and the workbook (#hygieen),
+   The landing also embeds the capture form (#capture) and the sheet card (#hygieen),
    which styles.css draws. styles.css is imported here as layer "app", so every
    unlayered rule below wins over it. Outside the two form sections one zero
    specificity `all: revert` drops whatever styles.css set, so the landing renders
@@ -68,7 +68,7 @@ html[data-mode="landing"] *::before,
 html[data-mode="landing"] *::after { box-sizing: border-box; }
 html[data-mode="landing"] :not(:where(#capture, #hygieen) *)::selection { background: var(--red); color: var(--white); }
 html[data-mode="landing"] [hidden] { display: none !important; }
-/* Element resets stay out of the capture form and the workbook, which styles.css
+/* Element resets stay out of the capture form and the sheet card, which styles.css
    draws exactly as on the NFC host. :where() keeps the specificity at (0,1,1). */
 html[data-mode="landing"] :where(h1, h2, h3, p, figure, ol, ul):not(:where(#capture, #hygieen) *) { margin: 0; }
 html[data-mode="landing"] button:not(:where(#capture, #hygieen) *) { font: inherit; color: inherit; cursor: pointer; }
@@ -84,7 +84,7 @@ html[data-mode="landing"] #sheetLink,
 html[data-mode="landing"] #net,
 html[data-mode="landing"] .skip { display: none !important; }
 
-/* Buttons and links. The capture form and workbook keep their styles.css buttons. */
+/* Buttons and links. The capture form and sheet card keep their styles.css buttons. */
 html[data-mode="landing"] .link-button:not(:where(#capture, #hygieen) *) {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   min-height: 52px; padding: 0 24px;
@@ -344,7 +344,7 @@ html[data-mode="landing"] .step-num { grid-area: num; color: var(--red); font: 8
 html[data-mode="landing"] .step-icon { grid-area: icon; width: 44px; height: 44px; fill: none; stroke: var(--white); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 html[data-mode="landing"] .step p { grid-area: text; max-width: 17ch; font: 500 22px/1.3 var(--sans); }
 
-/* Capture form and workbook. styles.css draws both; here they only get the page
+/* Capture form and sheet card. styles.css draws both; here they only get the page
    frame. In the NFC view they inherit body font, colour and four custom properties
    that landing.css redefines on html, so those are put back to their styles.css
    values. The accent follows the landing red, so the page carries one red.

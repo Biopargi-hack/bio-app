@@ -56,10 +56,9 @@ const WORDS = {
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
     speak: 'Speak',
-    voice_lang: 'Speech language',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Tap ET, RU or EN, then Speak. A long note is kept in full. Spelling is corrected when you are online.',
+    audio_hint: 'Press Speak, then talk. A long note is kept in full. Spelling is corrected when you are online.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
@@ -143,10 +142,9 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
-    workbook_title: 'Workbook',
-    hygiene_download: 'Download workbook',
-    workbook_note: 'The Hügieen sheet of the workbook, same columns and colours as the Excel file. A grade lands in its cell right after a save. Both sheets are in the downloadable file. Scroll sideways for more columns.',
-    workbook_count: 'N records on this device',
+    sheet_title: 'Table',
+    sheet_open: 'Open in Google Sheets',
+    sheet_note: 'The checks live in Google Sheets. The table opens in a new tab and only people it is shared with can see it.',
     landing_table: 'View table',
     paper: 'Print the paper form',
     grade_short: 'grade',
@@ -217,10 +215,9 @@ const WORDS = {
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
     speak: 'Räägi',
-    voice_lang: 'Kõne keel',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vali ET, RU või EN ja vajuta Räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
+    audio_hint: 'Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -258,10 +255,9 @@ const WORDS = {
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
-    workbook_title: 'Tööraamat',
-    hygiene_download: 'Laadi tööraamat alla',
-    workbook_note: 'Tööraamatu leht Hügieen, samad veerud ja värvid mis Exceli failis. Hinne lisandub lahtrisse kohe pärast salvestamist. Mõlemad lehed on allalaaditavas failis. Keri tabelit külgsuunas.',
-    workbook_count: 'Selles seadmes N kirjet',
+    sheet_title: 'Tabel',
+    sheet_open: 'Ava Google Sheetsis',
+    sheet_note: 'Kontrollid on Google Sheetsis. Tabel avaneb uues aknas ja seda näevad need, kellele see on jagatud.',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
     grade2_word: 'must',
@@ -351,15 +347,6 @@ const WORDS = {
 
 const SPEECH_FALLBACK = 'en-US';
 
-function setSpeechLang(code) {
-  speechLang = code;
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    const active = button.dataset.lang === code;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-}
-
 // One recogniser accepts one language, so the first words choose it.
 function detectSpokenLang(text) {
   const value = String(text || '');
@@ -420,7 +407,6 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  setSpeechLang(speechLang);
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
@@ -1121,24 +1107,8 @@ function quickRecord(kind, grade = 0) {
 
 async function refreshCount() {
   allRecordsCache = await allRecords();
-  renderWorkbook();
 }
 
-/* The embedded workbook mirrors app/taptoprove_ledger.xlsx: the Hügieen sheet
-   with the same columns, colours and values that sync_ledger.py writes,
-   filled from this device's records. */
-const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
-const HYGIENE_ROWS = [
-  ['Pesu', 'Pesu'],
-  ['Täitepea', 'Täitepea'],
-  ['Klapp', 'Klapp'],
-  ['Drenaaž', 'Drenaaž'],
-  ['Uks', 'Uks'],
-  ['Kätepesu', 'Kätepesu'],
-  ['Kastipesu', 'Kastipesu'],
-  ['Siirupituba', 'Siirupituba']
-];
-const HYGIENE_LEGEND = 'Hinded: 3 korras, 2 must, 1 tõsine';
 /* Longest name first, so Kätepesu is not read as Pesu. */
 const CHECKPOINT_NAMES = [
   ['Kätepesu', 'Hand wash sink'],
@@ -1151,7 +1121,7 @@ const CHECKPOINT_NAMES = [
   ['Uks', 'Door']
 ];
 
-/* The workbook grades the Hügieen sheet on the record's checkpoint field. */
+/* The record keeps the checkpoint name the Google Sheet groups by. */
 function checkpointFor(asset) {
   const text = String(asset || '').toLocaleLowerCase('et');
   if (!text) return '';
@@ -1160,175 +1130,6 @@ function checkpointFor(asset) {
   }
   return '';
 }
-
-/* ISO week and the 5 week bucket the workbook puts a check in. */
-function isoWeekOf(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const weekday = day.getUTCDay() || 7;
-  day.setUTCDate(day.getUTCDate() + 4 - weekday);
-  const yearStart = Date.UTC(day.getUTCFullYear(), 0, 1);
-  const week = Math.ceil(((day.getTime() - yearStart) / 86400000 + 1) / 7);
-  return { year: day.getUTCFullYear(), week };
-}
-
-function hygieneBucket(week) {
-  return Math.min(53, Math.max(1, Math.floor((week + 4) / 5) * 5));
-}
-
-function isoMonday(year, week) {
-  const jan4 = new Date(Date.UTC(year, 0, 4));
-  const weekday = jan4.getUTCDay() || 7;
-  const monday = new Date(Date.UTC(year, 0, 4 - weekday + 1 + (week - 1) * 7));
-  return monday.getUTCFullYear() === year ? monday : null;
-}
-
-function excelDate(date) {
-  const pad = (value) => String(value).padStart(2, '0');
-  return `${pad(date.getUTCDate())}.${pad(date.getUTCMonth() + 1)}.${date.getUTCFullYear()}`;
-}
-
-/* The Hügieen sheet: weeks in 5 week buckets, worst grade per checkpoint. */
-function hygieneSheet(records) {
-  const years = records.map((record) => isoWeekOf(record.created_at)?.year).filter((year) => Number.isFinite(year));
-  const year = years.length ? Math.min(...years) : new Date().getUTCFullYear();
-  const buckets = new Set([15, 20, 25, 30, 35, 40, 45, 50]);
-  for (const record of records) {
-    const iso = isoWeekOf(record.created_at);
-    if (!iso) continue;
-    const bucket = hygieneBucket(iso.week);
-    if (bucket < 15 || bucket > 50) buckets.add(bucket);
-  }
-  const columns = [...buckets].sort((a, b) => a - b).map((bucket) => ({
-    bucket,
-    monday: isoMonday(year, bucket)
-  }));
-  const grades = new Map();
-  const times = new Map();
-  for (const record of records) {
-    const iso = isoWeekOf(record.created_at);
-    if (!iso) continue;
-    const grade = [1, 2, 3].includes(record.grade) ? record.grade : WORKBOOK_GRADE[record.verdict];
-    if (!record.checkpoint || !grade) continue;
-    const key = `${record.checkpoint}|${iso.year}-${hygieneBucket(iso.week)}`;
-    const previous = grades.get(key);
-    grades.set(key, previous === undefined ? grade : Math.min(previous, grade));
-  }
-  for (const record of records) {
-    const iso = isoWeekOf(record.created_at);
-    if (!iso) continue;
-    const moment = new Date(record.created_at);
-    const stamp = String(moment.getUTCHours()).padStart(2, '0') + ':' + String(moment.getUTCMinutes()).padStart(2, '0');
-    const key = `${iso.year}-${hygieneBucket(iso.week)}`;
-    const list = times.get(key) || [];
-    list.push(stamp);
-    times.set(key, list);
-  }
-  return {
-    header: ['Kontrollpunktid', ...columns.map((column) => `N${String(column.bucket).padStart(2, '0')}`)],
-    dates: ['Kuupäev', ...columns.map((column) => (column.monday ? excelDate(column.monday) : 'kuupäev puudub'))],
-    times: ['Töö aeg', ...columns.map((column) => {
-      const list = times.get(`${year}-${column.bucket}`) || [];
-      return list.length ? `${list[0]} kuni ${list[list.length - 1]}` : '';
-    })],
-    rows: HYGIENE_ROWS.map(([label, checkpoint]) => [
-      label,
-      ...columns.map((column) => grades.get(`${checkpoint}|${year}-${column.bucket}`) ?? '')
-    ])
-  };
-}
-
-function workbookLetter(index) {
-  let value = index;
-  let letters = '';
-  do {
-    letters = String.fromCharCode(65 + (value % 26)) + letters;
-    value = Math.floor(value / 26) - 1;
-  } while (value >= 0);
-  return letters;
-}
-
-function workbookCell(tag, text, className) {
-  const cell = document.createElement(tag);
-  if (className) cell.className = className;
-  cell.textContent = String(text ?? '');
-  return cell;
-}
-
-function workbookColgroup(widths) {
-  const group = document.createElement('colgroup');
-  for (const width of widths) {
-    const column = document.createElement('col');
-    column.style.width = width;
-    group.append(column);
-  }
-  return group;
-}
-
-/* Hügieen: header, dates, the eight checkpoints and the legend row. */
-function renderHygieneSheet(records) {
-  const host = $('wbHygieneScroll');
-  if (!host) return;
-  const sheet = hygieneSheet(records);
-  const table = document.createElement('table');
-  table.className = 'wb-sheet wb-hygiene';
-  table.append(workbookColgroup(['3.5ch', '28ch', ...sheet.header.slice(1).map(() => '14ch')]));
-
-  const head = document.createElement('thead');
-  const letters = document.createElement('tr');
-  letters.className = 'wb-letters';
-  letters.append(workbookCell('th', '', 'wb-corner'));
-  sheet.header.forEach((_, index) => letters.append(workbookCell('th', workbookLetter(index), index === 0 ? 'wb-pin' : '')));
-  const heading = document.createElement('tr');
-  heading.className = 'wb-header';
-  heading.append(workbookCell('th', '1', 'wb-rowhead'));
-  sheet.header.forEach((text, index) => heading.append(workbookCell('th', text, index === 0 ? 'wb-head wb-pin' : 'wb-head')));
-  const dates = document.createElement('tr');
-  dates.className = 'wb-dates';
-  dates.append(workbookCell('th', '2', 'wb-rowhead'));
-  sheet.dates.forEach((text, index) => dates.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
-  const timesRow = document.createElement('tr');
-  timesRow.className = 'wb-dates';
-  timesRow.append(workbookCell('th', '3', 'wb-rowhead'));
-  sheet.times.forEach((text, index) => timesRow.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
-  head.append(letters, heading, dates, timesRow);
-  table.append(head);
-
-  const body = document.createElement('tbody');
-  sheet.rows.forEach((values, index) => {
-    const row = document.createElement('tr');
-    row.append(workbookCell('th', String(index + 4), 'wb-rowhead'));
-    values.forEach((value, column) => {
-      if (column === 0) {
-        row.append(workbookCell('th', value, 'wb-label wb-pin'));
-        return;
-      }
-      const cell = workbookCell('td', value === '' ? '' : String(value));
-      if (value === 3) cell.className = 'g3';
-      if (value === 2) cell.className = 'g2';
-      if (value === 1) cell.className = 'g1';
-      row.append(cell);
-    });
-    body.append(row);
-  });
-  const legend = document.createElement('tr');
-  legend.className = 'wb-legend-row';
-  legend.append(workbookCell('th', String(sheet.rows.length + 4), 'wb-rowhead'));
-  const legendCell = workbookCell('td', HYGIENE_LEGEND, 'wb-legend');
-  legendCell.colSpan = sheet.header.length;
-  legend.append(legendCell);
-  body.append(legend);
-  table.append(body);
-  host.replaceChildren(table);
-}
-
-function renderWorkbook() {
-  renderHygieneSheet(allRecordsCache);
-  note('workbookStatus', t('workbook_count').replace('N', allRecordsCache.length));
-}
-
-
 
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
@@ -1845,17 +1646,6 @@ function bind() {
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
-  });
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      setSpeechLang(button.dataset.lang);
-      if (speechSession || voiceHold) {
-        voiceHold = false;
-        if (speechSession && !speechSession.finished) speechSession.stop();
-        else resetVoiceUI();
-      }
-      toggleVoice();
-    });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('transcript').addEventListener('input', (event) => {

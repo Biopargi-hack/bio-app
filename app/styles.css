@@ -811,18 +811,6 @@ main {
 .grade-btn.selected, .grade-btn:hover { border-color: var(--accent); background: var(--accent); color: var(--paper); }
 .voice { width: auto; min-height: 44px; margin: 0; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 8px; font: 700 13px/1 var(--sans); text-transform: none; }
 .voice-controls .note, .field-hint, .note { font-family: var(--sans); }
-.lang-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-.lang-btn {
-  min-height: 44px;
-  padding: 8px 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: var(--paper);
-  color: var(--ink);
-  font: 700 14px/1 var(--mono);
-}
-.lang-btn:hover { background: var(--wash); }
-.lang-btn.active { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 .field > span { margin-bottom: 8px; color: var(--ink); font: 700 13px/1.4 var(--sans); letter-spacing: 0; text-transform: none; }
 .text-field textarea { min-height: 100px; max-height: 70vh; overflow: auto; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 400 14px/1.5 var(--sans); }
 .quiet { min-height: 44px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 8px; font: 700 13px/1 var(--sans); text-transform: none; }
@@ -859,35 +847,6 @@ main {
 .sample-sheet .eyebrow { margin: 0; }
 .sample-sheet h2, .explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
 .sample-sheet .note { margin: 0; font-size: 13px; }
-/* The embedded workbook: the Hügieen sheet, cell for cell. */
-.workbook { margin-top: 14px; }
-.workbook-scroll { max-height: 62vh; overflow: auto; border: 1px solid var(--line-strong); background: var(--paper); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
-.workbook-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
-.workbook-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
-.wb-sheet { border-collapse: separate; border-spacing: 0; font: 400 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
-.wb-hygiene { table-layout: fixed; width: max-content; }
-.wb-sheet th, .wb-sheet td { padding: 4px 7px; text-align: left; vertical-align: top; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wb-sheet thead { position: sticky; top: 0; z-index: 5; }
-.wb-letters th { height: 20px; padding: 3px 6px; border-bottom: 1px solid var(--line); background: #eef1f3; color: #5c6569; font: 500 10px/1 var(--sans); text-align: center; }
-.wb-letters .wb-corner { position: sticky; left: 0; z-index: 7; background: #e6eaec; }
-.wb-rowhead { position: sticky; left: 0; z-index: 4; padding: 4px 6px; border-right: 1px solid var(--line); background: #eef1f3; color: #5c6569; font: 500 10px/1 var(--sans); text-align: center; }
-.wb-sheet thead .wb-rowhead { z-index: 6; }
-.wb-head { background: #1f4e78; color: #fff; font-weight: 700; }
-.wb-dates td { background: #e2efda; font-style: italic; }
-.wb-pin { position: sticky; left: 3.5ch; z-index: 2; }
-.wb-hygiene td, .wb-hygiene .wb-label, .wb-hygiene .wb-dates td { border: 1px solid #b7b7b7; }
-.wb-hygiene td { text-align: center; }
-.wb-hygiene .wb-head { text-align: center; }
-.wb-hygiene .wb-label { background: #fff2cc; text-align: left; font-weight: 500; }
-.wb-hygiene .g3 { background: #c6efce; }
-.wb-hygiene .g2 { background: #ffeb9c; }
-.wb-hygiene .g1 { background: #ffc7ce; }
-.wb-hygiene .wb-legend { border: 1px solid #b7b7b7; background: #fff2cc; font-weight: 700; text-align: left; }
-@media (max-width: 720px) {
-  .workbook-scroll { max-height: 52vh; }
-  .wb-sheet th, .wb-sheet td { padding: 4px 6px; }
-}
-#workbookStatus { margin-top: 10px; }
 .explainer .section-head { max-width: 760px; margin: 0; padding: 0; border: 0; }
 .explainer .section-head p:not(.eyebrow) { max-width: 70ch; margin: 14px 0 0; color: var(--muted); font: 400 15px/1.65 var(--sans); }
 .step-grid, .benefit-grid { display: grid; gap: 16px; margin-top: 24px; }
@@ -926,12 +885,13 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   .hero-quiet { margin-left: 10px; }
 }
 
-/* Both hosts can record and show the hygiene table. */
+/* The landing links the sheet; the NFC view records and links nothing. */
 html[data-mode="landing"] #sheetLink { display: none !important; }
 
 html[data-mode="record"] .hero,
 html[data-mode="record"] #explainer,
 html[data-mode="record"] #how,
+html[data-mode="record"] #hygieen,
 html[data-mode="record"] .benefits,
 html[data-mode="record"] .band,
 html[data-mode="record"] .try,
