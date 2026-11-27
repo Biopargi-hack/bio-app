@@ -110,6 +110,11 @@ if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.include
 } else {
   fail("app/sample_cip.csv: expected UTF-8 BOM, semicolon separators and comma decimals");
 }
+if (indexSource.includes('id="cipTable"') && indexSource.includes('href="sample_cip.csv"') && appSource.includes("fetch('sample_cip.csv')")) {
+  ok("sample CIP is embedded as a table with a CSV download");
+} else {
+  fail("app/index.html: sample CIP table or CSV download is missing");
+}
 
 const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
 if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetExcelBtn"')) {

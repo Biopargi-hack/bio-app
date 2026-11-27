@@ -759,3 +759,24 @@ input::selection, textarea::selection { background: var(--accent-tint); color: v
 @media (max-width: 720px) {
   .net, .queue, .tagpill { font-size: 11px; }
 }
+
+.sample-sheet { padding: clamp(32px, 5vw, 56px) 0; border-bottom: 1px solid var(--line); }
+.sample-sheet .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 0; }
+.sample-sheet .section-head h2 {
+  margin: 0;
+  font: 800 clamp(26px, 3vw, 40px)/1.05 var(--display);
+  letter-spacing: -.02em;
+}
+.sample-label { margin: 8px 0 0; font: 400 12px/1.5 var(--mono); color: var(--muted); }
+.sheet-summary { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0; font: 500 12px/1 var(--mono); color: var(--muted); text-transform: uppercase; }
+.sheet-scroll { overflow-x: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+#cipTable { width: 100%; min-width: 620px; border-collapse: collapse; font: 500 13px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+#cipTable th, #cipTable td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+#cipTable th { font: 600 11px/1 var(--mono); color: var(--muted); text-transform: uppercase; }
+#cipTable tbody tr:hover { background: var(--accent-tint); }
+#cipTable .good { color: var(--mint); }
+#cipTable .warn { color: var(--accent); }
+@media (max-width: 720px) {
+  .sample-sheet .section-head { display: block; }
+  .sample-sheet .link-button { margin-top: 12px; }
+}

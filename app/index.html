@@ -49,6 +49,31 @@
       <div id="checkpointList" class="checkpoint-list"></div>
     </section>
 
+    <section class="sample-sheet" aria-labelledby="sample-title">
+      <div class="section-head">
+        <h2 id="sample-title" data-i18n="sample_title">Sample CIP month</h2>
+        <a class="link-button ghost small" href="sample_cip.csv" download data-i18n="sample_download">Download CSV</a>
+      </div>
+      <p class="sample-label" data-i18n="sample_label">Synthetic sample data, not A. Le Coq</p>
+      <p id="sampleSummary" class="sheet-summary"></p>
+      <div class="sheet-scroll">
+        <table id="cipTable">
+          <thead>
+            <tr>
+              <th data-i18n="sample_day">Day</th>
+              <th data-i18n="sample_cycle">Cycle</th>
+              <th data-i18n="sample_peak">Peak C</th>
+              <th data-i18n="sample_hold">Hold min</th>
+              <th data-i18n="sample_conductivity">Conductivity mS</th>
+              <th data-i18n="sample_verdict">Verdict</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" data-i18n="cip_note">Cycles below 72 C are short. One record cannot be signed.</p>
+    </section>
+
     <section id="capture" class="station" aria-labelledby="capture-title">
       <div class="section-head">
         <h2 id="capture-title" data-i18n="capture_title">Check capture</h2>
