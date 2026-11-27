@@ -17,3 +17,4 @@ Format:
 - **2026-11-27** — Simplified capture controls in `app/`; speech uses the browser language by request, not automatic language detection. Physical NFC and speech need device testing.
 - **2026-11-27** — Corrected video action and removed requested header and media copy in `app/`; media status remains available. Physical camera and offline capture not tested.
 - **2026-11-27** — Grade escalation in `app/app.js`: the fourth consecutive grade 2 for an asset is recorded as grade 1 within the append transaction; original choice and reason remain traceable. Device-local history only.
+- **2026-11-27** — Redesigned the landing and capture interface in `app/index.html` and `app/styles.css`: capture first, compact work surface, white/red/black palette; existing controls and ledger retained.
