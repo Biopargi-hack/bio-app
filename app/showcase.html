@@ -94,6 +94,28 @@
     .cell { border-radius: 8px; }
     .tag-card { border-radius: 16px; }
     .panel h2 { color: var(--accent); }
+
+    /* UX v2 — the same card language as the main app */
+    body { background: var(--wash); }
+    .showcase-topbar { background: var(--paper); border-bottom: 1px solid var(--line); box-shadow: 0 2px 12px var(--line); }
+    .showcase { max-width: 1120px; }
+    .hero-demo { margin-top: 24px; padding: 36px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--card-radius); box-shadow: var(--shadow-card); }
+    .hero-demo p.kicker { margin-bottom: 28px; }
+    .hero-demo h1 { font-size: clamp(64px, 11vw, 140px); }
+    .panel { margin-top: 20px; padding: 28px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--card-radius); box-shadow: var(--shadow-card); }
+    .panel-head span { padding: 4px 10px; border-radius: 999px; background: var(--wash); }
+    .grade, .role-btn, .lang-btn, .media-btn { min-height: 44px; }
+    .cell { transition: transform .12s ease, box-shadow .16s ease, background-color .16s ease; }
+    .cell:hover { box-shadow: 0 6px 14px var(--line); }
+    .cell:active { transform: scale(.96); }
+    .state { color: var(--accent); font-weight: 600; }
+    .tag-card { box-shadow: var(--shadow-card); }
+    .showcase-footer { background: var(--paper); }
+    @media (max-width: 720px) {
+      .hero-demo { padding: 24px; }
+      .hero-demo h1 { font-size: clamp(52px, 15vw, 92px); }
+      .panel { padding: 20px; }
+    }
   </style>
 </head>
 <body>

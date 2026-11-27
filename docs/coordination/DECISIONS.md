@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Card-based app shell with one dominant action
+
+**Decision.** The app, showcase and paper form share a card system: soft `#F3F6F7` page background, white rounded surfaces with a light shadow, an at-a-glance status card, boxed inputs, chip-shaped filters and one large primary action. Press feedback and row entrance are short and disabled under reduced motion. The layout follows Dribbble tap-to-pay and health-dashboard patterns: big status, quick chips, calm hierarchy.
+
+**Why.** The old screens were a dense document with competing actions. A worker needs the asset, the clean action and the chain state in one glance, on a phone, without typing.
+
+**Consequence.** No copy, data model or offline behaviour changed. The verify gate, bilingual strings and 44px targets still hold; all new colours and radii are tokens, so a future retheme stays a one-file edit.
+
+---
+
 ## 2026-11-27 — Illustration palette becomes the site design system
 
 **Decision.** `app/illustration.svg` sets the visual language: A. Le Coq red `#A30029` for primary actions, mint `#0B7A59` for clean states, a `#F3F6F7` soft wash and rounded cards. Colours live as tokens in `app/styles.css`; the showcase and paper form use the same tokens instead of local hex values.
