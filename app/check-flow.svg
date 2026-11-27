@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220" width="360" height="220" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">Three point check: 3 clean, 2 fault, 1 serious, saved as one record on the phone</title>
+  <desc id="flow-desc">Three grade cards marked 3, 2 and 1 lead to a phone that saves one append only proof record.</desc>
+
+  <rect x="6" y="6" width="348" height="208" rx="20" fill="#F3F6F7"/>
+
+  <!-- three point system -->
+  <g text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800">
+    <rect x="24" y="28" width="64" height="64" rx="14" fill="#E7F4EE"/>
+    <text x="56" y="70" font-size="30" fill="#0B7A59">3</text>
+    <text x="56" y="84" font-size="8" font-weight="700" fill="#0B7A59">CLEAN</text>
+
+    <rect x="96" y="28" width="64" height="64" rx="14" fill="#FFFFFF" stroke="#A30029" stroke-width="2"/>
+    <text x="128" y="70" font-size="30" fill="#A30029">2</text>
+    <text x="128" y="84" font-size="8" font-weight="700" fill="#A30029">FAULT</text>
+
+    <rect x="168" y="28" width="64" height="64" rx="14" fill="#7A001F"/>
+    <text x="200" y="70" font-size="30" fill="#FFFFFF">1</text>
+    <text x="200" y="84" font-size="8" font-weight="700" fill="#FFFFFF">SERIOUS</text>
+  </g>
+
+  <path d="M232 60h16" fill="none" stroke="#C7CDD1" stroke-width="2"/>
+
+  <!-- phone with one saved proof -->
+  <g>
+    <rect x="248" y="20" width="88" height="168" rx="18" fill="#2D2E2E"/>
+    <rect x="252" y="26" width="80" height="156" rx="13" fill="#FFFFFF"/>
+    <rect x="252" y="26" width="80" height="18" rx="13" fill="#A30029"/>
+    <rect x="252" y="38" width="80" height="6" fill="#A30029"/>
+    <text x="292" y="39" text-anchor="middle" font-family="system-ui, sans-serif" font-size="7" font-weight="700" fill="#FFFFFF">TAP TO PROVE</text>
+    <circle cx="292" cy="76" r="13" fill="#E7F4EE"/>
+    <path d="M286 76l4 4 8-10" fill="none" stroke="#0B7A59" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="262" y="104" width="60" height="6" rx="3" fill="#C7CDD1"/>
+    <rect x="262" y="116" width="46" height="6" rx="3" fill="#C7CDD1"/>
+    <rect x="262" y="128" width="60" height="6" rx="3" fill="#E3E8EA"/>
+    <circle cx="266" cy="152" r="3" fill="#A30029"/>
+    <rect x="274" y="149" width="42" height="6" rx="3" fill="#E3E8EA"/>
+  </g>
+
+  <!-- append only record -->
+  <g>
+    <rect x="24" y="112" width="200" height="72" rx="14" fill="#FFFFFF"/>
+    <rect x="24" y="112" width="200" height="12" rx="12" fill="#A30029"/>
+    <rect x="24" y="118" width="200" height="6" fill="#A30029"/>
+    <text x="36" y="150" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#0B7A59">+ RECORD 01</text>
+    <rect x="136" y="144" width="76" height="6" rx="3" fill="#C7CDD1"/>
+    <text x="36" y="170" font-family="ui-monospace, monospace" font-size="8" fill="#53676D">append only</text>
+  </g>
+
+  <circle cx="332" cy="196" r="4" fill="#E40039" opacity="0.8"/>
+</svg>

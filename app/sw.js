@@ -7,6 +7,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './icon.svg',
   './illustration.svg',
+  './check-flow.svg',
   './icon_192.png',
   './icon_512.png',
   './paper.html',

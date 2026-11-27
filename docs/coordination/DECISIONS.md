@@ -5,6 +5,26 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Three-point picture, no visible C tier
+
+**Decision.** The right-side illustration now shows three grades (3 clean, 2 fault, 1 serious) instead of five stations. The visible "Evidence tier" field is hidden, and the fixed-default card no longer mentions tier C. The underlying tier value is still computed for records.
+
+**Why.** The owner asked for a three-point picture and for the C level to disappear from the capture view.
+
+**Consequence.** No record format or hash chain changed. ET and EN copy were updated together; the verify gate and offline checks still pass.
+
+---
+
+## 2026-11-27 — Capture screen fills its right side with guidance
+
+**Decision.** The capture section is a two-column card on desktop: the form on the left, a guidance rail on the right with `app/check-flow.svg`, a three-step flow and short cards about the fixed default and offline capture. On narrow screens the rail stacks below the form. All copy is in ET and EN through `data-i18n`, and the new illustration is in the service worker precache (v6).
+
+**Why.** The owner asked that the right side of the capture card not sit empty. Guidance is more useful there than another control, and it does not bring back the removed ledger.
+
+**Consequence.** No data model or record flow changed. The verify gate still passes (20 checks), the illustration loads offline, and the capture form keeps one primary action.
+
+---
+
 ## 2026-11-27 — Minimal capture app: ledger removed, line selector added
 
 **Decision.** The main app no longer shows the proof-chain panel: no record list, audit questions, filter, JSONL export, tamper-break demo or sample CIP summary. Those functions were removed from `app.js` and the gate was updated. A **Line** dropdown (All lines, Line 1–5) was added above the asset field; choosing a line pre-fills the asset in both Estonian and English. Records are still appended with a hash chain.
@@ -32,7 +52,15 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 **Why.** The site and the hero illustration told two different visual stories. One token set keeps the product consistent and makes the next UI change a token edit instead of a hunt through inline styles.
 
 **Consequence.** Blue accents are gone. Contrast stays at WCAG AA (8.11:1 for white on red, 13.62:1 for ink on paper); the offline shell and bilingual copy are unchanged.
+---
 
+## 2026-11-27 — Speech uses continuous listening with a silence timer
+
+**Decision.** Recognition runs with `continuous = true` and `interimResults = true`. A 2500 ms timer is reset by every recognition event and only then stops the microphone. All final results from the session are joined into one paragraph; duplicate result indices are ignored.
+
+**Why.** The default non-continuous recognition closed after a short pause, so workers lost the rest of a sentence. A short pause must not end the session.
+
+**Consequence.** The mic closes about 2-3 seconds after the worker stops speaking. Tapping the active button still stops early. Both the language buttons and voice-note recording use the same session helper.
 ---
 
 ## 2026-11-27 — Language buttons start listening; no signature field

@@ -6,8 +6,8 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | bug sweep and flow fixes | feat/flow_bugs | none |
-| @linnudtonisted | OpenCode | review | ET/RU/EN buttons start capture; no signature field | `fix/voice-buttons-supervisor` | device test |
-| @Pepukarv | OpenCode | review | minimal capture app: ledger removed, line selector added | feat/minimal_app | none |
+| @linnudtonisted | OpenCode | review | Continuous speech with 2.5s silence timer | PR #41 (`fix/speech-pause`) | device test |
+| @Pepukarv | OpenCode | review | three-point illustration; C tier hidden | feat/three_points | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 
 ## Demo-critical path

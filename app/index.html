@@ -48,6 +48,8 @@
           <h2 id="capture-title" data-i18n="capture_title">Tap station</h2>
         </div>
 
+        <div class="capture-layout">
+          <div class="capture-main">
         <div class="readout" id="assetStamp">
           <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
           <small id="assetSource">No tag read yet</small>
@@ -93,7 +95,7 @@
           </select>
         </label>
 
-        <label class="field">
+        <label class="field" hidden>
           <span data-i18n="asset">Asset</span>
           <input id="asset" type="text" autocomplete="off" spellcheck="false" placeholder="filler head">
         </label>
@@ -133,7 +135,7 @@
           <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
           <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone to speak or record a clip. The clip and text are saved with the record.</p>
         </div>
-        <label class="field text-field">
+        <label class="field text-field" hidden>
           <span data-i18n="note_label">What happened — write or speak</span>
           <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write. Each recording adds a new line." data-i18n-placeholder="note_ph"></textarea>
           <small class="field-hint" data-i18n="note_hint">Tap ET, RU or EN to speak. The app writes the text in the language it hears.</small>
@@ -150,7 +152,7 @@
             <span data-i18n="instrument">Instrument reading</span>
             <input id="instrument" type="text" placeholder="ATP 12 RLU / 72 C">
           </label>
-          <label class="field">
+          <label class="field" hidden>
             <span data-i18n="tier">Evidence tier</span>
             <output id="tier" class="tier" aria-live="polite">C</output>
           </label>
@@ -159,6 +161,31 @@
         <div class="row save-row">
           <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>
           <span id="saveNote" class="note" role="status"></span>
+        </div>
+          </div>
+
+          <aside class="capture-rail" aria-label="Check guidance">
+            <figure class="rail-figure">
+              <img src="check-flow.svg" alt="A production line with five checkpoints; the phone records a clean check." width="360" height="220">
+              <figcaption data-i18n="rail_caption">One tap, one record.</figcaption>
+            </figure>
+            <section class="info-card" aria-labelledby="flow-title">
+              <h3 id="flow-title" data-i18n="flow_title">How it works</h3>
+              <ol class="flow-list">
+                <li><b>01</b><span data-i18n="flow1">Pick a line or tap the sticker.</span></li>
+                <li><b>02</b><span data-i18n="flow2">Press Prove clean.</span></li>
+                <li><b>03</b><span data-i18n="flow3">The record saves on this device.</span></li>
+              </ol>
+            </section>
+            <section class="info-card" aria-labelledby="default-title">
+              <h3 id="default-title" data-i18n="default_title">No photo?</h3>
+              <p data-i18n="default_copy">Use the fixed default. It marks tier C with a reason and the record stays traceable.</p>
+            </section>
+            <section class="info-card" aria-labelledby="offline-title">
+              <h3 id="offline-title" data-i18n="offline_title">Works offline</h3>
+              <p data-i18n="offline_copy">Checks are written to the device first, even with no network.</p>
+            </section>
+          </aside>
         </div>
       </section>
 
