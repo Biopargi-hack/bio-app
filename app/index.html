@@ -40,6 +40,7 @@
         <h1 id="intro-title" data-i18n="intro_title">Hügieenikontroll ühe puudutusega.</h1>
         <p class="hero-note" data-i18n="hero_note">NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.</p>
         <a class="link-button primary" href="#capture" data-i18n="landing_start">Proovi kontrolli</a>
+        <a class="link-button ghost" href="#hygieen" data-i18n="landing_table">Vaata tabelit</a>
         <p class="hero-proof" data-i18n="hero_proof">Pabervormi ega fotot pole vaja.</p>
       </div>
     </section>
@@ -64,6 +65,18 @@
       </div>
     </section>
 
+    <section id="hygieen" class="sample-sheet panel" aria-labelledby="hygiene-title">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="hygiene_title">Hügieenipäevik</p>
+        <a class="link-button ghost small" href="taptoprove_ledger.xlsx" download data-i18n="hygiene_download">Laadi tööraamat alla</a>
+      </div>
+      <h2 id="hygiene-title" data-i18n="hygiene_note">Päris tööraamatu vaade. Nädalad N1 kuni N53, kaheksa kontrollpunkti ja hinded 3 korras, 2 vajab ülevaatamist, 1 ei ole korras.</h2>
+      <div class="sheet-scroll">
+        <div id="hygieneGrid"></div>
+      </div>
+      <p class="note" data-i18n="hygiene_live">Lahtrid täituvad selle seadme kirjetest. Kerige tabelit paremale. Tööraamatu fail jääb peamiseks allikaks.</p>
+    </section>
+
     <section class="benefits panel" aria-labelledby="benefits-title">
       <p class="eyebrow" data-i18n="benefits_kicker">Miks kaart</p>
       <h2 id="benefits-title" data-i18n="benefits_title">Loodud liinile.</h2>
@@ -74,33 +87,6 @@
       </div>
     </section>
 
-    <details class="sample-sheet panel">
-      <summary data-i18n="sample_toggle">Vaata sünteetilist näidis kuud</summary>
-      <div class="sample-inner">
-        <div class="section-head">
-          <h2 id="sample-title" data-i18n="sample_title">Näidis CIP kuu</h2>
-          <a class="link-button ghost small" href="sample_cip.csv" download data-i18n="sample_download">Laadi CSV</a>
-        </div>
-        <p class="sample-label" data-i18n="sample_label">Sünteetilised näidisandmed, mitte A. Le Coq</p>
-        <p id="sampleSummary" class="sheet-summary"></p>
-        <div class="sheet-scroll">
-          <table id="cipTable">
-            <thead>
-              <tr>
-                <th data-i18n="sample_day">Päev</th>
-                <th data-i18n="sample_cycle">Tsükkel</th>
-                <th data-i18n="sample_peak">Tipp °C</th>
-                <th data-i18n="sample_hold">Hoide min</th>
-                <th data-i18n="sample_conductivity">Juhtivus mS</th>
-                <th data-i18n="sample_verdict">Otsus</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="note" data-i18n="cip_note">Alla 72 °C tsüklid on lühikesed. Ühte kirjet ei saa allkirjastada.</p>
-      </div>
-    </details>
 
     <section id="capture" class="station panel" aria-labelledby="capture-title">
       <div class="section-head">
