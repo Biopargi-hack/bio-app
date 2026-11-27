@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | demo | challenge 3 copy and fixed no photo default | feat/challenge_three | none |
+| @AARenor | omp | review | bug sweep and flow fixes | feat/flow_bugs | none |
 | @linnudtonisted | OpenCode | review | ET/RU/EN buttons start capture; no signature field | `fix/voice-buttons-supervisor` | device test |
 | @Pepukarv | OpenCode | idle | illustration style shipped via PR 34 (admin merge) | — | — |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |

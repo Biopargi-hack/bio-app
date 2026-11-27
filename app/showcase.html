@@ -88,6 +88,7 @@
       .grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
       .showcase-topbar strong { font-size: 18px; }
       .panel h2 { font-size: 30px; }
+      .showcase-topbar a, .showcase-topbar button, .ghost, .solid, .grade, .media-btn, .role-btn, .lang-btn, .cell { min-height: 44px; }
     }
     /* illustration-style rounded cards and controls */
     .showcase-topbar a, .showcase-topbar button, .ghost, .solid, .grade, .media-btn, .role-btn, .lang-btn { border-radius: 10px; }
@@ -212,7 +213,7 @@
           <code id="nfcUrl"></code>
           <div class="action-row">
             <button class="solid" type="button" id="copyBtn">Kopeeri link</button>
-            <a class="ghost" href="https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
+            <a class="ghost" href="https://nfc.arle.top/?asset=Villimisliin%201%2C%20koht%2017&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
           </div>
           <p class="copy-note" id="copyNote" role="status"></p>
         </div>
@@ -226,11 +227,11 @@
   </footer>
 
   <script>
-    const LINES = ['Villimisliin 1'];
+    const LINE = 'Villimisliin 1';
     const CHECKPOINTS = Array.from({ length: 100 }, (_, i) => ({
       id: i + 1,
-      line: LINES[Math.floor(i / 25)],
-      name: `${LINES[Math.floor(i / 25)]}, koht ${String(i % 25 + 1).padStart(2, '0')}`,
+      line: LINE,
+      name: `${LINE}, koht ${String(i + 1).padStart(2, '0')}`,
       grade: 3,
       media: null,
       note: '',
@@ -260,7 +261,7 @@
         copy: 'Kopeeri link', open: 'Ava näide',
         footerNote: 'Näide. Andmebaas on Supabase, ühendus tuleb.', footerLink: 'Ava töövaade',
         dirty: 'must', serious: 'tõsine', clean: 'korras', none: 'märkusi pole',
-        viewerOnly: 'Vaataja õigus, muutmist ei võimaldata.', saved: 'Salvestatud', photo: 'pilt', voice: 'hääl 00:04', video: 'video 00:12', text: 'tekst',
+        viewerOnly: 'Vaataja õigus, muutmist ei võimaldata.', saved: 'Salvestatud', photo: 'pilt', voice: 'hääl 00:04', video: 'video 00:12', text: 'tekst', dirty_note: 'must koht, vaata tõendit',
         copied: 'Link on kopeeritud.', copyFailed: 'Kopeerimine ei õnnestunud, vali tekst käsitsi.',
       },
       en: {
@@ -285,13 +286,13 @@
         copy: 'Copy link', open: 'Open example',
         footerNote: 'Example. Supabase database, connection next.', footerLink: 'Open work view',
         dirty: 'dirty', serious: 'serious', clean: 'clean', none: 'no notes',
-        viewerOnly: 'Viewer role, editing is disabled.', saved: 'Saved', photo: 'photo', voice: 'voice 00:04', video: 'video 00:12', text: 'text',
+        viewerOnly: 'Viewer role, editing is disabled.', saved: 'Saved', photo: 'photo', voice: 'voice 00:04', video: 'video 00:12', text: 'text', dirty_note: 'dirty spot, see proof',
         copied: 'Link copied.', copyFailed: 'Copy failed, select the text manually.',
       }
     };
 
     const $ = (id) => document.getElementById(id);
-    const NFC_URL = 'https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc';
+    const NFC_URL = 'https://nfc.arle.top/?asset=Villimisliin%201%2C%20koht%2017&tag=TAP-DEMO-01&via=nfc';
     let role = 'muutja';
     let lang = 'et';
     let selectedId = 1;
@@ -312,15 +313,15 @@
       $('copyBtn').textContent = t('copy');
       $('nfcOpen').textContent = t('open');
       document.documentElement.lang = lang;
-      select(1);
+      select(selectedId);
     }
 
     function select(id) {
       selectedId = id;
       const cp = CHECKPOINTS[id - 1];
       $('selectedName').textContent = cp.name;
-      const proof = cp.media ? cp.media : t('none');
-      $('selectedMeta').textContent = `Hinne ${cp.grade}, ${proof}`;
+      const proof = cp.media ? t(cp.media) : t('none');
+      $('selectedMeta').textContent = `${t('thGrade')} ${cp.grade}, ${proof}`;
       $('grade3').classList.toggle('on', cp.grade === 3);
       $('grade2').classList.toggle('on', cp.grade === 2);
       $('grade1').classList.toggle('on', cp.grade === 1);
@@ -330,7 +331,7 @@
 
     function renderGrid() {
       const counts = { 3: 0, 2: 0, 1: 0 };
-      CHECKPOINTS.forEach((cp) => {
+      const cells = CHECKPOINTS.map((cp) => {
         counts[cp.grade] += 1;
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -339,9 +340,9 @@
         btn.title = `${cp.name}, ${cp.grade}`;
         btn.setAttribute('aria-label', btn.title);
         btn.addEventListener('click', () => select(cp.id));
-        $('grid').append(btn);
+        return btn;
       });
-      $('grid').replaceChildren(...$('grid').children);
+      $('grid').replaceChildren(...cells);
       $('boardStats').textContent = `${counts[3]} ${t('clean')}, ${counts[2]} ${t('dirty')}, ${counts[1]} ${t('serious')}`;
       const dirty = CHECKPOINTS.filter((cp) => cp.grade !== 3);
       $('ruleState').textContent = dirty.length === 0
@@ -355,7 +356,7 @@
       body.replaceChildren();
       rows.slice(0, 12).forEach((cp) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${cp.name}</td><td>${cp.line}</td><td class="grade${cp.grade}">${cp.grade}</td><td>${cp.media || t('none')}</td><td>${cp.note || t('none')}</td>`;
+        tr.innerHTML = `<td>${cp.name}</td><td>${cp.line}</td><td class="grade${cp.grade}">${cp.grade}</td><td>${cp.media ? t(cp.media) : t('none')}</td><td>${cp.note ? t(cp.note) : t('none')}</td>`;
         body.append(tr);
       });
       $('emptyRows').hidden = rows.length > 0;
@@ -373,17 +374,17 @@
       const cp = CHECKPOINTS[selectedId - 1];
       cp.grade = value;
       cp.updated = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      cp.note = cp.note || (lang === 'et' ? 'must koht, vaata tõendit' : 'dirty spot, see proof');
-      $('editState').textContent = `${t('saved')} ${cp.updated}`;
+      cp.note = cp.note || 'dirty_note';
       select(cp.id);
+      $('editState').textContent = `${t('saved')} ${cp.updated}`;
     }
 
     function toggleMedia(kind) {
       if (role !== 'muutja') return;
       const cp = CHECKPOINTS[selectedId - 1];
-      cp.media = cp.media === t(kind) ? null : t(kind);
-      $('editState').textContent = cp.media ? `${t('saved')}, ${cp.media}` : '';
+      cp.media = cp.media === kind ? null : kind;
       select(cp.id);
+      $('editState').textContent = cp.media ? `${t('saved')}, ${t(cp.media)}` : '';
     }
 
     document.querySelectorAll('.role-btn').forEach((btn) => {

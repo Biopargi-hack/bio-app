@@ -5,24 +5,25 @@ Repo: https://github.com/Biopargi-hack/bio-app
 
 ## The three minute story
 
-1. One person taps a card on the filler head. The page opens with the place filled in and KINNITA PUHAS in focus.
-2. They press KINNITA PUHAS. The record appears with its card ID, source and checkpoint.
-3. They tap another card and press "Pilti ei saa? Kasuta fikseeritud hinnangut". The record is tier C with the fixed reason and `default_assessment: true`.
+1. One person taps a card written with a separate NFC tool. The page opens with the place filled in and grade buttons 3, 2 and 1 ready.
+2. They press 3. The record appears with its card ID, source, checkpoint and grade.
+3. They tap another card and press 2 or 1. The grade appears in the ledger.
 4. They show a fault from the list and a bad photo being refused as hard evidence.
-5. Open the audit questions. Show the unsigned clean checks and the tier C rows.
-6. Press Show tamper break. The chain breaks in the copy while the stored records stay intact.
-7. Print the paper form and put it beside the phone. The difference is the point.
+5. With no photo or instrument reading, they press 3 and show tier C with the fixed reason and `default_assessment: true`.
+6. Open the audit questions. Show the unsigned clean checks and the tier C rows.
+7. Press Show tamper break. The chain breaks in the copy while the stored records stay intact.
+8. Print the paper form and put it beside the phone. The difference is the point.
 
 Say plainly: the card ID shows which card was tapped. It is not a cryptographic signature. Real signing needs NTAG424.
 
 ## Before the demo
 
 - Open the live site on a phone and reload once so the offline shell is fresh.
-- Write the five cards with your own NFC tool. Give each one a real place name. The app no longer writes cards.
-- Tap one card. Confirm the place is filled, KINNITA PUHAS is focused, and the chain row shows `nfc <card ID>`.
-- Open `/?asset=filler&tag=T1%20TEST&via=nfc` once. Confirm the row shows the same card ID.
-- Press the fixed default button and confirm the row shows tier C, the fixed reason and `default_assessment: true`.
-- Check that changing the asset field by hand clears the card ID and sets source to typed.
+- Write the five cards with your own NFC tool. Give each one a real place name. The app does not write cards.
+- Tap one card. Confirm the place is filled, grade buttons 3, 2 and 1 are visible, and the chain row shows `nfc <card ID>`.
+- Open `/?asset=filler&tag=T1%20TEST&via=nfc` once. Confirm the row shows the same card ID and grade buttons.
+- Press grade 3 with no photo or instrument reading and confirm the row shows tier C, the fixed reason and `default_assessment: true`.
+- Change the asset field by hand and confirm the card ID clears and source changes to typed.
 - Keep the paper form printed.
 
 ## Roles
