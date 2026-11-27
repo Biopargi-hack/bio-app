@@ -554,20 +554,12 @@ footer { background: var(--paper); }
 .workbench { grid-template-columns: 1fr; max-width: 760px; }
 .station { border-right: 0; }
 
-/* Capture layout: form on the left, guidance and illustration on the right */
-.workbench { max-width: 1120px; }
+/* Minimal capture: one column, with the 1-3 rating as the first field */
 .capture-main { min-width: 0; }
-.capture-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 24px; align-items: start; }
-.capture-rail { display: grid; gap: 16px; align-content: start; min-width: 0; }
-.rail-figure { margin: 0; padding: 12px; background: var(--wash); border: 1px solid var(--line); border-radius: 16px; }
-.rail-figure img { display: block; width: 100%; height: auto; border-radius: 10px; }
-.rail-figure figcaption { margin-top: 8px; font: 600 11px/1.3 var(--mono); text-align: center; color: var(--muted); }
-.info-card { padding: 18px; background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 14px; }
-.info-card h3 { margin: 0 0 10px; font: 700 20px/1.1 var(--display); text-transform: uppercase; color: var(--accent); }
-.info-card p { margin: 0; font: 400 13px/1.5 var(--mono); color: var(--muted); }
-.flow-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.flow-list li { display: flex; gap: 10px; align-items: baseline; }
-.flow-list b { padding: 3px 8px; border-radius: 999px; background: var(--wash); color: var(--accent); font: 600 11px/1 var(--mono); }
-.flow-list li:nth-child(even) b { color: var(--mint); }
-.flow-list span { font: 500 14px/1.3 var(--display); }
-@media (max-width: 900px) { .capture-layout { grid-template-columns: 1fr; } }
+.capture-layout { display: block; }
+.grade-card { margin: 0 0 22px; padding: 20px; background: var(--wash); border: 1px solid var(--line); border-radius: var(--card-radius); }
+.grade-card h3 { margin: 0; font: 700 22px/1.1 var(--display); text-transform: uppercase; color: var(--accent); }
+.grade-card .pad-prompt { margin: 8px 0 0; font: 400 12px/1.4 var(--mono); color: var(--muted); }
+.grade-card .note { margin-bottom: 0; }
+.grade-btn.selected { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.grade-btn[data-grade="1"].selected { background: var(--accent-dark); border-color: var(--accent-dark); }

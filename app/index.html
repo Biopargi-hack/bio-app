@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Tap to Prove</title>
-  <meta name="description" content="Tap an NFC card, say what you did, and the proof writes itself. Built for Hack the Future of Food 2026.">
+  <meta name="description" content="Tap an NFC card, rate what you saw, add a note and proof. Built for Hack the Future of Food 2026.">
   <meta name="theme-color" content="#ffffff">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -25,167 +25,76 @@
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="hero-kicker" data-i18n="intro_kicker">Live demo, records stay on this device</p>
-        <h1 id="hero-title">Tap to<br>Prove</h1>
-        <p class="hero-note" data-i18n="hero_note">Tap the card. Say what you did. The record writes itself.</p>
+    <section id="capture" class="station" aria-labelledby="capture-title">
+      <div class="section-head">
+        <h2 id="capture-title" data-i18n="capture_title">Check capture</h2>
       </div>
-      <div class="hero-art">
-        <img src="illustration.svg" alt="Töötaja puudutab puhastatud masinal vesikindlat punast NFC-kaarti; telefonis tekib muudatusi näitav, ainult lisatav puhas tõendikaart." data-i18n-alt="hero_alt" width="400" height="320">
-      </div>
-      <ol class="steps" aria-label="Demo sequence">
-        <li><b>01</b><span data-i18n="beat1">Tap the sticker</span></li>
-        <li><b>02</b><span data-i18n="beat2">Green button, done in 2 seconds</span></li>
-        <li><b>03</b><span data-i18n="beat3">Red button and a fault from the list</span></li>
-        <li><b>04</b><span data-i18n="beat4">Photo when one is possible</span></li>
-      </ol>
-    </section>
 
-    <div class="workbench">
-      <section id="capture" class="station" aria-labelledby="capture-title">
-        <div class="section-head">
-          <h2 id="capture-title" data-i18n="capture_title">Tap station</h2>
-        </div>
-
-        <div class="capture-layout">
-          <div class="capture-main">
-        <div class="readout" id="assetStamp">
-          <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
-          <small id="assetSource">No tag read yet</small>
-        </div>
-
-
-        <div class="proof-pad" aria-labelledby="quick-title">
-          <p class="pad-title" id="quick-title" data-i18n="quick_title">Tap to confirm</p>
-          <p id="quickPrompt" class="pad-prompt" data-i18n="quick_prompt">Everything is clean and in order</p>
-          <div class="pad-actions">
-            <button id="cleanBtn" class="prove" type="button" data-i18n="confirm">PROVE CLEAN</button>
-            <button id="faultBtn" class="flag" type="button" data-i18n="fault">Problem</button>
+      <div class="capture-layout">
+        <div class="capture-main">
+          <div class="readout" id="assetStamp">
+            <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
+            <small id="assetSource">No tag read yet</small>
           </div>
-            <button id="defaultBtn" class="default-assessment" type="button" data-i18n="default_cta">No photo? Use fixed default</button>
-          <div class="grade-row" id="gradeRow" hidden aria-label="Grade">
-            <button id="grade3" class="grade-btn" type="button" data-grade="3" data-i18n="grade3_label">3 korras</button>
-            <button id="grade2" class="grade-btn" type="button" data-grade="2" data-i18n="grade2_label">2 must</button>
-            <button id="grade1" class="grade-btn" type="button" data-grade="1" data-i18n="grade1_label">1 tõsine</button>
-          </div>
-          <label class="field fault-field" id="faultField" hidden>
-            <span data-i18n="fault_type">What is wrong</span>
-            <select id="faultType">
-              <option value="vaht maas" data-i18n="fault_foam">foam on the floor</option>
-              <option value="jäägid tihendil" data-i18n="fault_seal">residue on the seal</option>
-              <option value="mustus põrandal" data-i18n="fault_floor">dirt on the floor</option>
-              <option value="foto ei ole võimalik" data-i18n="fault_nophoto">photo not possible</option>
+          <input id="asset" type="hidden" autocomplete="off" spellcheck="false">
+
+          <label class="field">
+            <span data-i18n="line">Line</span>
+            <select id="line">
+              <option value="all" data-i18n="line_all">All lines</option>
+              <option value="1" data-i18n="line_1">Line 1</option>
+              <option value="2" data-i18n="line_2">Line 2</option>
+              <option value="3" data-i18n="line_3">Line 3</option>
+              <option value="4" data-i18n="line_4">Line 4</option>
+              <option value="5" data-i18n="line_5">Line 5</option>
             </select>
           </label>
-          <button id="faultSaveBtn" class="quiet" type="button" data-i18n="fault_save" hidden>Save fault</button>
-          <p id="quickNote" class="note" role="status"></p>
-        </div>
 
-
-        <label class="field">
-          <span data-i18n="line">Line</span>
-          <select id="line">
-            <option value="all" data-i18n="line_all">All lines</option>
-            <option value="1" data-i18n="line_1">Line 1</option>
-            <option value="2" data-i18n="line_2">Line 2</option>
-            <option value="3" data-i18n="line_3">Line 3</option>
-            <option value="4" data-i18n="line_4">Line 4</option>
-            <option value="5" data-i18n="line_5">Line 5</option>
-          </select>
-        </label>
-
-        <label class="field" hidden>
-          <span data-i18n="asset">Asset</span>
-          <input id="asset" type="text" autocomplete="off" spellcheck="false" placeholder="filler head">
-        </label>
-
-        <div class="field-grid">
-          <label class="field">
-            <span data-i18n="checkpoint">Checkpoint</span>
-            <select id="checkpoint"></select>
-          </label>
-          <label class="field">
-            <span data-i18n="method">Method</span>
-            <select id="method"></select>
-          </label>
-        </div>
-
-        <div class="field-grid">
-          <div class="field">
-            <span data-i18n="voice_lang">Speech language</span>
-            <div class="lang-buttons" role="group" aria-label="Speech language">
-              <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
-              <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
-              <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
+          <section class="grade-card" aria-labelledby="quick-title">
+            <h3 id="quick-title" data-i18n="grade_prompt">Rate this spot</h3>
+            <p class="pad-prompt" data-i18n="grade_note">Pick 3 clean, 2 dirty, or 1 serious.</p>
+            <div class="grade-row" id="gradeRow" role="group" aria-labelledby="quick-title">
+              <button id="grade3" class="grade-btn" type="button" data-grade="3" aria-pressed="false" data-i18n="grade3_label">3 korras</button>
+              <button id="grade2" class="grade-btn" type="button" data-grade="2" aria-pressed="false" data-i18n="grade2_label">2 must</button>
+              <button id="grade1" class="grade-btn" type="button" data-grade="1" aria-pressed="false" data-i18n="grade1_label">1 tõsine</button>
             </div>
+            <p id="quickNote" class="note" role="status"></p>
+          </section>
+
+          <div class="voice-controls">
+            <div class="field">
+              <span data-i18n="voice_lang">Speech language</span>
+              <div class="lang-buttons" role="group" aria-label="Speech language">
+                <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
+                <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
+                <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
+              </div>
+            </div>
+            <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Speak to write</button>
+            <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
+            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone to speak or record a clip. The clip and text are saved with the record.</p>
           </div>
-          <label class="field">
-            <span data-i18n="verdict">Verdict</span>
-            <select id="verdict">
-              <option value="clean" data-i18n="clean">Clean</option>
-              <option value="not clean" data-i18n="not_clean">Not clean</option>
-              <option value="cannot sign" data-i18n="cannot_sign">Cannot sign</option>
-            </select>
+
+          <label class="field text-field">
+            <span data-i18n="note_label">What happened — write or speak</span>
+            <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write." data-i18n-placeholder="note_ph"></textarea>
+            <small class="field-hint" data-i18n="note_hint">Tap ET, RU or EN to speak. The app writes the text in the language it hears.</small>
           </label>
-        </div>
 
-        <div class="voice-controls">
-          <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Speak to write</button>
-          <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
-          <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone to speak or record a clip. The clip and text are saved with the record.</p>
-        </div>
-        <label class="field text-field">
-          <span data-i18n="note_label">What happened — write or speak</span>
-          <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write. Each recording adds a new line." data-i18n-placeholder="note_ph"></textarea>
-          <small class="field-hint" data-i18n="note_hint">Tap ET, RU or EN to speak. The app writes the text in the language it hears.</small>
-        </label>
+          <label class="field file-field">
+            <span data-i18n="evidence">Photo or video evidence</span>
+            <input id="photo" type="file" accept="image/*,video/*" capture="environment">
+          </label>
+          <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo or video only counts as evidence if the app can read it.</p>
 
-        <label class="field file-field">
-          <span data-i18n="evidence">Photo or video evidence</span>
-          <input id="photo" type="file" accept="image/*,video/*" capture="environment">
-        </label>
-        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo or video only counts as evidence if the app can read it.</p>
-
-        <label class="field">
-          <span data-i18n="instrument">Instrument reading</span>
-          <input id="instrument" type="text" placeholder="ATP 12 RLU / 72 C">
-        </label>
-
-        <div class="row save-row">
-          <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>
-          <button id="excelBtn" class="quiet" type="button" data-i18n="excel">Excel CSV</button>
-          <span id="saveNote" class="note" role="status"></span>
-        </div>
+          <div class="row save-row">
+            <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>
+            <button id="excelBtn" class="quiet" type="button" data-i18n="excel">Excel CSV</button>
+            <span id="saveNote" class="note" role="status"></span>
           </div>
-
-          <aside class="capture-rail" aria-label="Check guidance">
-            <figure class="rail-figure">
-              <img src="check-flow.svg" alt="A production line with five checkpoints; the phone records a clean check." width="360" height="220">
-              <figcaption data-i18n="rail_caption">One tap, one record.</figcaption>
-            </figure>
-            <section class="info-card" aria-labelledby="flow-title">
-              <h3 id="flow-title" data-i18n="flow_title">How it works</h3>
-              <ol class="flow-list">
-                <li><b>01</b><span data-i18n="flow1">Pick a line or tap the sticker.</span></li>
-                <li><b>02</b><span data-i18n="flow2">Press Prove clean.</span></li>
-                <li><b>03</b><span data-i18n="flow3">The record saves on this device.</span></li>
-              </ol>
-            </section>
-            <section class="info-card" aria-labelledby="default-title">
-              <h3 id="default-title" data-i18n="default_title">No photo?</h3>
-              <p data-i18n="default_copy">Use the fixed default. It marks tier C with a reason and the record stays traceable.</p>
-            </section>
-            <section class="info-card" aria-labelledby="offline-title">
-              <h3 id="offline-title" data-i18n="offline_title">Works offline</h3>
-              <p data-i18n="offline_copy">Checks are written to the device first, even with no network.</p>
-            </section>
-          </aside>
         </div>
-      </section>
-
-      </aside>
-    </div>
+      </div>
+    </section>
   </main>
 
   <footer>
