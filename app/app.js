@@ -43,20 +43,20 @@ const WORDS = {
     speak: 'Speak to write',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Speak or record a clip. The mic stays on through short pauses and stops after about 3 seconds of quiet.',
+    audio_hint: 'Speech recognition uses your browser language.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
     audio_unsupported: 'This browser cannot record audio.',
-    speech_unsupported: 'This browser cannot turn speech into text. Type the note or record a voice clip.',
-    speech_lang_unsupported: 'Speech recognition does not support this language here. Try another language or type the note.',
+    speech_unsupported: 'This browser cannot turn speech into text. Type the note instead.',
+    speech_lang_unsupported: 'Speech recognition does not support your browser language. Type the note instead.',
     speech_stopped: 'Voice stopped',
     listening: 'Listening... pause 2-3s to stop',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
-    note_hint: 'Tap ET, RU or EN to speak. The app writes the text in the language it hears.',
+    note_hint: 'Speech recognition uses your browser language and may require an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
@@ -143,20 +143,20 @@ const WORDS = {
     speak: 'Räägi ja kirjuta',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Räägi või salvesta klipp. Mikrofon jääb lühikeste pauside ajaks lahti ja sulgub umbes 3 sekundi vaikuse järel.',
+    audio_hint: 'Kõnetuvastus kasutab brauseri keelt.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
-    speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst või salvesta häälmärkus.',
-    speech_lang_unsupported: 'Kõnetuvastus ei toeta siin seda keelt. Proovi teist keelt või kirjuta tekst.',
+    speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst.',
+    speech_lang_unsupported: 'Kõnetuvastus ei toeta brauseri keelt. Kirjuta tekst.',
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan… 2–3 s vaikust ja mikrofon sulgub',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
-    note_hint: 'Vajuta ET, RU või EN ja räägi. Rakendus kirjutab teksti selles keeles, mida ta kuuleb.',
+    note_hint: 'Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     evidence: 'Foto või video tõend',
@@ -198,7 +198,7 @@ const WORDS = {
     quick_reason: 'Märgistatud kohas kinnitatud puhas',
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
-    grade_prompt: 'Hinna see koht',
+    grade_prompt: 'Hinda seda kohta',
     grade_note: 'Vali 3 korras, 2 must või 1 tõsine.',
     grade_required: 'Vali esmalt hinne.',
     grade_reason: 'Hinne N märgitud kleepsu kohas',
@@ -231,7 +231,7 @@ const WORDS = {
 };
 
 let lang = 'et';
-let speechLang = 'et-EE';
+let speechLang = navigator.language || 'et-EE';
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
 let recognition = null;
@@ -268,7 +268,6 @@ function applyLanguage() {
     const word = WORDS[lang][el.dataset.i18nAlt];
     if (word) el.alt = word;
   }
-  if (audioRecorder) $('audioBtn').textContent = t('record_audio_stop');
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
@@ -284,21 +283,6 @@ function t(key) {
   return WORDS[lang][key] || key;
 }
 
-function setSpeechLang(code) {
-  speechLang = code;
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    const active = button.dataset.lang === code;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-}
-
-function detectSpokenLang(text) {
-  const value = String(text || '');
-  if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
-  if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|must|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin)\b/i.test(value)) return 'et-EE';
-  return 'en-US';
-}
 
 function deviceId() {
   let id = localStorage.getItem('toend-device');
@@ -343,33 +327,6 @@ async function allRecords() {
   });
 }
 
-function csvCell(value) {
-  const text = value === null || value === undefined ? '' : String(value);
-  return `"${text.replaceAll('"', '""')}"`;
-}
-
-async function exportExcel() {
-  try {
-    const records = await allRecords();
-    if (!records.length) {
-      note('saveNote', WORDS[lang].excel_empty, true);
-      return;
-    }
-    const headers = ['seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier', 'tag_sig', 'source', 'transcript', 'instrument', 'language', 'device_id', 'hash'];
-    const rows = [headers.map(csvCell).join(';')];
-    for (const record of records) rows.push(headers.map((key) => csvCell(record[key])).join(';'));
-    const blob = new Blob(['\ufeff' + rows.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `toend-records-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    note('saveNote', `${WORDS[lang].excel_done} ${records.length}`);
-  } catch (error) {
-    note('saveNote', `${WORDS[lang].excel_failed} ${error.message}`, true);
-  }
-}
 
 async function mediaDataUrl(blob) {
   return new Promise((resolve, reject) => {
@@ -698,7 +655,6 @@ function audioBusy(noteId) {
 async function guardedWrite(noteId, work) {
   if (saving) return;
   $('photo').disabled = true;
-  $('audioBtn').disabled = true;
   saving = true;
   try {
     await work();
@@ -706,7 +662,6 @@ async function guardedWrite(noteId, work) {
     note(noteId, `${t('save_failed')} ${error.message}`, true);
   } finally {
     $('photo').disabled = false;
-    $('audioBtn').disabled = false;
     saving = false;
   }
 }
@@ -717,11 +672,6 @@ async function finishRecord(record, noteId, message) {
     speechSession = null;
     recognition = null;
   }
-  if (audioSpeechSession) {
-    audioSpeechSession.stop();
-    audioSpeechSession = null;
-    audioRecognition = null;
-  }
   notifyRecords(record);
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
@@ -730,8 +680,6 @@ async function finishRecord(record, noteId, message) {
   $('photo').value = '';
   photoState = null;
   audioState = null;
-  $('audioBtn').classList.remove('recording');
-  $('audioBtn').textContent = t('record_audio');
   note('photoNote', t('photo_hint'));
   note('audioNote', t('audio_hint'));
   updateTier();
@@ -744,7 +692,7 @@ function quickRecord(kind, grade = 0) {
   return guardedWrite('quickNote', async () => {
     const asset = $('asset').value.trim();
     if (!asset) {
-      note('quickNote', lang === 'et' ? 'Vali liin või puuduta kleepsu.' : 'Select a line or tap the sticker.', true);
+      note('quickNote', lang === 'et' ? 'Puuduta NFC-kaarti.' : 'Tap the NFC card.', true);
       return;
     }
     const isGrade = kind === 'grade';
@@ -811,9 +759,8 @@ function appendSpoken(text, langCode) {
   field.value = field.value.trim() ? `${field.value.trim()}\n${paragraph}` : paragraph;
   field.focus({ preventScroll: true });
   field.setSelectionRange(field.value.length, field.value.length);
-  const detected = detectSpokenLang(paragraph) || langCode;
-  spokenLangs.add(detected);
-  note('audioNote', `${t('spoken_saved')} ${detected.slice(0, 2).toUpperCase()}`);
+  spokenLangs.add(langCode);
+  note('audioNote', t('spoken_saved'));
 }
 
 function speechRecognition() {
@@ -902,11 +849,6 @@ function toggleVoice() {
     note('audioNote', t('speech_unsupported'), true);
     return;
   }
-  if (audioSpeechSession) {
-    audioSpeechSession.stop();
-    audioSpeechSession = null;
-    audioRecognition = null;
-  }
   speechSession = startSpeechSession(speechLang, {
     onText: (text, langCode) => appendSpoken(text, langCode),
     onDone: () => {
@@ -923,93 +865,6 @@ function toggleVoice() {
   note('audioNote', t('listening'));
 }
 
-async function toggleAudio() {
-  if (audioRecorder) {
-    if (audioRecorder.state !== 'inactive') audioRecorder.stop();
-    return;
-  }
-  if (audioStarting) return;
-  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-    note('audioNote', t('audio_unsupported'), true);
-    return;
-  }
-  audioStarting = true;
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const langCode = speechLang;
-    let speechStartError = '';
-    if (speechRecognition()) {
-      audioSpeechSession = startSpeechSession(langCode, {
-        onText: (text, code) => appendSpoken(text, code),
-        onDone: () => {
-          audioSpeechSession = null;
-          audioRecognition = null;
-        }
-      });
-      audioRecognition = audioSpeechSession ? audioSpeechSession.recognition : null;
-      if (!audioSpeechSession) speechStartError = 'start failed';
-    }
-    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']
-      .find((candidate) => MediaRecorder.isTypeSupported(candidate)) || '';
-    const chunks = [];
-    const started = Date.now();
-    const token = ++audioToken;
-    audioState = null;
-    const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-    audioRecorder = recorder;
-    recorder.ondataavailable = (event) => {
-      if (event.data.size) chunks.push(event.data);
-    };
-    recorder.onstop = async () => {
-      if (audioSpeechSession) {
-        audioSpeechSession.stop();
-        audioSpeechSession = null;
-      }
-      audioRecognition = null;
-      const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
-      stream.getTracks().forEach((track) => track.stop());
-      try {
-        if (!blob.size) {
-          if (token === audioToken) note('audioNote', t('audio_unsupported'), true);
-          return;
-        }
-        const hash = await hashBlob(blob);
-        if (token !== audioToken) return;
-        audioState = {
-          blob,
-          hash,
-          mime: blob.type,
-          size: blob.size,
-          duration: Math.round((Date.now() - started) / 1000)
-        };
-        note('audioNote', `${t('audio_saved')} ${audioState.duration}s`);
-      } catch (error) {
-        note('audioNote', `${t('save_failed')} ${error.message}`, true);
-      } finally {
-        if (audioRecorder === recorder) {
-          audioRecorder = null;
-          $('audioBtn').classList.remove('recording');
-          $('audioBtn').textContent = t('record_audio');
-        }
-      }
-    };
-    recorder.start();
-    $('audioBtn').classList.add('recording');
-    $('audioBtn').textContent = t('record_audio_stop');
-    note('audioNote', speechStartError ? `${t('speech_stopped')}: ${speechStartError}` : t('audio_recording'), Boolean(speechStartError));
-  } catch (error) {
-    if (audioSpeechSession) {
-      audioSpeechSession.stop();
-      audioSpeechSession = null;
-    }
-    audioRecognition = null;
-    audioRecorder = null;
-    audioToken += 1;
-    note('audioNote', `${t('audio_denied')}: ${error.message}`, true);
-  } finally {
-    audioStarting = false;
-  }
-}
 
 function updateNetwork() {
   const el = $('net');
@@ -1061,24 +916,7 @@ function bind() {
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
   });
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      setSpeechLang(button.dataset.lang);
-      if (recognition) toggleVoice();
-      if (audioSpeechSession) {
-        audioSpeechSession.stop();
-        audioSpeechSession = null;
-        audioRecognition = null;
-      }
-      if (audioRecorder) {
-        note('audioNote', t('audio_stop_first'), true);
-        return;
-      }
-      toggleVoice();
-    });
-  });
   $('voiceBtn').addEventListener('click', toggleVoice);
-  $('audioBtn').addEventListener('click', toggleAudio);
   $('photo').addEventListener('change', async (event) => {
     const token = ++photoToken;
     const file = event.target.files?.[0];
@@ -1101,11 +939,6 @@ function bind() {
     }
   });
   $('saveBtn').addEventListener('click', saveFromForm);
-  $('excelBtn').addEventListener('click', exportExcel);
-  $('line').addEventListener('change', () => {
-    const value = $('line').value;
-    setAsset(t(value === 'all' ? 'line_all' : `line_${value}`), '', 'typed');
-  });
   window.addEventListener('online', updateNetwork);
   window.addEventListener('offline', updateNetwork);
 }
@@ -1118,7 +951,6 @@ async function start() {
   gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
   applyLanguage();
   bind();
-  setSpeechLang(speechLang);
   updateTier();
   updateNetwork();
   if (asset) {
