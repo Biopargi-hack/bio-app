@@ -28,6 +28,7 @@ const REQUIRED_FILES = [
   "app/sw.js",
   "app/styles.css",
   "app/manifest.webmanifest",
+  "app/showcase.html",
   "app/sample_cip.csv",
 ];
 
@@ -69,6 +70,14 @@ if (appSource.includes("kind === 'defaults'") && appSource.includes('class="defa
   ok("fixed default is visible in the audit view");
 } else {
   fail("app/app.js: fixed default is not visible in the audit view");
+}
+
+// The showcase page must carry the demo NFC link and its tag id.
+const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
+if (showcase.includes("TAP-DEMO-01") && showcase.includes("nfc.arle.top/?asset=")) {
+  ok("showcase carries the NFC demo link");
+} else {
+  fail("app/showcase.html: NFC demo link or tag id is missing");
 }
 
 // Manifest: valid JSON and every icon actually exists.

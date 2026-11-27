@@ -22,6 +22,10 @@ Every push to `main` deploys automatically. No build step, no manual publish. A 
 
 Pull requests get their own preview URL printed in the Action log. Branch name becomes `preview-pr-N`, so four people can work at once without waiting for each other.
 
+## Näide ja NFC link
+
+Näide on lehel https://nfc.arle.top/showcase.html. NFC demo link on `https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1, pildi, hääle, video ja teksti ning automaatset üleminekut hindele 1 pärast nelja musta märkust. Andmed on ainult näite lehel.
+
 ## Four contributors
 
 The repository is public and `main` is protected: every change lands through a pull request with one approval from `@Biopargi-hack/crew` and green `verify` + `pr-notes` checks. Squash merge only; force pushes are blocked. Admins can bypass in a demo emergency and must note it afterwards.
