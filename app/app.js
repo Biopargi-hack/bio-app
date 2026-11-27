@@ -67,7 +67,7 @@ const WORDS = {
     tamper: 'Show tamper break',
     sample_title: 'Sample CIP month',
     sample_label: 'Sample data, synthetic, not A. Le Coq',
-    cip_note: 'Three cycles short of temperature. One record cannot be signed.',
+    cip_note: 'Cycles below the 72 °C hold are short; one record cannot be signed. Sample data, synthetic.',
     paper: 'Print the paper form',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
@@ -187,7 +187,7 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     sample_title: 'Näidis CIP kuu',
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
-    cip_note: 'Kolm tsüklit jäid temperatuurist lühemaks. Ühte kirjet ei saa allkirjastada.',
+    cip_note: '72 °C kuumutusest lühemale jäävad tsüklid on lühikesed; ühte kirjet ei saa allkirjastada. Näidisandmed, sünteetilised.',
     paper: 'Prindi pabervorm',
     quick_title: 'Dokumenteeri kontroll',
     quick_prompt: 'Kõik on puhas ja korras',
@@ -1104,29 +1104,15 @@ function updateNetwork() {
   el.classList.toggle('offline', !navigator.onLine);
 }
 
-function drawCip() {
-  const temps = [22, 25, 38, 62, 74, 75, 75, 74, 70, 48, 28, 22, 22, 82, 82, 45, 25];
-  const conductivity = [1.2, 1.3, 3.4, 14, 28, 30, 30, 29, 22, 6, 2, 1.3, 1.3, 4, 4, 1.8, 1.2];
-  const width = 520;
-  const height = 150;
-  const points = (values, max) => values.map((v, i) => `${(i / (values.length - 1) * (width - 30) + 20).toFixed(1)},${(height - 14 - v / max * (height - 30)).toFixed(1)}`).join(' ');
-  $('cipChart').innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="One plausible CIP curve">
-    <line x1="20" y1="${height - 14}" x2="${width - 10}" y2="${height - 14}" stroke="#666666" stroke-width="1"/>
-    <line x1="20" y1="20" x2="20" y2="${height - 14}" stroke="#666666" stroke-width="1"/>
-    <polyline points="${points(temps, 90)}" fill="none" stroke="#0a0a0a" stroke-width="2.5"/>
-    <polyline points="${points(conductivity, 32)}" fill="none" stroke="#1f5eff" stroke-width="2"/>
-    <text x="24" y="16" font-size="11" font-family="ui-monospace" fill="#666666">temperature C / conductivity</text>
-    <text x="20" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666666">pre rinse</text>
-    <text x="180" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666666">caustic hold</text>
-    <text x="380" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666666">sanitise</text>
-  </svg>`;
-}
+// No chart: sample CIP shown as text summary only.
+
+let cipRows = [];
 
 async function loadCip() {
   try {
     const response = await fetch('sample_cip.csv');
     const text = await response.text();
-    cipRows = text.trim().split('\n').slice(1).map((line) => {
+    cipRows = text.replace(/\r/g, '').trim().split('\n').slice(1).map((line) => {
       const [day, cycle, peak, hold, conductivity, verdict] = line.split(',');
       return { day: Number(day), cycle: Number(cycle), peak: Number(peak), hold: Number(hold), conductivity: Number(conductivity), verdict };
     });
@@ -1137,7 +1123,6 @@ async function loadCip() {
   } catch (error) {
     $('cipSummary').textContent = 'Sample CSV unavailable.';
   }
-  drawCip();
 }
 
 async function registerServiceWorker() {
