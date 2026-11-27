@@ -49,3 +49,5 @@ Format:
 - **2026-11-27 19:08** — Restamped cache to tap-to-prove-ef6a19103b18 after rebase onto #99.
 
 - **2026-11-27 19:21** — Issue #103: verify now normalizes CRLF to LF before hashing assets, so Windows and CI compute the same cache digest; restamped CACHE to tap-to-prove-bad4c1f636b0. verify 50/50.
+
+- **2026-11-27 19:34** — Issue #107: QA found taptoprove.ee used landing mode and CSS hid #capture, so voice buttons/transcript were unusable. Landing now shows capture, CTA scrolls to it, docs updated; verify 50/50; Playwright at 390px confirmed capture/transcript visible, 3 language buttons, Filmi video, no errors.
