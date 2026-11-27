@@ -5,11 +5,26 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — One writable note field, speech in the chosen language
+
+**Decision.** Capture has one clearly writable note field. Typing goes straight
+into it; speech recognition (ET, RU or EN) appends each recognised sentence as a
+new line in the selected language. The selected `speech_lang` is saved with the
+record. The separate "details" field was removed.
+
+**Why.** Two textareas confused the worker and one was hard to type into. A
+single field keeps typed and spoken notes together and traceable.
+
+**Consequence.** `transcript` carries the full note; `details` is no longer
+written. Voice note mode also transcribes to the same field while recording.
+
+---
+
 ## 2026-11-27 — Fault media lives in a second IndexedDB store
 
 **Decision.** Photo, video and voice clips are stored as blobs in a new `media`
 object store (IndexedDB version 2). The hash-chained record keeps only the byte
-hash, type, size and duration, plus the typed fault details.
+hash, type, size and duration, plus the typed or spoken note and its language.
 
 **Why.** The app has no backend and must work offline. Keeping blobs out of the
 record body preserves the existing append-only hash chain while still tying each

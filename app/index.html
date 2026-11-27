@@ -125,16 +125,15 @@
           </label>
         </div>
 
-        <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Hold to speak</button>
-        <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
-        <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone when typing is slow. The clip is saved with the record.</p>
-        <label class="field">
-          <span data-i18n="what_happened">What happened</span>
-          <textarea id="transcript" rows="3" placeholder="cleaned, filler head, 14:20, residue on the seal"></textarea>
-        </label>
-        <label class="field">
-          <span data-i18n="details">Details about the fault</span>
-          <textarea id="details" rows="3" placeholder="residue on the seal, leak at the pipe" data-i18n-placeholder="details_ph"></textarea>
+        <div class="voice-controls">
+          <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Speak to write</button>
+          <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
+          <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone to speak or record a clip. The clip and text are saved with the record.</p>
+        </div>
+        <label class="field text-field">
+          <span data-i18n="note_label">What happened — write or speak</span>
+          <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write. Each recording adds a new line." data-i18n-placeholder="note_ph"></textarea>
+          <small class="field-hint" data-i18n="note_hint">Choose Estonian, Russian or English above. Speech is written in that language.</small>
         </label>
 
         <label class="field file-field">
