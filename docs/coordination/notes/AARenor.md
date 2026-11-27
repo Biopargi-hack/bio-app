@@ -90,3 +90,9 @@ Format:
 - **2026-11-27 18:07** — Admin squash merge by AARenor. No separate reviewer approval; the owner merged this landing copy directly for the demo.
 
 - **2026-11-27 18:16** — Embedded the Excel friendly sample CIP month directly on the landing page as a 28 row table with a CSV download button. Verdicts and summary counts translate with the language switch. Upstream landing copy removed the checkpoint list, so there is no checkpoint path left to align. The NFC link with asset Pesu still writes Pesu to IndexedDB. Verify passed 30 checks and headless mobile showed 28 rows, no errors and no overflow.
+
+- **2026-11-27 18:22** — Restyled the landing page from the supplied Dribbble motion reference: pill nav, pale panels, centered hero with floating cards, step and benefit panels, folded sample data, blurred wordmark footer. Both languages updated.
+
+- **2026-11-27 18:23** — Admin squash merge by AARenor, the owner. No separate reviewer approval; this visual direction was shipped directly from the supplied reference.
+
+- **2026-11-27 18:26** — Resolved the restyle merge on feat/hygiene_grid. Kept the new pill nav, hero and step panels, added the View table link to the hero and the real Hügieen grid after the steps. Removed the folded sample CIP table because its renderer was not part of this branch. Verify passes 32 checks and headless desktop and mobile show 8 rows, 54 columns, both links, no errors and no overflow.
