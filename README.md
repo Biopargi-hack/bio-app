@@ -20,10 +20,10 @@ Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.t
 
 Production: https://taptoprove.ee
 
-Landing leht: https://taptoprove.ee. Kirjeldus, salvestusvorm ja tööraamatu tabel.
+Landing leht: https://taptoprove.ee. Kirjeldus, salvestusvorm ja link Google Sheetsi tabelile.
 NFC kaardid: https://nfc.taptoprove.ee. Ainult kirjevaade, ilma landinguta.
 Mõlemad aadressid serveerivad sama deploy, vaade valitakse domeeni järgi. Kirjed jäävad selle domeeni seadmesse, kus need salvestati.
-Landing page: https://taptoprove.ee, description, capture form and the workbook table.
+Landing page: https://taptoprove.ee, description, capture form and a link to the Google Sheet ledger.
 NFC cards: https://nfc.taptoprove.ee, record entry only, no landing copy.
 Both hosts serve the same deploy and pick the view from the hostname. Records stay in the device store of the origin that saved them.
 
@@ -70,12 +70,12 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 
 | File | Job |
 |---|---|
-| `app/index.html` | Screens, copy and the embedded workbook |
+| `app/index.html` | Screens, copy and the Google Sheet link |
 | `app/styles.css` | Visual system for the NFC record view, the subpages and the capture form |
-| `app/landing.css` | Black, white and red landing view on taptoprove.ee; imports `styles.css` as a layer for the capture form and workbook |
+| `app/landing.css` | Black, white and red landing view on taptoprove.ee; imports `styles.css` as a layer for the capture form and sheet card |
 | `app/landing.js` | Landing demo: simulated card tap onto a phone mock with a grade, nothing saved |
 | `app/sheet.html` | Live records table, Excel CSV and JSONL with attachments |
-| `app/app.js` | Capture, photo and video preview, hash chain, broadcast and the workbook sheet |
+| `app/app.js` | Capture, photo and video preview, hash chain and broadcast |
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Excel friendly synthetic CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
@@ -111,7 +111,7 @@ handoffs use the issue template. PR comments are the async conversation.
 2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
 4. Use the asset field or tap a sticker, then append one record. Show the queued count on the device.
-5. Scroll to the Tööraamat block on the same page. Press a grade in the capture form, then press Append record. The grade lands in the `Hügieen` sheet cell for the current week without a reload; tap the card named after a checkpoint (`Täitepea`, `Kastipesu`) and the phone mock plays the tap. Open `/sheet` when you also want the record table, the Proof column and the Excel CSV and JSONL exports, then print the paper form and time five checks against the app.
+5. Press a grade in the capture form, then press Append record. The check is stored on the device; the `Tabel` section and the nav open the Google Sheet where the ledger lives. Tap the card named after a checkpoint (`Täitepea`, `Kastipesu`) and the phone mock plays the tap. Open `/sheet` when you also want the record table of this device, the Proof column and the Excel CSV and JSONL exports, then print the paper form and time five checks against the app.
 
 ## What is real and what is sample
 
@@ -119,7 +119,7 @@ Records, tags and photos the judge makes during the demo are live, stored in Ind
 
 The sample CSV is Excel friendly with a UTF-8 BOM, semicolon separators and comma decimals. It is static demo data, not synced with the app. The Excel CSV button exports current records from that device at the moment of the click, without hash fields, internal media lists, language, default assessment, local sequence, quick or supervisor fields. The unchanged records and attachments remain available through JSONL export. CSV is a download, not a live spreadsheet link.
 
-The Tööraamat section on `taptoprove.ee` embeds the workbook's `Hügieen` sheet: the column letters, row numbers, blue header row, 5 week columns, checkpoint rows and legend the Excel file has. A save from the capture form fills the cell at once, and a second tab on the same device follows through the browser broadcast. A record's `checkpoint` comes from the place name (`Pesu` becomes `Wash`, `Filler head` stays `Filler head`), which is what fills the grid. The `Kirjed` record list is not on the landing; both sheets are in the downloadable `.xlsx`, and `/sheet` shows the records of this device.
+The `Tabel` section on `taptoprove.ee` does not embed a spreadsheet. It links the Google Sheet ledger at `https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371`, in the nav, the hero button and the section button, and the link opens in a new tab. Only people the sheet is shared with can open it; there is no Excel download on the page. A record still keeps its `checkpoint` name (`Pesu` stays `Pesu`), because that is the column the sheet groups by, and `/sheet` shows the records stored on this device.
 
 Dictation has two paths. Where the browser has a working Web Speech API (Chrome, Edge), words appear while you speak, and the same recording is sent to Whisper to correct the spelling. iPhone and iPad always use the microphone path: the `Räägi` button records a clip, sends it to `/api/transcribe` on the server, and writes the text into the note when you press the button again. The phone skips the speech service even where the browser exposes it, because the iPhone speech service refuses with a permission error after the microphone was already granted. The clip is plain `audio/webm` or `audio/mp4` depending on the browser, named `note.webm` or `note.m4a` to match, and a tap shorter than a word is ignored. This path needs a connection.
 
@@ -138,7 +138,7 @@ that thumbnail; pressing it opens the full photo, video or voice note from
 device storage.
 
 The ledger sync reads those attachment lines, writes each file next to the
-workbook under `media/`, uploads it to Drive and puts a hyperlink in the table.
+Google Sheet export under `media/`, uploads it to Drive and puts a hyperlink in the sheet.
 The row then shows `foto` or `video` as a clickable link instead of a hash.
 
 ## Deployment details

@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | iPhone mic consent: iPhone uses the mic path, speech refusal falls back | `fix/ios_mic_consent` | real iPhone test |
+| @AARenor | omp | review | Landing links the Google Sheet instead of embedding Excel; picker removed again | `feat/google_sheet_table` | none |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN selector after #122 | `fix/restore_lang_selector_again` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove extra fields from Excel CSV | `fix/csv-extra-fields` | none |
