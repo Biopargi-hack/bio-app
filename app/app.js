@@ -48,7 +48,7 @@ const WORDS = {
     sample_label: 'Sample data, synthetic, not A. Le Coq',
     cip_note: 'Three cycles short of temperature. One record cannot be signed.',
     paper: 'Print the paper form',
-    footer: 'Built for Hack the Future of Food 2026. Every record stays on this device until a server is connected.'
+    footer: 'Built for Hack the Future of Food 2026. Tap a tag, speak a check, keep the record.'
   },
   et: {
     subtitle: 'Tootmisliini lennuregistraator',
@@ -91,7 +91,7 @@ const WORDS = {
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
     cip_note: 'Kolm tsüklit jäid temperatuurist lühemaks. Ühte kirjet ei saa allkirjastada.',
     paper: 'Prindi pabervorm',
-    footer: 'Loodud Hack the Future of Food 2026 jaoks. Kõik kirjed jäävad seadmesse, kuni server on ühendatud.'
+    footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta silti, ütle kontroll ette, hoia kirje alles.'
   }
 };
 
