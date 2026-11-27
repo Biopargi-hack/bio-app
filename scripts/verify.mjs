@@ -101,6 +101,28 @@ if (speechCopyWired) {
   fail("app: the speech language picker or its copy is still present");
 }
 
+// iPhone Safari has no Web Speech API, so the button records and sends the clip.
+const recordFallbackWired = appSource.includes("async function toggleRecordOnly()")
+  && appSource.includes("async function transcribeRecording(blob)")
+  && appSource.includes("canRecordAudio()")
+  && appSource.includes("record_stop_hint")
+  && appSource.includes("fetch('./api/transcribe'");
+if (recordFallbackWired) {
+  ok("dictation records and sends the clip when the browser has no speech API");
+} else {
+  fail("app/app.js: the record-only dictation fallback is missing");
+}
+
+const audioTypeWired = appSource.includes("'audio/mp4;codecs=mp4a.40.2'")
+  && appSource.includes("function audioFileName(type)")
+  && appSource.includes("recordMime")
+  && appSource.includes("audioFileName(blob.type");
+if (audioTypeWired) {
+  ok("recordings pick a supported audio type and the matching file extension");
+} else {
+  fail("app/app.js: the audio type or file extension mapping is missing");
+}
+
 const speechUnlimited = appSource.includes("const SPEECH_CHUNK_CHARS = 160")
   && appSource.includes("onMicFree")
   && !/transcript[^;\n]{0,80}slice\(0,\s*300\)/.test(appSource);
