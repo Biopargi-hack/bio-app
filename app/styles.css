@@ -96,12 +96,20 @@
 }
 
 :root {
+  /* Illustration palette: A. Le Coq red and clean-check mint */
   --paper: #ffffff;
-  --wash: #f7f7f7;
-  --ink: #0a0a0a;
-  --muted: #666666;
-  --line: #dedede;
-  --accent: #1f5eff;
+  --wash: #f3f6f7;
+  --ink: #2d2e2e;
+  --muted: #53676d;
+  --line: #c7cdd1;
+  --line-strong: #53676d;
+  --accent: #a30029;
+  --accent-dark: #7a001f;
+  --accent-bright: #e40039;
+  --accent-tint: rgba(163, 0, 41, .08);
+  --mint: #0b7a59;
+  --mint-wash: #e7f4ee;
+  --mint-tint: rgba(11, 122, 89, .08);
   --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 }
@@ -184,8 +192,8 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 64px
   text-transform: uppercase;
   letter-spacing: .01em;
 }
-.action, .prove { background: var(--ink); color: var(--paper); }
-.action:hover, .prove:hover { background: var(--accent); border-color: var(--accent); }
+.action, .prove { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.action:hover, .prove:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
 .quiet:hover, .flag:hover, .voice:hover { background: var(--wash); }
 .note { margin: 10px 0 12px; font: 400 12px/1.5 var(--mono); color: var(--muted); min-height: 1em; }
 .note.error { color: var(--accent); font-weight: 600; }
@@ -200,7 +208,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 64px
 .grade-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
 .grade-btn { min-height: 56px; padding: 10px; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font: 700 16px/1 var(--display); text-transform: uppercase; }
 .grade-btn[data-grade="2"] { border-color: var(--accent); color: var(--accent); }
-.grade-btn[data-grade="1"] { background: var(--ink); color: var(--paper); }
+.grade-btn[data-grade="1"] { background: var(--accent-dark); border-color: var(--accent-dark); color: var(--paper); }
 .grade-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 
 
@@ -310,49 +318,44 @@ footer { padding: 20px clamp(16px, 4vw, 40px); border-top: 1px solid var(--ink);
 }
 
 /* =====================================================================
-   More colorful — richer accents, kept WCAG AA. Additive on top of main.
+   Illustration style — red primary action, mint clean state, soft cards.
+   Every colour comes from the tokens in :root above.
    ===================================================================== */
 
-:root {
-  /* richer accent palette */
-  --accent-gold: #B5730C;
-  --accent-gold-bright: #E8A33D;
-  --accent-teal: #0B7C84;
-  --accent-teal-bright: #0E9CA8;
-  --accent-violet: #6D4AD6;
-  --accent-green: #1F9D55;
-  --accent-orange: #E86A2E;
-  /* aliases so shared accent rules read cleanly */
-  --brand: var(--accent);
-  --brand-bright: #E40039;
-  --mint: #0B7A59;
-  --mint-wash: #E7F4EE;
-  --line-strong: #C7CDD1;
-  --red: #C23A2B;
-  --red-wash: #FCECEA;
+/* soft red and mint wash behind the hero, matching illustration.svg */
+.hero {
+  background: radial-gradient(900px 340px at 88% -20%, var(--accent-tint), transparent 60%),
+              radial-gradient(700px 320px at 0% 120%, var(--mint-tint), transparent 60%),
+              linear-gradient(180deg, var(--paper), var(--wash));
+  border-radius: 24px;
+  padding-left: 28px;
+  padding-right: 28px;
+  border-bottom: 0;
 }
+.hero-art img { border-radius: 20px; }
+.hero-kicker { color: var(--accent); }
 
-/* hero soft color wash */
-.hero { background: radial-gradient(1100px 360px at 88% -20%, rgba(31, 94, 255, .10), transparent 60%), radial-gradient(700px 320px at 0% 120%, rgba(14, 156, 168, .10), transparent 60%), linear-gradient(180deg, var(--paper), var(--wash)); }
-.hero-kicker { color: var(--accent-teal); }
+/* numbered steps alternate red and mint like the tap illustration */
+.steps li:nth-child(even) b { color: var(--mint); }
 
-/* numbered steps: colorful markers */
-.steps li:nth-child(1) b { color: var(--brand); }
-.steps li:nth-child(2) b { color: var(--accent-teal); }
-.steps li:nth-child(3) b { color: var(--red); }
-.steps li:nth-child(4) b { color: var(--accent-gold); }
-.steps li:nth-child(5) b { color: var(--accent-violet); }
+/* section accents */
+.station { border-top: 4px solid var(--accent); }
+.chain { border-top: 4px solid var(--mint); }
+.station .section-head h2 { color: var(--accent); }
+.chain .section-head h2 { color: var(--mint); }
+.chain-status { border-left: 3px solid var(--mint); padding-left: 12px; }
+.badge.good, .tagpill.good { color: var(--mint); border-color: var(--mint); background: var(--mint-wash); }
+.sample { border-top-color: var(--accent); }
+.sample-label { color: var(--accent); }
+.paper-link { color: var(--mint); border-bottom-color: var(--mint); }
+.wordmark small { color: var(--mint); }
+.accent-dot { background: var(--accent-bright); }
 
-/* card accents */
-.station { border-top: 4px solid var(--brand); }
-.chain { border-top: 4px solid var(--accent-teal); }
-.station .section-head h2 { color: var(--brand); }
-.chain .section-head h2 { color: var(--accent-teal); }
-
-/* colorful pills + sample accent */
-.chain-status { border-left-color: var(--accent-teal); }
-.badge.good, .tagpill.good { color: var(--accent-green); border-color: var(--accent-green); background: var(--mint-wash); }
-.sample { border-top-color: var(--accent-violet); }
-.sample-label { color: var(--accent-violet); }
-.paper-link { color: var(--accent-teal); }
-.wordmark small { color: var(--accent-teal); }
+/* rounded controls and proof card, as in the illustration */
+.action, .prove, .flag, .quiet, .voice, .default-assessment, .grade-btn, .lang-btn,
+.audit-questions button, .media-link, .switch {
+  border-radius: 12px;
+}
+.field input, .field select, .field textarea { border-radius: 8px; }
+.proof-pad { background: var(--wash); border-radius: 18px; padding-left: 24px; padding-right: 24px; }
+.record-row .seq { color: var(--accent); }
