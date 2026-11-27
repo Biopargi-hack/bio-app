@@ -49,3 +49,5 @@ Format:
 - **2026-11-27 16:40** — Implemented #54: capture screen now has line, visible 1-3 rating (selected before save), write/speak note, photo/video, append and Excel CSV. Removed hero, steps, rail, proof pad, fault picker, checkpoint/method/verdict/instrument. Grade 3 without usable media still writes fixed default. verify 22/0; headless Chrome 390+1280, offline reload and save, bilingual toggle: 14/14, no errors. No physical device test. PR 50 and 47 overlap these files.
 
 - **2026-11-27 16:42** — PR #57 opened for #54. verify and pr-notes green, preview deploy pending. Helper open_pr.mjs committed and pushed but gh could not resolve the worktree branch; created the PR with explicit --head feat/minimal_capture and the same template body.
+
+- **2026-11-27 16:44** — PR #57 (minimal capture) was shipped with an admin squash merge after the owner said to just do it. I authored the PR, so no separate review approval was obtained; verify, pr-notes and the preview deploy were green. The bypass is stated here and in the PR comment, not hidden as a demo emergency. Open PRs #50 and #47 overlap app.js/index.html/styles.css and need a rebase on the new main.
