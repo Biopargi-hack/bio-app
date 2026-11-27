@@ -55,6 +55,23 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Language buttons replace first-words auto-detection
+
+**Decision.** ET / RU / EN buttons select the recognition language before the
+worker speaks. Tapping a button starts listening immediately; the main Speak
+button repeats in the selected language. The Web Speech API still runs with
+continuous listening and the 2.5 s silence timer.
+
+**Why.** Guessing the language from interim first words failed when the wrong
+initial recogniser produced no usable text for that language. An explicit
+choice is reliable and the worker can see which language is active.
+
+**Consequence.** The worker taps ET, RU or EN once per check. Unsupported
+locales fall back to English with a visible note. Historical auto-detection
+code remains but is no longer used by the Speak button.
+
+---
+
 ## 2026-11-27 — taptoprove.ee is the production domain
 
 **Decision.** All live-site and NFC-tag references point to
