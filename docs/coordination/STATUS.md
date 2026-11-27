@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Excel friendly CSV and record export | fix/excel_export | none |
+| @AARenor | omp | doing | Mirror connected Google Sheet into GitHub | feat/sheet_mirror, issue #55 | none |
 | @linnudtonisted | OpenCode | review | Restore speech text field; remove tier display | PR #48 (`fix/transcript-field`) | device test |
 | @Pepukarv | OpenCode | review | service worker v7 so the three-point picture replaces cached v6 | feat/cache_v7 | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |

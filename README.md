@@ -22,6 +22,14 @@ Every push to `main` deploys automatically. No build step, no manual publish. A 
 
 Pull requests get their own preview URL printed in the Action log. Branch name becomes `preview-pr-N`, so four people can work at once without waiting for each other.
 
+## Connected sheet mirror
+
+The team ledger lives in Google Sheets. `data/sheet/` is the GitHub copy: one
+CSV per tab, a workbook snapshot and a small manifest. Refresh it with
+`python3 scripts/mirror_sheet.py` after a sheet sync, then commit the result.
+The sheet ID stays outside the repo.
+
+
 ## Näide ja NFC link
 
 Näide on lehel https://nfc.arle.top/showcase. NFC demo link on `https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1 ning pildi, hääle, video ja teksti. Andmed on ainult näite lehel.
@@ -67,8 +75,10 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Excel friendly synthetic CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
+| `data/sheet/` | Generated GitHub copy of the connected Google Sheet |
 | `scripts/verify.mjs` | Dependency-free gate: syntax, links, manifest, precache, secrets |
 | `scripts/note.mjs` | Append a session note to your coordination file |
+| `scripts/mirror_sheet.py` | Refresh the connected sheet mirror and workbook snapshot |
 | `docs/coordination/` | Status board, per-person notes, decisions, agent brief |
 | `AGENTS.md` | Operating rules for humans and AI agents |
 | `.github/workflows/deploy.yml` | Deploy on every push and pull request |

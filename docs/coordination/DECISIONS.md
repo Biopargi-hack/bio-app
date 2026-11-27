@@ -5,6 +5,23 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 Connected sheet mirror on GitHub
+
+**Decision.** The connected Google Sheet is mirrored into `data/sheet/` as one
+CSV per tab, a workbook snapshot and a manifest. `scripts/mirror_sheet.py`
+refreshes the files. The sheet ID is read from the local sync folder or an
+environment variable and is never committed.
+
+**Why.** The team needed the connected Excel visible in GitHub, not only in
+Google Drive. CSV files render in the browser and make changes reviewable in a
+pull request.
+
+**Consequence.** The mirror is a snapshot, not a live link. Someone must rerun
+the script after a sheet sync and commit the generated files.
+
+---
+
+
 ## 2026-11-27 — Three-point picture, no visible C tier
 
 **Decision.** The right-side illustration now shows three grades (3 clean, 2 fault, 1 serious) instead of five stations. The visible "Evidence tier" field is hidden, and the fixed-default card no longer mentions tier C. The underlying tier value is still computed for records.
