@@ -6,12 +6,12 @@ start. Keep them current.
 
 ## Mission
 
-**Tap to Prove** is a production-line proof app for the A. Le Coq challenge at
-Hack the Future of Food 2026. Tap a card, say what you did, attach evidence,
-and keep an append-only record with an evidence tier and a hash chain.
+**Tap to Prove** is our A. Le Coq challenge 3 entry: simplified documentation of
+hygiene checks without disrupting production. A fixed default covers the case
+where no photo is possible, and every record stays traceable.
 
-Win the demo: **tap → speak → bad photo refused → audit → tamper break**, in
-under three minutes, on a phone, offline if needed.
+Win the demo: **tap → clean or fixed default with no photo → audit → tamper
+break**, in under three minutes, on a phone, offline if needed.
 
 ## Current state
 

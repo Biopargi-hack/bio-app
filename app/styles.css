@@ -249,6 +249,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 56px
 .prove:hover { background: #ffd979; }
 .flag { color: var(--red); border-color: var(--red); }
 .flag:hover { background: var(--red); color: var(--paper); }
+.default-assessment { width: 100%; margin-top: 10px; min-height: 42px; padding: 9px 15px; border: 1px dashed var(--amber-deep); background: var(--paper); color: var(--amber-deep); font: 700 14px/1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.default-assessment:hover { background: var(--wash); }
 
 .card-rack { margin: 16px 0 20px; border-top: 1px solid var(--line); }
 .card-rack summary { cursor: pointer; min-height: 34px; padding: 10px 0; font: 700 14px/1 var(--display); text-transform: uppercase; color: var(--amber-deep); }

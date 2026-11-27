@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | demo | white theme and offline local fonts | feat/white_theme | none |
+| @AARenor | omp | demo | challenge 3 copy and fixed no photo default | feat/challenge_three | none |
 | @linnudtonisted | _fill in_ | idle | _pick a task_ | — | — |
 | @Pepukarv | _fill in_ | idle | _pick a task_ | — | — |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |

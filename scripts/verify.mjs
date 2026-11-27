@@ -57,6 +57,13 @@ if (appSource.includes("tag_sig: currentTag") && appSource.includes("r.tag_sig")
   fail("app/app.js: card ID is missing from records or the ledger row");
 }
 
+// The no photo case must write a fixed default assessment into the dataset.
+if (appSource.includes("quickRecord('default')") && appSource.includes('default_assessment: isDefault')) {
+  ok("fixed default assessment is wired into records");
+} else {
+  fail("app/app.js: fixed default assessment is missing from records");
+}
+
 // Manifest: valid JSON and every icon actually exists.
 let manifest = null;
 try {
