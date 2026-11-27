@@ -28,6 +28,19 @@
     td.hash { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
     tr.fresh { background: var(--accent-tint); }
     .empty { padding: 40px 0; color: var(--muted); font: 500 15px/1.5 var(--display); }
+    .proof-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--paper); color: var(--ink); font: 700 12px/1 var(--mono); text-transform: none; cursor: pointer; }
+    .proof-btn:hover, .proof-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
+    .proof-btn img { display: block; width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: var(--wash); }
+    .proof-dialog { width: min(720px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--ink); border-radius: 12px; background: var(--paper); color: var(--ink); }
+    .proof-dialog::backdrop { background: rgba(45, 46, 46, .55); }
+    .proof-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .proof-head h2 { margin: 0; font: 700 18px/1.2 var(--display); text-transform: uppercase; letter-spacing: -.01em; }
+    .proof-close { min-height: 44px; padding: 0 16px; border: 1px solid var(--ink); border-radius: 8px; background: var(--paper); color: var(--ink); font: 600 12px/1 var(--mono); text-transform: uppercase; cursor: pointer; }
+    .proof-close:hover { background: var(--ink); color: var(--paper); }
+    .proof-body { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+    .proof-body img, .proof-body video { display: block; width: 100%; max-height: 62vh; object-fit: contain; border-radius: 8px; background: var(--wash); }
+    .proof-body audio { width: 100%; }
+    .proof-meta { margin: 0; padding: 0 16px 16px; color: var(--muted); font: 400 12px/1.5 var(--mono); overflow-wrap: anywhere; }
     .sheet-foot { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font: 400 12px/1.5 var(--mono); }
     footer a { color: var(--accent); text-decoration: none; }
     @media (max-width: 720px) {
@@ -80,6 +93,7 @@
             <th data-i18n="checkpoint">Checkpoint</th>
             <th data-i18n="verdict">Verdict</th>
             <th data-i18n="grade">Grade</th>
+            <th data-i18n="proof">Proof</th>
             <th data-i18n="tier">Tier</th>
             <th data-i18n="tag">Tag</th>
             <th data-i18n="note">Note</th>
@@ -90,6 +104,15 @@
       </table>
       <div class="empty" id="emptyState" data-i18n="empty">No records yet. Open the capture app and append one.</div>
     </div>
+
+    <dialog id="proofDialog" class="proof-dialog" aria-labelledby="proofTitle">
+      <div class="proof-head">
+        <h2 id="proofTitle" data-i18n="proof">Tõend</h2>
+        <button id="proofClose" class="proof-close" type="button" data-i18n="proof_close">Sulge</button>
+      </div>
+      <div id="proofBody" class="proof-body"></div>
+      <p id="proofMeta" class="proof-meta"></p>
+    </dialog>
 
     <p class="sheet-foot" data-i18n="foot">Same device only. Records live in this browser. Cross-device sync needs a shared store.</p>
   </main>
@@ -110,7 +133,7 @@
         skip: 'Jump to records', subtitle: 'Proof for the production line', localOnly: 'This device',
         title: 'Live records', intro: 'This page follows new checks on this device. Open the capture app in another tab and append a record. The row appears here without a reload.',
         capture: 'Open capture', excel: 'Excel CSV', live: 'Live', seq: '#', time: 'Time', asset: 'Asset',
-        checkpoint: 'Checkpoint', verdict: 'Verdict', grade: 'Grade', tier: 'Tier', tag: 'Tag', note: 'Note',
+        checkpoint: 'Checkpoint', verdict: 'Verdict', grade: 'Grade', proof: 'Proof', proof_close: 'Close', tier: 'Tier', tag: 'Tag', note: 'Note',
         hash: 'Hash', empty: 'No records yet. Open the capture app and append one.',
         foot: 'Same device only. Records live in this browser. Cross-device sync needs a shared store.',
         footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'One pager',
@@ -122,7 +145,7 @@
         skip: 'Hüppa kirjete juurde', subtitle: 'Tõend tootmisliinile', localOnly: 'See seade',
         title: 'Elavad kirjed', intro: 'See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.',
         capture: 'Ava salvestus', excel: 'Excel CSV', live: 'Otseülekanne', seq: '#', time: 'Aeg', asset: 'Seade',
-        checkpoint: 'Kontrollpunkt', verdict: 'Otsus', grade: 'Hinne', tier: 'Tase', tag: 'Silt', note: 'Märkus',
+        checkpoint: 'Kontrollpunkt', verdict: 'Otsus', grade: 'Hinne', proof: 'Tõend', proof_close: 'Sulge', tier: 'Tase', tag: 'Silt', note: 'Märkus',
         hash: 'Räsikood', empty: 'Kirjeid veel pole. Ava salvestusleht ja lisa kirje.',
         foot: 'Ainult samas seadmes. Kirjed on selles brauseris. Erinevate seadmete vaheliseks sünkroniseerimiseks on vaja jagatud hoidlat.',
         footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'Üheleht',
@@ -204,6 +227,117 @@
       return td;
     }
 
+    const proofWords = {
+      en: { proof: 'Proof', proof_photo: 'photo', proof_video: 'video', proof_audio: 'voice', proof_none: '—',
+        proof_missing: 'The attachment is not on this device.', proof_open: 'Open the proof', proof_close: 'Close',
+        proof_of: 'Record', loading: 'Loading the attachment...' },
+      et: { proof: 'Tõend', proof_photo: 'pilt', proof_video: 'video', proof_audio: 'hääl', proof_none: '—',
+        proof_missing: 'Manus ei ole selles seadmes.', proof_open: 'Ava tõend', proof_close: 'Sulge',
+        proof_of: 'Kirje', loading: 'Laadin manust...' }
+    };
+    const proofText = (key) => proofWords[lang]?.[key] ?? proofWords.en[key] ?? key;
+
+    let proofKey = 0;
+    let proofUrls = [];
+
+    function proofKind(record) {
+      if (record.media_kind === 'video') return 'proof_video';
+      if (record.media_kind) return 'proof_photo';
+      return 'proof_audio';
+    }
+
+    function proofCell(record) {
+      const td = document.createElement('td');
+      const hasMedia = Boolean(record.media_hash);
+      const hasAudio = Boolean(record.audio_hash);
+      if (!hasMedia && !hasAudio) {
+        td.textContent = proofText('proof_none');
+        return td;
+      }
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'proof-btn';
+      button.setAttribute('aria-label', `${proofText('proof_open')}: ${proofText(hasMedia ? proofKind(record) : 'proof_audio')}`);
+      button.addEventListener('click', () => openProof(record));
+      if (record.photo_thumb) {
+        const thumb = new Image();
+        thumb.src = record.photo_thumb;
+        thumb.alt = '';
+        thumb.width = 48;
+        thumb.height = 48;
+        button.append(thumb);
+      }
+      const label = document.createElement('span');
+      label.textContent = proofText(hasMedia ? proofKind(record) : 'proof_audio');
+      button.append(label);
+      td.append(button);
+      return td;
+    }
+
+    function clearProofBody() {
+      $('proofBody').replaceChildren();
+      for (const url of proofUrls) URL.revokeObjectURL(url);
+      proofUrls = [];
+    }
+
+    async function openProof(record) {
+      const token = ++proofKey;
+      clearProofBody();
+      $('proofBody').textContent = proofText('loading');
+      $('proofMeta').textContent = `${proofText('proof_of')} ${record.seq} · ${record.asset || ''}`;
+      const elements = [];
+      if (record.media_hash) {
+        const sourceSeq = record.photo_reuse_of || record.seq;
+        const blob = await getMedia(`${sourceSeq}:media`);
+        if (token !== proofKey) return;
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          proofUrls.push(url);
+          const el = document.createElement(record.media_kind === 'video' ? 'video' : 'img');
+          if (el.tagName === 'VIDEO') {
+            el.controls = true;
+            el.playsInline = true;
+            el.muted = false;
+          } else {
+            el.alt = `${proofText('proof_photo')} ${record.seq}`;
+          }
+          el.src = url;
+          elements.push(el);
+        }
+      }
+      if (record.audio_hash) {
+        const blob = await getMedia(`${record.seq}:audio`);
+        if (token !== proofKey) return;
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          proofUrls.push(url);
+          const audio = document.createElement('audio');
+          audio.controls = true;
+          audio.src = url;
+          elements.push(audio);
+        }
+      }
+      if (!elements.length) {
+        $('proofBody').textContent = proofText('proof_missing');
+      } else {
+        $('proofBody').replaceChildren(...elements);
+      }
+      const dialog = $('proofDialog');
+      if (typeof dialog.showModal === 'function') {
+        if (!dialog.open) dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    }
+
+    function closeProof() {
+      const dialog = $('proofDialog');
+      if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+      else dialog.removeAttribute('open');
+      for (const media of $('proofBody').querySelectorAll('video, audio')) media.pause?.();
+      clearProofBody();
+    }
+
     function render(previousSeq = lastSeq) {
       $('recordsBody').replaceChildren();
       $('emptyState').hidden = records.length > 0;
@@ -218,6 +352,7 @@
           cell(row, record.checkpoint),
           cell(row, record.verdict),
           cell(row, record.grade),
+          proofCell(record),
           cell(row, record.tier),
           cell(row, record.tag_sig),
           cell(row, record.transcript || record.method),
@@ -282,8 +417,8 @@
         if (!current.length) { $('exportText').textContent = t('excel_empty'); return; }
         const lines = [];
         for (const record of current) {
-          const { photo_thumb, ...clean } = record;
-          lines.push(JSON.stringify(clean));
+          // The hash covers every stored field, so the export keeps them all.
+          lines.push(JSON.stringify(record));
           const attachments = [];
           if (record.media_hash && !record.photo_reuse_of) attachments.push({ key: `${record.seq}:media`, seq: record.seq });
           if (record.audio_hash) attachments.push({ key: `${record.seq}:audio`, seq: record.seq });
@@ -308,6 +443,8 @@
     });
     $('sheetExcelBtn').addEventListener('click', exportExcel);
     $('sheetJsonlBtn').addEventListener('click', exportJsonl);
+    $('proofClose').addEventListener('click', closeProof);
+    $('proofDialog').addEventListener('close', closeProof);
 
     channel?.addEventListener('message', (event) => {
       if (event.data?.type === 'record') refresh(true);

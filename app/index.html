@@ -85,11 +85,33 @@
             </div>
             <input id="photo" type="file" accept="image/*,video/*" capture="environment" hidden>
           </div>
+          <figure id="mediaPreview" class="media-preview" hidden>
+            <div class="media-preview-frame">
+              <img id="mediaPreviewImage" alt="" hidden>
+              <video id="mediaPreviewVideo" controls playsinline muted hidden></video>
+            </div>
+            <figcaption class="media-preview-meta">
+              <span class="media-preview-text">
+                <strong id="mediaPreviewTitle"></strong>
+                <span id="mediaPreviewDetail"></span>
+              </span>
+              <button id="mediaClearBtn" class="quiet small" type="button" data-i18n="media_clear">Eemalda</button>
+            </figcaption>
+          </figure>
           <p id="photoNote" class="note" role="status"></p>
 
           <div class="row save-row">
             <button id="saveBtn" class="action" type="button" data-i18n="save">Lisa kirje</button>
             <span id="saveNote" class="note" role="status"></span>
+          </div>
+
+          <div id="lastRecord" class="last-record" hidden>
+            <img id="lastRecordThumb" alt="" width="56" height="56" hidden>
+            <div class="last-record-text">
+              <strong id="lastRecordTitle"></strong>
+              <span id="lastRecordDetail"></span>
+            </div>
+            <a class="link-button ghost small" href="/sheet" data-i18n="open_sheet">Vaata kirjeid</a>
           </div>
         </div>
       </div>

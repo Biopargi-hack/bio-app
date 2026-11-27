@@ -106,3 +106,5 @@ Format:
 - **2026-11-27 18:53** — PR 89 admin merged to main. Live check: taptoprove.ee serves the canonical landing page and nfc.taptoprove.ee/showcase serves NFC links; card URL returns 200. Four fresh demo card links TAP-NFC-001 to 004 sent to Telegram. Physical NFC taps still not device tested.
 
 - **2026-11-27 19:03** — Split the views by host. taptoprove.ee now shows only the landing description, nfc.taptoprove.ee only the record form, neither shows the hygiene table. Mode is chosen before CSS from the hostname. All records stay in the nfc origin store; offline warm-up moves to the NFC host. Old landing-host asset links no longer record. verify 50/0, browser checks at 390 and 1280 show the right view with no errors or overflow.
+
+- **2026-11-27 19:20** — feat(app): photo and video preview on capture, Proof column in the live sheet, media links in the ledger sync
