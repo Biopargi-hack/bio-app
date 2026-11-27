@@ -1,6 +1,6 @@
 # Tap to Prove: demo runbook
 
-Live site: https://nfc.arle.top
+Live site: https://taptoprove.ee
 Repo: https://github.com/Biopargi-hack/bio-app
 
 ## The three minute story
