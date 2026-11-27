@@ -69,7 +69,6 @@ const WORDS = {
     evidence: 'Photo or video evidence',
     photo_hint: 'A photo or video only counts as evidence if the app can read it.',
     instrument: 'Instrument reading',
-    tier: 'Evidence tier',
     save: 'Append record',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
@@ -166,7 +165,6 @@ const WORDS = {
     media_badge: 'Meedia',
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
-    tier: 'Tõendi tase',
     save: 'Lisa kirje',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
@@ -624,10 +622,6 @@ function hasEvidence() {
 }
 
 function updateTier() {
-  const tier = tierFor();
-  const out = $('tier');
-  out.textContent = tier;
-  out.className = `tier ${tier.toLowerCase()}`;
   if (photoState) {
     note('photoNote', photoState.reason, !photoState.usable);
   }
