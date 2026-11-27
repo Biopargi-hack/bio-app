@@ -7,7 +7,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | Excel friendly CSV and record export | fix/excel_export | none |
 | @linnudtonisted | OpenCode | review | Speech-to-text: detect language from first words | `fix/speech-to-text`, issue #44 | device test |
-| @Pepukarv | OpenCode | review | Remove 'Kaheksa kohta. Üks rutiin.' heading from landing | #70, fix/remove_checkpoints_title | none |
+| @Pepukarv | OpenCode | review | Remove all eight checkpoint links and their instruction from landing | #73, fix/remove_checkpoint_list | none |
 | @stevenlaas123-pixel | omp | review | Simplify capture screen; browser-language speech | `feat/capture_simplify` | speech and NFC device test |
 
 ## Demo-critical path
