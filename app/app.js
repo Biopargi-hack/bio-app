@@ -13,15 +13,15 @@ const WORDS = {
   en: {
     subtitle: 'Proof for the production line',
     intro_kicker: 'Live demo, records stay on this device',
-    hero_note: 'Tap the card. Say what you did. The record writes itself.',
-    intro_title: 'One tap. One record. No paper.',
-    intro_body: 'A waterproof NFC card sits on every place that gets checked. Tap it, say what you did, and the record writes itself. The wash is the hard case, because the machine is closed and there is no photo to take.',
-    beat1: 'Tap the sticker',
-    beat2: 'Green button, done in 2 seconds',
-    beat3: 'Red button and a fault from the list',
-    beat4: 'Photo when one is possible',
-    beat5: 'Audit the record later',
-    capture_title: 'Tap station',
+    hero_note: 'Tap the card. Say what you did. No photo needed. The record writes itself.',
+    intro_title: 'Hygiene checks documented in two seconds.',
+    intro_body: 'A. Le Coq hygiene checks still end in a paper form. A waterproof NFC card on each place opens the check on the phone. Tap, say what you did, and the record writes itself. When no photo is possible, a fixed default assessment keeps the data complete.',
+    beat1: 'Tap the card',
+    beat2: 'Clean button, done in 2 seconds',
+    beat3: 'Fault button and a fault from the list',
+    beat4: 'No photo? Use the fixed default',
+    beat5: 'Audit the traceable record later',
+    capture_title: 'Check capture',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
     scan: 'Tap NFC tag',
@@ -43,7 +43,7 @@ const WORDS = {
     reason: 'Reason when there is no hard evidence',
     supervisor: 'Supervisor signature',
     save: 'Append record',
-    ledger_title: 'Audit console',
+    ledger_title: 'Traceable dataset',
     chain_empty: 'No records yet. The first one starts the chain.',
     filter: 'Filter by asset or checkpoint',
     export: 'Export JSONL',
@@ -52,9 +52,12 @@ const WORDS = {
     sample_label: 'Sample data, synthetic, not A. Le Coq',
     cip_note: 'Three cycles short of temperature. One record cannot be signed.',
     paper: 'Print the paper form',
-    quick_title: 'Tap to confirm',
+    quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
     confirm: 'PROVE CLEAN',
+    default_cta: 'No photo? Use fixed default',
+    default_reason: 'Fixed default, machine closed, no photo possible',
+    default_done: 'Default assessment',
     fault: 'Problem',
     fault_type: 'What is wrong',
     fault_foam: 'foam on the floor',
@@ -62,7 +65,7 @@ const WORDS = {
     fault_floor: 'dirt on the floor',
     fault_nophoto: 'photo not possible',
     fault_save: 'Save fault',
-    quick_reason: 'NFC quick confirmation',
+    quick_reason: 'Declared clean at the tagged place',
     quick_fault_reason: 'Fault chosen from the NFC quick list',
     quick_done: 'Quick record',
     record_added: 'Record',
@@ -98,20 +101,20 @@ const WORDS = {
     tag_written: 'Wrote tag',
     qr_link: 'QR link',
     tag_read_sign: 'Tag read',
-    footer: 'Hack the Future of Food 2026. Tap to prove.',
+    footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
   },
   et: {
     subtitle: 'Tõend tootmisliinile',
     intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
-    hero_note: 'Puuduta kaarti. Ütle, mis tegid. Kirje kirjutab end ise.',
-    intro_title: 'Üks puudutus. Üks kirje. Ei paberit.',
-    intro_body: 'Iga kontrollitava koha küljes on veekindel NFC kaart. Puuduta seda, ütle, mis tegid, ja kirje kirjutab end ise. Pesu on raske näide, sest masin on suletud ja fotot ei saa teha.',
-    beat1: 'Puuduta kleepsu',
-    beat2: 'Roheline nupp, valmis 2 sekundiga',
-    beat3: 'Punane nupp ja viga listist',
-    beat4: 'Foto kui võimalik',
-    beat5: 'Kontrolli kirjet hiljem',
-    capture_title: 'Puudutusjaam',
+    hero_note: 'Puuduta kaarti. Ütle, mis tegid. Pilti pole vaja. Kirje kirjutab end ise.',
+    intro_title: 'Hügieenikontroll dokumenteeritakse kahe sekundiga.',
+    intro_body: 'A. Le Coq hügieenikontroll lõppeb praegu pabervormiga. Iga kontrollitava koha NFC kaart avab kontrolli telefonis. Puuduta, ütle, mis tegid, ja kirje kirjutab end ise. Kui pilti ei saa, hoiab fikseeritud hinnang andmed tervena.',
+    beat1: 'Puuduta kaarti',
+    beat2: 'Puhas nupp, valmis 2 sekundiga',
+    beat3: 'Probleeminupp ja viga listist',
+    beat4: 'Pilti ei saa? Kasuta fikseeritud hinnangut',
+    beat5: 'Kontrolli jälgitavat kirjet hiljem',
+    capture_title: 'Kontrolli salvestamine',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
     scan: 'Puuduta NFC silti',
@@ -133,7 +136,7 @@ const WORDS = {
     reason: 'Põhjus, kui kõva tõend puudub',
     supervisor: 'Vastutaja allkiri',
     save: 'Lisa kirje',
-    ledger_title: 'Kontrollikonsol',
+    ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
@@ -142,9 +145,12 @@ const WORDS = {
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
     cip_note: 'Kolm tsüklit jäid temperatuurist lühemaks. Ühte kirjet ei saa allkirjastada.',
     paper: 'Prindi pabervorm',
-    quick_title: 'Puuduta kinnitamiseks',
+    quick_title: 'Dokumenteeri kontroll',
     quick_prompt: 'Kõik on puhas ja korras',
     confirm: 'KINNITA PUHAS',
+    default_cta: 'Pilti ei saa? Kasuta fikseeritud hinnangut',
+    default_reason: 'Fikseeritud hinnang, masin suletud, pilti ei saa',
+    default_done: 'Fikseeritud hinnang',
     fault: 'Probleem',
     fault_type: 'Mis viga on',
     fault_foam: 'vaht maas',
@@ -152,7 +158,7 @@ const WORDS = {
     fault_floor: 'mustus põrandal',
     fault_nophoto: 'foto ei ole võimalik',
     fault_save: 'Salvesta viga',
-    quick_reason: 'NFC kiirkinnitus',
+    quick_reason: 'Tagged kohas kuulutatud puhas',
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
     record_added: 'Kirje',
@@ -188,7 +194,7 @@ const WORDS = {
     tag_written: 'Kirjutasime sildi',
     qr_link: 'QR link',
     tag_read_sign: 'Silt loetud',
-    footer: 'Hack the Future of Food 2026. Tap to prove.',
+    footer: 'A. Le Coqi väljakutse 3 hackathonil Hack the Future of Food 2026. Tap to prove.',
   }
 };
 
@@ -489,9 +495,10 @@ async function quickRecord(kind) {
     note('quickNote', lang === 'et' ? 'Puuduta kleepsu või kirjuta masina nimi.' : 'Tap the sticker or type the machine name.', true);
     return;
   }
-  const isClean = kind === 'clean';
+  const isDefault = kind === 'default';
+  const isClean = kind === 'clean' || isDefault;
   const previous = photoState ? reusedPhoto(photoState.hash) : null;
-  const tier = !isClean && photoState?.usable && !previous ? 'B' : 'C';
+  const tier = isDefault ? 'C' : !isClean && photoState?.usable && !previous ? 'B' : 'C';
   const transcript = isClean ? WORDS[lang].quick_prompt : $('faultType').value;
   const record = await appendRecord({
     asset,
@@ -502,7 +509,7 @@ async function quickRecord(kind) {
     verdict: isClean ? 'clean' : 'not clean',
     transcript,
     tier,
-    reason: isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
+    reason: isDefault ? WORDS[lang].default_reason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
     supervisor: '',
     instrument: '',
     photo_hash: photoState?.hash || '',
@@ -510,11 +517,13 @@ async function quickRecord(kind) {
     photo_usable: photoState?.usable || false,
     photo_reuse_of: previous?.seq || null,
     language: $('voiceLang').value,
+    default_assessment: isDefault,
     quick: true
   });
   $('faultField').hidden = true;
   $('faultSaveBtn').hidden = true;
-  await finishRecord(record, 'quickNote', `${WORDS[lang].quick_done} ${record.seq}.`);
+  const done = isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
+  await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
 }
 
 function renderRecords(records) {
@@ -836,6 +845,7 @@ function bind() {
     $('assetSource').textContent = sourceLabel();
   });
   $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
+  $('defaultBtn').addEventListener('click', () => quickRecord('default'));
   $('faultBtn').addEventListener('click', () => {
     $('faultField').hidden = false;
     $('faultSaveBtn').hidden = false;

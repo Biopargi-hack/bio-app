@@ -5,12 +5,13 @@ Repo: https://github.com/Biopargi-hack/bio-app
 
 ## The three minute story
 
-1. One person taps a card on the filler head. The page opens with the place already filled in and KINNITA PUHAS in focus.
-2. They say what they did. They press KINNITA PUHAS. The record appears in the chain with its card ID and source.
-3. They tap another card, choose a fault, and pick a bad photo. The app refuses to count the photo as hard evidence.
-4. Open the audit questions. Show the unsigned clean checks and the tier C rows.
-5. Press Show tamper break. The chain breaks in the copy while the stored records stay intact.
-6. Print the paper form and put it beside the phone. The difference is the point.
+1. One person taps a card on the filler head. The page opens with the place filled in and KINNITA PUHAS in focus.
+2. They press KINNITA PUHAS. The record appears with its card ID, source and checkpoint.
+3. They tap another card and press "Pilti ei saa? Kasuta fikseeritud hinnangut". The record is tier C with the fixed reason and `default_assessment: true`.
+4. They show a fault from the list and a bad photo being refused as hard evidence.
+5. Open the audit questions. Show the unsigned clean checks and the tier C rows.
+6. Press Show tamper break. The chain breaks in the copy while the stored records stay intact.
+7. Print the paper form and put it beside the phone. The difference is the point.
 
 Say plainly: the card ID shows which card was tapped. It is not a cryptographic signature. Real signing needs NTAG424.
 
@@ -20,6 +21,7 @@ Say plainly: the card ID shows which card was tapped. It is not a cryptographic 
 - Write the five cards in the app under Write 5 cards. Give each one a real place name.
 - Tap one card. Confirm the place is filled, KINNITA PUHAS is focused, and the chain row shows `nfc <card ID>`.
 - Open `/?asset=filler&tag=T1%20TEST&via=nfc` once. Confirm the row shows the same card ID.
+- Press the fixed default button and confirm the row shows tier C, the fixed reason and `default_assessment: true`.
 - Check that changing the asset field by hand clears the card ID and sets source to typed.
 - Keep the paper form printed.
 
