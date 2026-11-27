@@ -9,6 +9,7 @@ const ASSETS = [
   './icon_192.png',
   './icon_512.png',
   './paper.html',
+  './showcase.html',
   './sample_cip.csv',
   './fonts/barlow_condensed_600_latin.woff2',
   './fonts/barlow_condensed_600_latin_ext.woff2',
