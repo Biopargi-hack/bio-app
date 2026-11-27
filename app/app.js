@@ -68,6 +68,11 @@ const WORDS = {
     quick_reason: 'Declared clean at the tagged place',
     quick_fault_reason: 'Fault chosen from the NFC quick list',
     quick_done: 'Quick record',
+    grade_prompt: 'Rate this spot',
+    grade_note: 'Pick 3 clean, 2 dirty, or 1 serious.',
+    grade_reason: 'Grade N recorded from the tagged place',
+    grade_done: 'Grade N saved',
+    grade_short: 'grade',
     record_added: 'Record',
     record_one: 'record',
     record_many: 'records',
@@ -162,6 +167,11 @@ const WORDS = {
     quick_reason: 'Märgistatud kohas kinnitatud puhas',
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
+    grade_prompt: 'Hinna see koht',
+    grade_note: 'Vali 3 korras, 2 must või 1 tõsine.',
+    grade_reason: 'Hinne N märgitud kleepsu kohas',
+    grade_done: 'Hinne N salvestatud',
+    grade_short: 'hinne',
     record_added: 'Kirje',
     record_one: 'kirje',
     record_many: 'kirjet',
@@ -208,6 +218,7 @@ let demoBreak = null;
 let currentTag = '';
 let currentSource = 'typed';
 
+let gradeMode = false;
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
   for (const el of document.querySelectorAll('[data-i18n]')) {
@@ -217,6 +228,7 @@ function applyLanguage() {
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
+  if (gradeMode && $('quickPrompt')) $('quickPrompt').textContent = WORDS[lang].grade_prompt;
 }
 
 function note(id, text, isError = false) {
@@ -491,27 +503,31 @@ async function finishRecord(record, noteId, message) {
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
 }
 
-async function quickRecord(kind) {
+async function quickRecord(kind, grade = 0) {
   const asset = $('asset').value.trim();
   if (!asset) {
     note('quickNote', lang === 'et' ? 'Puuduta kleepsu või kirjuta masina nimi.' : 'Tap the sticker or type the machine name.', true);
     return;
   }
+  const isGrade = kind === 'grade';
   const isDefault = kind === 'default';
-  const isClean = kind === 'clean' || isDefault;
+  const isClean = kind === 'clean' || isDefault || (isGrade && grade === 3);
   const previous = photoState ? reusedPhoto(photoState.hash) : null;
-  const tier = isDefault ? 'C' : !isClean && photoState?.usable && !previous ? 'B' : 'C';
-  const transcript = isClean ? WORDS[lang].quick_prompt : $('faultType').value;
+  const tier = isDefault || isGrade ? 'C' : !isClean && photoState?.usable && !previous ? 'B' : 'C';
+  const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
+  const transcript = isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : $('faultType').value;
+  const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : isClean ? 'clean' : 'not clean';
   const record = await appendRecord({
     asset,
     tag_sig: currentTag,
     source: currentSource,
     checkpoint: $('checkpoint').value,
-    method: isClean ? 'Declared' : 'Visual',
-    verdict: isClean ? 'clean' : 'not clean',
+    method: isGrade ? 'Rated' : isClean ? 'Declared' : 'Visual',
+    verdict,
+    grade: isGrade ? grade : null,
     transcript,
     tier,
-    reason: isDefault ? WORDS[lang].default_reason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
+    reason: isGrade ? gradeReason : isDefault ? WORDS[lang].default_reason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
     supervisor: '',
     instrument: '',
     photo_hash: photoState?.hash || '',
@@ -524,7 +540,7 @@ async function quickRecord(kind) {
   });
   $('faultField').hidden = true;
   $('faultSaveBtn').hidden = true;
-  const done = isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
+  const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
   await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
 }
 
@@ -543,11 +559,12 @@ function renderRecords(records) {
     const origin = r.source || 'typed';
     const card = r.tag_sig ? ` · ${origin} ${escapeHtml(r.tag_sig)}` : '';
     const defaultMark = r.default_assessment ? ` · <em class="default-flag">${WORDS[lang].default_done}</em>` : '';
+    const gradeMark = r.grade ? ` · <em class="default-flag">${WORDS[lang].grade_short} ${r.grade}</em>` : '';
     const reason = r.reason ? ` · ${escapeHtml(r.reason)}` : '';
     return `<div class="record-row">
       <span class="seq">#${r.seq}</span>
       <span class="main"><strong>${escapeHtml(r.asset)} · ${escapeHtml(r.checkpoint)}</strong>
-      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${defaultMark}${reason} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
+      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${gradeMark}${defaultMark}${reason} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
       <span class="hash ${broken ? 'broken' : ''}">${r.hash.slice(0, 8)}<br>${broken ? 'BROKEN' : 'ok'}</span>
     </div>`;
   }).join('');
@@ -851,6 +868,9 @@ function bind() {
   });
   $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
   $('defaultBtn').addEventListener('click', () => quickRecord('default'));
+  document.querySelectorAll('.grade-btn').forEach((btn) => {
+    btn.addEventListener('click', () => quickRecord('grade', Number(btn.dataset.grade)));
+  });
   $('faultBtn').addEventListener('click', () => {
     $('faultField').hidden = false;
     $('faultSaveBtn').hidden = false;
@@ -878,20 +898,28 @@ function bind() {
 
 async function start() {
   tags = loadTags();
+  const params = new URLSearchParams(location.search);
+  const asset = params.get('asset');
+  const tag = params.get('tag');
+  const via = params.get('via');
+  gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
   populateSelects();
   applyLanguage();
   renderTagSlots();
   bind();
   updateTier();
   updateNetwork();
-  const params = new URLSearchParams(location.search);
-  const asset = params.get('asset');
-  const tag = params.get('tag');
-  const via = params.get('via');
+  if (gradeMode) {
+    $('gradeRow').hidden = false;
+    document.querySelector('.pad-actions').hidden = true;
+    $('defaultBtn').hidden = true;
+    note('quickNote', WORDS[lang].grade_note);
+  }
   if (asset) {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : tag ? 'link' : 'typed');
     document.querySelector('.proof-pad')?.scrollIntoView({ block: 'center' });
-    $('cleanBtn').focus({ preventScroll: true });
+    if (gradeMode) $('grade3').focus({ preventScroll: true });
+    else $('cleanBtn').focus({ preventScroll: true });
   }
   initNfc();
   await refreshRecords();

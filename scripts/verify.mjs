@@ -72,6 +72,14 @@ if (appSource.includes("kind === 'defaults'") && appSource.includes('class="defa
   fail("app/app.js: fixed default is not visible in the audit view");
 }
 
+// NFC and QR links must open a grade 1 to 3 rating view.
+const indexSource = existsSync(join(appDir, "index.html")) ? readFileSync(join(appDir, "index.html"), "utf8") : "";
+if (appSource.includes("kind === 'grade'") && indexSource.includes('id="gradeRow"')) {
+  ok("NFC link opens a grade view");
+} else {
+  fail("app: NFC link grade view is missing");
+}
+
 // The showcase page must carry the demo NFC link and its tag id.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
 if (showcase.includes("TAP-DEMO-01") && (showcase.includes("nfc.arle.top/?asset=") || showcase.includes("taptoprove.ee/?asset="))) {
