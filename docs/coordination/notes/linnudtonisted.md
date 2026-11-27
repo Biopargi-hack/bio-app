@@ -37,3 +37,13 @@ Format:
 - **2026-11-27 18:02** — Rebased fix/speech-to-text twice onto the moving remote tip (3b897af then f185396) and force-pushed the PR branch with --force-with-lease, disclosed in PR #72. Only STATUS.md conflicted (own row); all checks rerun and pass.
 
 - **2026-11-27 18:03** — PR #72 checks green (verify 26/26, pr-notes, preview deploy). Owner's agent is using admin merge to ship this demo-critical speech fix to taptoprove.ee without waiting for a second reviewer, the third such bypass in this repo; disclosed in the PR comment. Real microphone still untested on a phone.
+
+- **2026-11-27 18:50** — Issue #88: restored ET/RU/EN language buttons that start speech in the chosen locale; kept continuous listening and 2.5s silence timer; video button now reads Filmi video in both dictionaries. verify 33/33; Playwright confirmed three languages, correct locale, text in transcript, no errors. Real device not tested.
+
+- **2026-11-27 18:52** — Bumped service worker CACHE to tap-to-prove-32b72d14562b after rebase so verify gate matches current assets; verify 41/41.
+
+- **2026-11-27 19:04** — Restamped service worker cache to tap-to-prove-1d345ca063a6 after rebase onto #89; verify 45/45.
+
+- **2026-11-27 19:06** — Restamped cache to tap-to-prove-e15b9eaf650c after rebase onto #95.
+
+- **2026-11-27 19:08** — Restamped cache to tap-to-prove-ef6a19103b18 after rebase onto #99.
