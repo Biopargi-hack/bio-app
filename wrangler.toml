@@ -1,5 +1,5 @@
 name = "toend"
-compatibility_date = "2026-11-27"
+pages_build_output_dir = "./app"
 
 [[kv_namespaces]]
 binding = "EVIDENCE"
