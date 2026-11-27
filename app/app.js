@@ -112,6 +112,7 @@ const WORDS = {
     grade_required: 'Pick a rating first.',
     grade_reason: 'Grade N recorded from the tagged place',
     grade_done: 'Grade N saved',
+    grade_escalated: 'Four consecutive grade 2 checks: saved as grade 1.',
     grade3_label: '3 clean',
     grade2_label: '2 dirty',
     grade1_label: '1 serious',
@@ -256,6 +257,7 @@ const WORDS = {
     grade_required: 'Vali esmalt hinne.',
     grade_reason: 'Hinne N märgitud kleepsu kohas',
     grade_done: 'Hinne N salvestatud',
+    grade_escalated: 'Neli järjestikust hinnet 2: salvestati hindena 1.',
     grade_short: 'hinne',
     grade3_label: '3 korras',
     grade2_label: '2 must',
@@ -548,6 +550,25 @@ async function appendRecord(payload, mediaFile, audioBlob) {
       const records = request.result.sort((a, b) => a.seq - b.seq);
       const last = records.at(-1);
       const seq = last ? last.seq + 1 : 1;
+      if (payload.grade === 2) {
+        let consecutive = 0;
+        for (let i = records.length - 1; i >= 0; i -= 1) {
+          if (records[i].asset !== payload.asset) continue;
+          if (records[i].grade !== 2) break;
+          if (++consecutive === 3) break;
+        }
+        if (consecutive === 3) {
+          const gradeReason = WORDS[lang].grade_reason.replace('N', 2);
+          payload = {
+            ...payload,
+            selected_grade: 2,
+            grade: 1,
+            verdict: 'serious',
+            reason: t('grade_escalated'),
+            transcript: payload.transcript === gradeReason ? t('grade_escalated') : payload.transcript
+          };
+        }
+      }
       const body = {
         ...payload,
         seq,
@@ -805,6 +826,7 @@ function quickRecord(kind, grade = 0) {
     }, photoState?.file, audioState?.blob);
     const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
+    if (record.selected_grade === 2) note('quickNote', t('grade_escalated'));
   });
 }
 
