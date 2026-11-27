@@ -789,14 +789,14 @@ input::selection, textarea::selection { background: var(--accent-tint); color: v
 
 /* A compact work surface: capture first, supporting information below. */
 :root { --sans: system-ui, -apple-system, 'Segoe UI', sans-serif; }
-body { background: var(--paper); font-family: var(--sans); }
+body { background: var(--wash); font-family: var(--sans); }
 main {
   max-width: 1240px;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  gap: 20px;
   align-items: start;
-  padding: 48px clamp(16px, 4vw, 40px) 72px;
+  padding: 28px clamp(16px, 4vw, 40px) 72px;
 }
 .topbar { position: static; padding: 0 clamp(16px, 4vw, 40px); background: var(--paper); border-bottom: 1px solid var(--line); box-shadow: none; }
 .nav-shell { display: flex; align-items: center; gap: 24px; max-width: 1160px; min-height: 72px; margin: 0 auto; }
@@ -810,14 +810,15 @@ main {
 .nav-cta:hover { background: var(--accent); }
 .topbar .switch { min-height: 44px; border-color: var(--line); border-radius: 8px; }
 .topbar .net { border: 0; padding: 0; font-family: var(--sans); }
-.panel { min-width: 0; margin: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.panel { min-width: 0; margin: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: none; }
 .eyebrow { margin: 0 0 12px; color: var(--accent); font: 700 11px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
 .hero {
   display: block;
   min-height: 0;
-  padding: 12px 0 48px;
+  padding: clamp(28px, 4vw, 48px);
+  border-top: 4px solid var(--accent);
   text-align: left;
-  background: transparent;
+  background: var(--paper);
 }
 .hero-stage { max-width: 560px; }
 .hero .hero-kicker { margin: 0 0 24px; color: var(--accent); font: 700 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
@@ -829,7 +830,7 @@ main {
 .link-button:hover { border-color: var(--accent); background: var(--accent-dark); color: var(--paper); }
 .hero-quiet { display: inline-flex; align-items: center; min-height: 46px; margin-left: 14px; color: var(--ink); font: 600 13px/1.2 var(--sans); text-decoration-color: var(--accent); text-underline-offset: 4px; }
 .hero-proof { margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font: 500 12px/1.5 var(--sans); }
-.station { width: min(100%, 760px); padding: 12px 0 40px; border: 0; }
+.station { padding: clamp(24px, 3.5vw, 40px); border-top: 4px solid var(--ink); }
 .station .section-head { display: block; margin: 0 0 20px; padding: 0; border: 0; }
 .station .section-head h2 { color: var(--ink); font: 700 26px/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
 .readout { margin: 0 0 20px; padding: 16px 18px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--wash); }
@@ -848,7 +849,7 @@ main {
 .evidence-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .save-row { margin-top: 16px; padding-top: 20px; border-top: 1px solid var(--line); }
 .save-row .action { min-height: 48px; padding: 0 24px; border-radius: 8px; font: 700 14px/1 var(--sans); text-transform: none; }
-.sample-sheet, .explainer, .how, .benefits { grid-column: 1 / -1; padding: clamp(32px, 4vw, 56px) 0; border-top: 1px solid var(--line); text-align: left; }
+.sample-sheet, .explainer, .how, .benefits { grid-column: 1 / -1; padding: clamp(24px, 3.5vw, 40px); text-align: left; }
 .sample-sheet .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 12px; padding: 0; border: 0; }
 .sample-sheet .eyebrow { margin: 0; }
 .sample-sheet h2, .explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
@@ -860,7 +861,7 @@ main {
 .step-grid, .benefit-grid { display: grid; gap: 16px; margin-top: 24px; }
 .step-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .benefit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.step, .benefit { min-width: 0; padding: 0 20px 0 0; border: 0; border-radius: 0; background: transparent; }
+.step, .benefit { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--wash); }
 .step b { color: var(--accent); font: 700 12px/1 var(--mono); }
 .step h3, .benefit h3 { margin: 12px 0 0; font: 700 15px/1.4 var(--sans); }
 .benefit p { margin: 8px 0 0; color: var(--muted); font: 400 13px/1.6 var(--sans); }
@@ -888,7 +889,7 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   main { gap: 12px; padding-top: 16px; }
   .hero h1 { font-size: clamp(34px, 10vw, 44px); }
   .hero-note { font-size: 15px; }
-  .step-grid, .benefit-grid { grid-template-columns: 1fr; gap: 20px; }
+  .step-grid, .benefit-grid { grid-template-columns: 1fr; gap: 8px; }
   .sample-sheet .section-head { align-items: flex-start; flex-direction: column; }
   .hero-quiet { margin-left: 10px; }
 }
