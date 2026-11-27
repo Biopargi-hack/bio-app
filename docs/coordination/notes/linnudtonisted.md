@@ -29,3 +29,7 @@ Format:
 - **2026-11-27 16:03** — Issue #45: restored the hidden transcript textarea so speech and typing are visible; removed the Evidence tier label/output from the capture card while keeping tierFor() for records. verify 20/20; Playwright confirmed field visible at 390px and desktop, ET speech lands in it, manual typing works, tier absent, save and offline reload pass. Real device not tested.
 
 - **2026-11-27 17:19** — Issue #66: switched README production URL, NFC card URL, demo links and deployment details to taptoprove.ee; verify gate now requires the taptoprove.ee demo link. Confirmed taptoprove.ee serves the app and nfc.arle.top redirects to it. verify 23/23.
+
+- **2026-11-27 17:21** — Started fix/speech-to-text off origin/main (1fe306e) for issue #44: PR 62 set speech locale straight from navigator.language and dropped interim words, so speech stopped producing text. Claimed issue, will port the PR 47 approach without reviving removed audio recorder.
+
+- **2026-11-27 17:56** — Fixed speech-to-text on fix/speech-to-text: normalise browser locale to et-EE/ru-RU/en-US with en-US fallback, keep interim words, detect language from first words and restart the recogniser, store detected language. verify.mjs 26/26 plus Playwright fake SpeechRecognition (ET/RU/EN, bare locale, unsupported fallback, interim-only, saved record) and offline reload all pass. No real microphone test; PR opened next.

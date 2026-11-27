@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Detect speech language from first words again
+
+**Decision.** The mic starts listening with no selector. The browser language is only the first guess, normalised to a supported locale (`et-EE`, `ru-RU`, `en-US`); the first spoken words pick the real language and the recogniser restarts in it. Interim words are kept when the mic closes, and an unsupported locale retries once in `en-US`. This reverses PR #62's "browser language only" choice, which left speech producing no text on taptoprove.ee.
+
+**Why.** The owner reported the speech-to-text regression again as demo critical, and issue #44 asked for detection from the first words without a picker.
+
+**Consequence.** No record format or hash chain changed; the detected language is still written to `spokenLangs` / `speech_lang`. Both ET and EN copy were updated, `verify.mjs` gained regression checks, and the service worker cache moved to v10. Real microphone recognition remains untested on a device.
+
+---
+
 ## 2026-11-27 — Three-point picture, no visible C tier
 
 **Decision.** The right-side illustration now shows three grades (3 clean, 2 fault, 1 serious) instead of five stations. The visible "Evidence tier" field is hidden, and the fixed-default card no longer mentions tier C. The underlying tier value is still computed for records.
