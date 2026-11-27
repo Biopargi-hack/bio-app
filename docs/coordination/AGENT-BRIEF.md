@@ -11,12 +11,13 @@ this repo, each with their own AI agent.
 
 Before writing code:
 
-1. Read `AGENTS.md` (operating rules), `docs/coordination/STATUS.md` (who is
-   doing what), `docs/coordination/DECISIONS.md`, and
-   `docs/coordination/notes/<your-handle>.md`.
-2. Pick **one** task from `STATUS.md` or an open issue. Claim it by updating only
-   your own row in `STATUS.md`, and assign the issue to yourself.
-3. Create a branch: `feat/...`, `fix/...` or `docs/...`. Never commit to `main`.
+1. Read `AGENTS.md`, `docs/coordination/STATUS.md`,
+   `docs/coordination/DECISIONS.md` and your own note file.
+2. Pick one task from `STATUS.md` or an open issue. Claim it by updating only
+   your own row, and assign the issue to yourself.
+3. Start every task with `node scripts/start_task.mjs feat/task_name`. It
+   fetches `origin` and branches from the current remote tip.
+4. Never commit to `main`. Never reuse a merged branch.
 
 While working:
 
@@ -28,11 +29,13 @@ While working:
 
 Before opening a PR:
 
-- Run `node scripts/verify.mjs` and fix everything it reports.
-- Exercise the change in a browser at 390px wide, and test the offline path.
-- Append a note: `node scripts/note.mjs "what changed and what you learned"`.
-- Open a PR that fills every section of the template, including **Not tested**
-  and **Handoff**. CI fails if a section is missing.
+1. Run `node scripts/verify.mjs` and fix everything it reports.
+2. Exercise the change in a browser at 390px wide and on desktop. Test the
+   offline path. Keep UI changes small so the preview and checks stay fast.
+3. Append a note: `node scripts/note.mjs --as <handle> "what changed"`.
+4. Open the PR only with `node scripts/open_pr.mjs "title" <changed files>`.
+   List the exact paths. Never use `gh pr create --fill`. The helper writes all
+   four required sections and refuses a branch that is behind `origin/main`.
 
 Stop and ask (via an issue or PR comment) if a decision affects other people.
 Record it in `docs/coordination/DECISIONS.md` once made.

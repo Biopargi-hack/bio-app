@@ -28,24 +28,34 @@ break**, in under three minutes, on a phone, offline if needed.
 cd app && python3 -m http.server 8765   # local preview
 node scripts/verify.mjs                 # the gate: syntax, links, manifest, secrets
 node scripts/note.mjs "what you did"    # append to your coordination note
+node scripts/start_task.mjs feat/my_task
+node scripts/open_pr.mjs "feat(app): short title" app/index.html
 ```
 
 There is no `bun install` and no test runner. `verify.mjs` is dependency-free on purpose.
 
 ## Fast demo loop
 
-Start every task from the current remote tip, not from a stale local `main`:
+Start every task with the helper. It fetches `origin` and creates a worktree
+from the current remote tip. Never branch from the stale local `main`.
 
 ```bash
-git fetch origin
-git worktree add -b feat/<task> ../bio_<task> origin/main
-cd ../bio_<task>
-node scripts/verify.mjs
-node scripts/note.mjs --as <handle> "what you did"
+node scripts/start_task.mjs feat/my_task
+cd ../bio_my_task
+node scripts/note.mjs --as <handle> "what you started"
 ```
 
-PRs deploy a preview per branch. Squash merge to `main` for production. Delete
-merged branches when GitHub does not do it automatically.
+Open every PR with the helper and list only the files you changed:
+
+```bash
+node scripts/verify.mjs
+node scripts/open_pr.mjs "feat(app): short title" app/index.html app/styles.css
+```
+
+Never use `gh pr create --fill`. It produces a body that fails `pr-notes`.
+Never reuse a merged branch. Squash merge deletes the remote branch, so start
+the next task with `start_task.mjs`. PR previews deploy per branch and `main`
+deploys to production in under a minute after approval.
 
 ## Non-negotiables
 
