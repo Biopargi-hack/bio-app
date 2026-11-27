@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Direct Google Sheets sync from every saved check | `feat/sheets_live` | real NFC device test |
+| @AARenor | omp | doing | Keep held speech alive through short pauses | `fix/voice_long_notes` | real NFC device test |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN selector after #122 | `fix/restore_lang_selector_again` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove extra fields from Excel CSV | `fix/csv-extra-fields` | none |
