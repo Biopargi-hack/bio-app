@@ -1,0 +1,15 @@
+{
+  "name": "Tõend, production line flight recorder",
+  "short_name": "Tõend",
+  "description": "Tap a tag, speak a check, attach evidence, keep an append only record.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f2e9",
+  "theme_color": "#121712",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

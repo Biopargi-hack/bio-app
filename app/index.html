@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tõend, production line flight recorder</title>
+  <meta name="description" content="Tap a tag, speak a check, attach evidence, and keep an append only record you can audit.">
+  <meta name="theme-color" content="#121712">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#capture">Skip to capture</a>
+
+  <header class="masthead">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">T</span>
+      <div>
+        <h1>Tõend</h1>
+        <p data-i18n="subtitle">Production line flight recorder</p>
+      </div>
+    </div>
+    <div class="masthead-meta">
+      <span id="net" class="net" role="status">Online</span>
+      <span id="queueCount" class="queue">0 queued</span>
+      <button id="langToggle" class="ghost small" type="button" aria-label="Switch to Estonian">ET</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="intro-title">
+      <p class="kicker" data-i18n="intro_kicker">Live demo, no server yet</p>
+      <h2 id="intro-title" data-i18n="intro_title">Make a record with your own hands.</h2>
+      <p class="intro-body" data-i18n="intro_body">Tap a sticker, say what you did, attach a photo when one exists. The record shows what it can prove, and whether anyone changed it later.</p>
+      <ol class="beats" aria-label="Demo sequence">
+        <li><b>1</b><span data-i18n="beat1">Stick it on anything, tap it</span></li>
+        <li><b>2</b><span data-i18n="beat2">Speak the check</span></li>
+        <li><b>3</b><span data-i18n="beat3">Bad photo gets refused</span></li>
+        <li><b>4</b><span data-i18n="beat4">Audit, then break the chain</span></li>
+        <li><b>5</b><span data-i18n="beat5">Sample month, paper timer</span></li>
+      </ol>
+    </section>
+
+    <div class="workbench">
+      <section id="capture" class="panel capture" aria-labelledby="capture-title">
+        <div class="panel-head">
+          <h2 id="capture-title" data-i18n="capture_title">New check</h2>
+          <span id="chainBadge" class="badge">chain ready</span>
+        </div>
+
+        <div class="asset-stamp" id="assetStamp">
+          <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
+          <small id="assetSource" data-i18n="no_tag">No tag read yet</small>
+        </div>
+
+        <div class="row">
+          <button id="scanBtn" class="primary" type="button" data-i18n="scan">Tap NFC tag</button>
+          <button id="writeBtn" class="ghost" type="button" data-i18n="write_tag">Write tag</button>
+        </div>
+        <p id="nfcNote" class="note" role="status"></p>
+
+        <label class="field">
+          <span data-i18n="asset">Asset</span>
+          <input id="asset" type="text" autocomplete="off" spellcheck="false" placeholder="filler head">
+        </label>
+
+        <div class="field-grid">
+          <label class="field">
+            <span data-i18n="checkpoint">Checkpoint</span>
+            <select id="checkpoint"></select>
+          </label>
+          <label class="field">
+            <span data-i18n="method">Method</span>
+            <select id="method"></select>
+          </label>
+        </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span data-i18n="voice_lang">Voice language</span>
+            <select id="voiceLang">
+              <option value="et-EE">Eesti</option>
+              <option value="ru-RU">Русский</option>
+              <option value="en-US" selected>English</option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="verdict">Verdict</span>
+            <select id="verdict">
+              <option value="clean" data-i18n="clean">Clean</option>
+              <option value="not clean" data-i18n="not_clean">Not clean</option>
+              <option value="cannot sign" data-i18n="cannot_sign">Cannot sign</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Hold to speak</button>
+        <label class="field">
+          <span data-i18n="what_happened">What happened</span>
+          <textarea id="transcript" rows="3" placeholder="cleaned, filler head, 14:20, residue on the seal"></textarea>
+        </label>
+
+        <label class="field file-field">
+          <span data-i18n="photo">Photo evidence</span>
+          <input id="photo" type="file" accept="image/*" capture="environment">
+        </label>
+        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo only counts as evidence if the app can read it.</p>
+
+        <div class="field-grid">
+          <label class="field">
+            <span data-i18n="instrument">Instrument reading</span>
+            <input id="instrument" type="text" placeholder="ATP 12 RLU / 72 C">
+          </label>
+          <label class="field">
+            <span data-i18n="tier">Evidence tier</span>
+            <output id="tier" class="tier" aria-live="polite">C</output>
+          </label>
+        </div>
+
+        <label class="field">
+          <span data-i18n="reason">Reason when there is no hard evidence</span>
+          <input id="reason" type="text" placeholder="machine closed, no photo possible">
+        </label>
+        <label class="field">
+          <span data-i18n="supervisor">Supervisor signature</span>
+          <input id="supervisor" type="text" placeholder="name, for tier C">
+        </label>
+
+        <div class="row save-row">
+          <button id="saveBtn" class="primary" type="button" data-i18n="save">Append record</button>
+          <span id="saveNote" class="note" role="status"></span>
+        </div>
+      </section>
+
+      <aside class="panel ledger" aria-labelledby="ledger-title">
+        <div class="panel-head">
+          <h2 id="ledger-title" data-i18n="ledger_title">Audit console</h2>
+          <span id="chainCount" class="badge">0 records</span>
+        </div>
+
+        <div class="chain-status" id="chainStatus" data-i18n="chain_empty">No records yet. The first one starts the chain.</div>
+
+        <div class="audit-questions" aria-label="Auditor questions">
+          <button type="button" data-question="unsigned">Unsigned clean checks</button>
+          <button type="button" data-question="tierc">Tier C without signature</button>
+          <button type="button" data-question="today">Everything today</button>
+        </div>
+        <p id="answerNote" class="note" role="status"></p>
+
+        <label class="field">
+          <span data-i18n="filter">Filter by asset or checkpoint</span>
+          <input id="filter" type="search" placeholder="filler, wash, drain">
+        </label>
+
+        <div id="records" class="records" aria-live="polite"></div>
+
+        <div class="row ledger-actions">
+          <button id="exportBtn" class="ghost" type="button" data-i18n="export">Export JSONL</button>
+          <button id="tamperBtn" class="ghost" type="button" data-i18n="tamper">Show tamper break</button>
+        </div>
+
+        <section class="sample" aria-labelledby="sample-title">
+          <h3 id="sample-title" data-i18n="sample_title">Sample CIP month</h3>
+          <p class="sample-label" data-i18n="sample_label">Sample data, synthetic, not A. Le Coq</p>
+          <div id="cipSummary" class="cip-summary"></div>
+          <div id="cipChart" class="cip-chart"></div>
+          <p class="note" data-i18n="cip_note">Three cycles short of temperature. One record cannot be signed.</p>
+          <a class="paper-link" href="paper.html" target="_blank" rel="noopener" data-i18n="paper">Print the paper form</a>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <span data-i18n="footer">Built for Hack the Future of Food 2026. Every record stays on this device until a server is connected.</span>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

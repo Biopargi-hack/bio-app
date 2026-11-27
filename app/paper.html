@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tõend paper form</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background: #fff; }
+    main { max-width: 760px; padding: 24px; }
+    h1 { font: 700 34px/1 var(--display); margin: 0 0 4px; }
+    .paper-head { display: flex; justify-content: space-between; align-items: end; border-bottom: 3px solid var(--ink); padding-bottom: 10px; }
+    .timer { font: 700 26px/1 var(--mono); }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid var(--ink); padding: 10px; text-align: left; vertical-align: top; height: 54px; font-size: 13px; }
+    th { background: var(--steel); }
+    .print-btn { margin: 14px 0; }
+    @media print { .print-btn { display: none; } body { font-size: 11px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="paper-head">
+      <div>
+        <h1>Tõend, paper check</h1>
+        <p>Same five checkpoints, timed against the app.</p>
+      </div>
+      <span class="timer">Time: ______ s</span>
+    </div>
+    <button class="ghost print-btn" type="button" onclick="window.print()">Print this form</button>
+    <table>
+      <thead><tr><th>Asset</th><th>Checkpoint</th><th>What happened</th><th>Evidence</th><th>Verdict and sign</th></tr></thead>
+      <tbody>
+        <tr><td>Filler head</td><td>Wash</td><td></td><td>Photo / instrument / reason</td><td>Clean / not clean / cannot sign</td></tr>
+        <tr><td>Valve</td><td>Inspect</td><td></td><td>Photo / instrument / reason</td><td>Clean / not clean / cannot sign</td></tr>
+        <tr><td>Drain</td><td>Check</td><td></td><td>Photo / instrument / reason</td><td>Clean / not clean / cannot sign</td></tr>
+        <tr><td>Door</td><td>Close</td><td></td><td>Photo / instrument / reason</td><td>Clean / not clean / cannot sign</td></tr>
+        <tr><td>Hand wash sink</td><td>Clean</td><td></td><td>Photo / instrument / reason</td><td>Clean / not clean / cannot sign</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Missing fields count against the paper time. The app counts them too.</p>
+  </main>
+</body>
+</html>
