@@ -12,7 +12,7 @@ Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid 
 
 Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti ja saab eeltäidetud vaate "Kõik on puhas ja korras". Üks nupp KINNITA PUHAS salvestab kontrolli kahe sekundiga. Kui pilti ei saa teha, kasutatakse nuppu "Pilti ei saa? Kasuta fikseeritud hinnangut". Kirje saab fikseeritud põhjuse ja tase C, aga andmed jäävad täielikuks ja jälgitavaks. Kui midagi on must, valitakse viga listist ja tehakse võimalusel pilt.
 
-Viis kaarti kirjutatakse rakenduse jaotises "Kirjuta 5 kaarti". Iga kaart saab oma nime ja kaardi ID, näiteks T1 4AF2. Kaart kannab URL-i `https://nfc.arle.top/?asset=...&tag=...&via=nfc` ja tekstikirjet. Puudutamine avab selle URL-i otse, ilma et rakendus peaks enne lahti olema. Kaardi ID salvestub igas kirjes koos allikaga `nfc`, `link` või `typed`. ID ei ole krüptograafiline allkiri. Päris allkirjastamine vajab NTAG424. Füüsilisel telefonil pole seda veel testitud.
+Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.arle.top/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
 
 ## Live site
 
@@ -95,7 +95,7 @@ handoffs use the issue template. PR comments are the async conversation.
 
 ## Demo in five beats
 
-1. Give a judge an NFC sticker. Tap it and the URL opens the app with the asset and signature prefilled. If NFC is unavailable, use the asset field or a QR link. iPhone browsers cannot write NFC through Web NFC.
+1. Give a judge an NFC sticker written with your own tool. Tap it and the URL opens the app with the asset and card ID prefilled. If NFC is unavailable, use the asset field or a QR link. iPhone background reading is not device tested.
 2. They press **Hold to speak** and say a check. The transcript fills the structured field. If the browser has no speech recognition, they type it.
 3. They take a deliberately bad photo of a shiny surface. The photo check refuses it and the tier stays C until a usable photo or instrument reading exists.
 4. They ask an audit question from the console, then press **Show tamper break**. The edited copy breaks at the exact record. Stored records are untouched.
@@ -127,4 +127,4 @@ cd app
 python3 -m http.server 8765
 ```
 
-Open `http://localhost:8765`. Web NFC needs HTTPS and Android Chrome, so the live site is the real test for tag reading. URL tags and iPhone background reading are not device tested yet.
+Open `http://localhost:8765`. The app has no NFC writer or card kit, so card writing uses a separate tool. The Supabase connection is a team handoff.
