@@ -11,3 +11,5 @@ Format:
 
 ---
 
+
+- **2026-11-27 09:51** — Added one tap KINNITA and red fault flow with Estonian and English copy; idea description now in README; live domain moved to nfc.arle.top
