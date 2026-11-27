@@ -126,16 +126,22 @@
         </div>
 
         <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Hold to speak</button>
+        <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
+        <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone when typing is slow. The clip is saved with the record.</p>
         <label class="field">
           <span data-i18n="what_happened">What happened</span>
           <textarea id="transcript" rows="3" placeholder="cleaned, filler head, 14:20, residue on the seal"></textarea>
         </label>
+        <label class="field">
+          <span data-i18n="details">Details about the fault</span>
+          <textarea id="details" rows="3" placeholder="residue on the seal, leak at the pipe" data-i18n-placeholder="details_ph"></textarea>
+        </label>
 
         <label class="field file-field">
-          <span data-i18n="photo">Photo evidence</span>
-          <input id="photo" type="file" accept="image/*" capture="environment">
+          <span data-i18n="evidence">Photo or video evidence</span>
+          <input id="photo" type="file" accept="image/*,video/*" capture="environment">
         </label>
-        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo only counts as evidence if the app can read it.</p>
+        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo or video only counts as evidence if the app can read it.</p>
 
         <div class="field-grid">
           <label class="field">
@@ -176,6 +182,7 @@
           <button type="button" data-question="tierc" data-i18n="q_tierc">Tier C without signature</button>
           <button type="button" data-question="today" data-i18n="q_today">Everything today</button>
           <button type="button" data-question="defaults" data-i18n="q_defaults">Fixed defaults</button>
+          <button type="button" data-question="media" data-i18n="q_media">Records with media</button>
         </div>
         <p id="answerNote" class="note" role="status"></p>
 

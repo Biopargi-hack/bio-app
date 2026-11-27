@@ -35,9 +35,22 @@ const WORDS = {
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
     speak: 'Hold to speak',
+    record_audio: 'Record voice note',
+    record_audio_stop: 'Stop and save voice note',
+    audio_hint: 'Use the microphone when typing is slow. The clip is saved with the record.',
+    audio_recording: 'Recording... tap to stop and save',
+    audio_saved: 'Voice note saved',
+    audio_unsupported: 'This browser cannot record audio.',
+    audio_denied: 'Microphone permission was denied.',
+    audio_stop_first: 'Stop the voice note before saving.',
     what_happened: 'What happened',
+    details: 'Details about the fault',
+    details_ph: 'residue on the seal, leak at the pipe',
     photo: 'Photo evidence',
-    photo_hint: 'A photo only counts as evidence if the app can read it.',
+    evidence: 'Photo or video evidence',
+    photo_hint: 'A photo or video only counts as evidence if the app can read it.',
+    media_badge: 'Media',
+    audio_badge: 'Voice note',
     instrument: 'Instrument reading',
     tier: 'Evidence tier',
     reason: 'Reason when there is no hard evidence',
@@ -96,6 +109,7 @@ const WORDS = {
     q_tierc: 'Tier C without signature',
     q_today: 'Everything today',
     q_defaults: 'Fixed defaults',
+    q_media: 'Records with media',
     empty_records: 'Nothing here yet. Tap a tag and append a check.',
     answer_note: 'matching records. Answered in',
     ms_from_device: 'ms from this device.',
@@ -134,9 +148,22 @@ const WORDS = {
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
     speak: 'Vajuta ja räägi',
+    record_audio: 'Salvesta häälmärkus',
+    record_audio_stop: 'Peata ja salvesta häälmärkus',
+    audio_hint: 'Kui kirjutamine on aeglane, räägi mikrofoni. Klipp salvestatakse kirjega.',
+    audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
+    audio_saved: 'Häälmärkus salvestatud',
+    audio_unsupported: 'See brauser ei saa heli salvestada.',
+    audio_denied: 'Mikrofoni luba keelati.',
+    audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     what_happened: 'Mis juhtus',
+    details: 'Vea täpsustus',
+    details_ph: 'jäägid tihendil, toru lekib',
     photo: 'Foto tõend',
-    photo_hint: 'Foto loeb tõendina ainult siis, kui rakendus suudab selle lugeda.',
+    evidence: 'Foto või video tõend',
+    photo_hint: 'Foto või video loeb tõendina ainult siis, kui rakendus suudab selle lugeda.',
+    media_badge: 'Meedia',
+    audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     tier: 'Tõendi tase',
     reason: 'Põhjus, kui kõva tõend puudub',
@@ -195,6 +222,7 @@ const WORDS = {
     q_tierc: 'C tase ilma allkirjata',
     q_today: 'Kõik tänased',
     q_defaults: 'Fikseeritud hinnangud',
+    q_media: 'Kirjed meediaga',
     empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
     answer_note: 'vastavat kirjet. Vastus leiti',
     ms_from_device: 'ms jooksul seadmest.',
@@ -214,6 +242,9 @@ let lang = 'et';
 let ndefReader = null;
 let recognition = null;
 let photoState = null;
+let audioRecorder = null;
+let audioState = null;
+let mediaUrls = new Set();
 let demoBreak = null;
 let currentTag = '';
 let currentSource = 'typed';
@@ -225,6 +256,11 @@ function applyLanguage() {
     const word = WORDS[lang][el.dataset.i18n];
     if (word) el.textContent = word;
   }
+  for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
+    const word = WORDS[lang][el.dataset.i18nPlaceholder];
+    if (word) el.placeholder = word;
+  }
+  if (audioRecorder) $('audioBtn').textContent = t('record_audio_stop');
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
@@ -235,6 +271,10 @@ function note(id, text, isError = false) {
   const el = $(id);
   el.textContent = text;
   el.classList.toggle('error', isError);
+}
+
+function t(key) {
+  return WORDS[lang][key] || key;
 }
 
 function populateSelects() {
@@ -257,10 +297,11 @@ function deviceId() {
 
 function openDb() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('toend', 1);
+    const req = indexedDB.open('toend', 2);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'seq' });
+      if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'key' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -284,6 +325,37 @@ async function putRecord(record) {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+async function putMedia(key, blob) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('media', 'readwrite');
+    tx.objectStore('media').put({ key, blob });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getMedia(key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('media', 'readonly').objectStore('media').get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function hashBlob(blob) {
+  const buffer = await blob.arrayBuffer();
+  if (globalThis.crypto?.subtle) {
+    const digest = await crypto.subtle.digest('SHA-256', buffer);
+    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+  const bytes = new Uint8Array(buffer);
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i += 1) hash = Math.imul(hash ^ bytes[i], 16777619) >>> 0;
+  return hash.toString(16).padStart(8, '0');
 }
 
 function stable(value) {
@@ -375,6 +447,7 @@ function imageHash(canvas) {
 }
 
 async function analysePhoto(file) {
+  const byteHash = await hashBlob(file);
   try {
     const bitmap = await bitmapFor(file);
     const canvas = document.createElement('canvas');
@@ -399,12 +472,56 @@ async function analysePhoto(file) {
     thumb.getContext('2d').drawImage(canvas, 0, 0, 72, 72);
     return {
       usable,
+      kind: 'image',
       hash: imageHash(canvas),
+      media_hash: byteHash,
       thumb: thumb.toDataURL('image/png'),
+      file,
+      name: file.name,
+      mime: file.type,
+      size: file.size,
       reason: usable ? 'Usable photo' : `Unusable: variance ${variance.toFixed(0)}, edge ${edges.toFixed(1)}, light ${mean.toFixed(0)}`
     };
   } catch (error) {
-    return { usable: false, hash: '', thumb: '', reason: `Could not read photo: ${error.message}` };
+    return {
+      usable: false,
+      kind: 'image',
+      hash: '',
+      media_hash: byteHash,
+      thumb: '',
+      file,
+      name: file.name,
+      mime: file.type,
+      size: file.size,
+      reason: `Could not read photo: ${error.message}`
+    };
+  }
+}
+
+async function analyseVideo(file) {
+  const byteHash = await hashBlob(file);
+  const meta = { kind: 'video', media_hash: byteHash, file, name: file.name, mime: file.type, size: file.size };
+  const url = URL.createObjectURL(file);
+  try {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.src = url;
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('video decode timeout')), 3000);
+      video.onloadeddata = () => { clearTimeout(timer); resolve(); };
+      video.onerror = () => { clearTimeout(timer); reject(new Error('video decode failed')); };
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = 72;
+    canvas.height = 72;
+    canvas.getContext('2d').drawImage(video, 0, 0, 72, 72);
+    const thumb = canvas.toDataURL('image/png');
+    URL.revokeObjectURL(url);
+    return { ...meta, usable: file.size > 0, hash: byteHash, thumb, reason: `Video ${file.name}` };
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    return { ...meta, usable: false, hash: byteHash, thumb: '', reason: `Could not read video: ${error.message}` };
   }
 }
 
@@ -436,6 +553,32 @@ function reusedPhoto(hash) {
 
 let allRecordsCache = [];
 
+function mediaPayload() {
+  return {
+    details: $('details').value.trim(),
+    media_kind: photoState?.kind || '',
+    media_hash: photoState?.media_hash || photoState?.hash || '',
+    media_name: photoState?.name || '',
+    media_mime: photoState?.mime || '',
+    media_size: photoState?.size || 0,
+    audio_hash: audioState?.hash || '',
+    audio_mime: audioState?.mime || '',
+    audio_size: audioState?.size || 0,
+    audio_duration: audioState?.duration || 0
+  };
+}
+
+async function persistMedia(record) {
+  if (photoState?.file) await putMedia(`${record.seq}:media`, photoState.file);
+  if (audioState?.blob) await putMedia(`${record.seq}:audio`, audioState.blob);
+}
+
+function audioBusy(noteId) {
+  if (!audioRecorder) return false;
+  note(noteId, t('audio_stop_first'), true);
+  return true;
+}
+
 async function saveRecord() {
   const asset = $('asset').value.trim();
   const transcript = $('transcript').value.trim();
@@ -443,6 +586,7 @@ async function saveRecord() {
     note('saveNote', 'Asset and what happened are required.', true);
     return;
   }
+  if (audioBusy('saveNote')) return;
 
   const tier = tierFor();
   const verdict = $('verdict').value;
@@ -481,9 +625,11 @@ async function saveRecord() {
     photo_thumb: photoState?.thumb || '',
     photo_usable: photoState?.usable || false,
     photo_reuse_of: previous?.seq || null,
-    language: $('voiceLang').value
+    language: $('voiceLang').value,
+    ...mediaPayload()
   });
 
+  await persistMedia(record);
   await finishRecord(record, 'saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
 }
 
@@ -491,12 +637,17 @@ async function finishRecord(record, noteId, message) {
   demoBreak = null;
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
+  $('details').value = '';
   $('reason').value = '';
   $('supervisor').value = '';
   $('instrument').value = '';
   $('photo').value = '';
   photoState = null;
-  note('photoNote', WORDS[lang].photo_hint);
+  audioState = null;
+  $('audioBtn').classList.remove('recording');
+  $('audioBtn').textContent = t('record_audio');
+  note('photoNote', t('photo_hint'));
+  note('audioNote', t('audio_hint'));
   updateTier();
   await refreshRecords();
   $('assetStamp').classList.add('flash');
@@ -510,6 +661,7 @@ async function quickRecord(kind, grade = 0) {
     return;
   }
   const isGrade = kind === 'grade';
+  if (audioBusy('quickNote')) return;
   const isDefault = kind === 'default';
   const isClean = kind === 'clean' || isDefault || (isGrade && grade === 3);
   const previous = photoState ? reusedPhoto(photoState.hash) : null;
@@ -536,8 +688,10 @@ async function quickRecord(kind, grade = 0) {
     photo_reuse_of: previous?.seq || null,
     language: $('voiceLang').value,
     default_assessment: isDefault,
-    quick: true
+    quick: true,
+    ...mediaPayload()
   });
+  await persistMedia(record);
   $('faultField').hidden = true;
   $('faultSaveBtn').hidden = true;
   const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
@@ -547,9 +701,10 @@ async function quickRecord(kind, grade = 0) {
 function renderRecords(records) {
   const host = $('records');
   const query = $('filter').value.trim().toLowerCase();
-  const shown = records.filter((r) => !query || `${r.asset} ${r.checkpoint} ${r.transcript}`.toLowerCase().includes(query));
+  const shown = records.filter((r) => !query || `${r.asset} ${r.checkpoint} ${r.transcript} ${r.details || ''}`.toLowerCase().includes(query));
   if (!shown.length) {
     host.innerHTML = `<div class="empty-row">${WORDS[lang].empty_records}</div>`;
+    void hydrateMedia(host).catch(() => {});
     return;
   }
   host.innerHTML = shown.map((r) => {
@@ -561,13 +716,36 @@ function renderRecords(records) {
     const defaultMark = r.default_assessment ? ` · <em class="default-flag">${WORDS[lang].default_done}</em>` : '';
     const gradeMark = r.grade ? ` · <em class="default-flag">${WORDS[lang].grade_short} ${r.grade}</em>` : '';
     const reason = r.reason ? ` · ${escapeHtml(r.reason)}` : '';
+    const details = r.details ? `<br>${escapeHtml(r.details)}` : '';
+    const attachments = [
+      r.media_kind ? `<a class="media-link" href="#" data-media-key="${r.seq}:media">${WORDS[lang].media_badge}: ${escapeHtml(r.media_kind)}</a>` : '',
+      r.audio_hash ? `<a class="media-link" href="#" data-media-key="${r.seq}:audio">${WORDS[lang].audio_badge}</a>` : ''
+    ].join('');
     return `<div class="record-row">
       <span class="seq">#${r.seq}</span>
       <span class="main"><strong>${escapeHtml(r.asset)} · ${escapeHtml(r.checkpoint)}</strong>
-      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${gradeMark}${defaultMark}${reason} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
+      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${gradeMark}${defaultMark}${reason} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}${details}${attachments}</small></span>
       <span class="hash ${broken ? 'broken' : ''}">${r.hash.slice(0, 8)}<br>${broken ? 'BROKEN' : 'ok'}</span>
     </div>`;
   }).join('');
+  void hydrateMedia(host).catch(() => {});
+}
+
+async function hydrateMedia(host) {
+  for (const url of mediaUrls) URL.revokeObjectURL(url);
+  mediaUrls = new Set();
+  for (const link of host.querySelectorAll('[data-media-key]')) {
+    const item = await getMedia(link.dataset.mediaKey);
+    if (!item?.blob) {
+      link.hidden = true;
+      continue;
+    }
+    const url = URL.createObjectURL(item.blob);
+    mediaUrls.add(url);
+    link.href = url;
+    const ext = (item.blob.type.split('/')[1] || 'bin').split(';')[0];
+    link.download = `${link.dataset.mediaKey.replace(':', '-')}.${ext}`;
+  }
 }
 
 function escapeHtml(value) {
@@ -595,6 +773,7 @@ function runQuestion(kind) {
   if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C' && !r.supervisor);
   if (kind === 'today') found = allRecordsCache.filter((r) => r.created_at.slice(0, 10) === today);
   if (kind === 'defaults') found = allRecordsCache.filter((r) => r.default_assessment);
+  if (kind === 'media') found = allRecordsCache.filter((r) => r.media_hash || r.audio_hash);
   const elapsed = (performance.now() - started).toFixed(1);
   note('answerNote', `${found.length} ${WORDS[lang].answer_note} ${elapsed} ${WORDS[lang].ms_from_device}`);
   $('filter').value = '';
@@ -797,6 +976,55 @@ function toggleVoice() {
   $('voiceBtn').textContent = 'Listening...';
 }
 
+async function toggleAudio() {
+  if (audioRecorder) {
+    audioRecorder.stop();
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+    note('audioNote', t('audio_unsupported'), true);
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']
+      .find((candidate) => MediaRecorder.isTypeSupported(candidate)) || '';
+    const chunks = [];
+    const started = Date.now();
+    audioState = null;
+    audioRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    audioRecorder.ondataavailable = (event) => {
+      if (event.data.size) chunks.push(event.data);
+    };
+    audioRecorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: audioRecorder.mimeType || 'audio/webm' });
+      stream.getTracks().forEach((track) => track.stop());
+      audioRecorder = null;
+      $('audioBtn').classList.remove('recording');
+      $('audioBtn').textContent = t('record_audio');
+      if (!blob.size) {
+        note('audioNote', t('audio_unsupported'), true);
+        return;
+      }
+      audioState = {
+        blob,
+        hash: await hashBlob(blob),
+        mime: blob.type,
+        size: blob.size,
+        duration: Math.round((Date.now() - started) / 1000)
+      };
+      note('audioNote', `${t('audio_saved')} ${audioState.duration}s`);
+    };
+    audioRecorder.start();
+    $('audioBtn').classList.add('recording');
+    $('audioBtn').textContent = t('record_audio_stop');
+    note('audioNote', t('audio_recording'));
+  } catch (error) {
+    audioRecorder = null;
+    note('audioNote', `${t('audio_denied')}: ${error.message}`, true);
+  }
+}
+
 function updateNetwork() {
   const el = $('net');
   el.textContent = navigator.onLine ? 'Online' : 'Offline, queueing locally';
@@ -878,10 +1106,12 @@ function bind() {
   });
   $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
   $('voiceBtn').addEventListener('click', toggleVoice);
+  $('audioBtn').addEventListener('click', toggleAudio);
   $('photo').addEventListener('change', async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    photoState = await analysePhoto(file);
+    photoState = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
+    note('photoNote', photoState.reason, !photoState.usable);
     updateTier();
   });
   for (const id of ['instrument', 'method', 'verdict']) $(id).addEventListener('change', updateTier);

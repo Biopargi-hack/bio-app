@@ -6,7 +6,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | demo | challenge 3 copy and fixed no photo default | feat/challenge_three | none |
-| @linnudtonisted | _fill in_ | idle | _pick a task_ | — | — |
+| @linnudtonisted | OpenCode | review | NFC fault media: photo/video, details, voice note | `feat/nfc-fault-evidence` #13 | device test |
 | @Pepukarv | _fill in_ | idle | _pick a task_ | — | — |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 
