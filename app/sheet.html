@@ -240,6 +240,25 @@
     let proofKey = 0;
     let proofUrls = [];
 
+    // Older records carry a single attachment in flat fields; newer ones carry a list.
+    function recordMedia(record) {
+      if (Array.isArray(record.media_items) && record.media_items.length) {
+        return record.media_items.map((item) => ({
+          kind: item.kind || 'image',
+          thumb: item.photo_thumb || '',
+          name: item.name || '',
+          reuse_of: item.reuse_of || null
+        }));
+      }
+      if (!record.media_hash) return [];
+      return [{
+        kind: record.media_kind || 'image',
+        thumb: record.photo_thumb || '',
+        name: record.media_name || '',
+        reuse_of: record.photo_reuse_of || null
+      }];
+    }
+
     function proofKind(record) {
       if (record.media_kind === 'video') return 'proof_video';
       if (record.media_kind) return 'proof_photo';
@@ -248,7 +267,8 @@
 
     function proofCell(record) {
       const td = document.createElement('td');
-      const hasMedia = Boolean(record.media_hash);
+      const items = recordMedia(record);
+      const hasMedia = items.length > 0;
       const hasAudio = Boolean(record.audio_hash);
       if (!hasMedia && !hasAudio) {
         td.textContent = proofText('proof_none');
@@ -259,16 +279,17 @@
       button.className = 'proof-btn';
       button.setAttribute('aria-label', `${proofText('proof_open')}: ${proofText(hasMedia ? proofKind(record) : 'proof_audio')}`);
       button.addEventListener('click', () => openProof(record));
-      if (record.photo_thumb) {
+      if (items[0]?.thumb) {
         const thumb = new Image();
-        thumb.src = record.photo_thumb;
+        thumb.src = items[0].thumb;
         thumb.alt = '';
         thumb.width = 48;
         thumb.height = 48;
         button.append(thumb);
       }
       const label = document.createElement('span');
-      label.textContent = proofText(hasMedia ? proofKind(record) : 'proof_audio');
+      const base = proofText(hasMedia ? proofKind(record) : 'proof_audio');
+      label.textContent = items.length > 1 ? `${base} ×${items.length}` : base;
       button.append(label);
       td.append(button);
       return td;
@@ -286,24 +307,25 @@
       $('proofBody').textContent = proofText('loading');
       $('proofMeta').textContent = `${proofText('proof_of')} ${record.seq} · ${record.asset || ''}`;
       const elements = [];
-      if (record.media_hash) {
-        const sourceSeq = record.photo_reuse_of || record.seq;
-        const blob = await getMedia(`${sourceSeq}:media`);
+      const items = recordMedia(record);
+      for (const [index, item] of items.entries()) {
+        const sourceSeq = item.reuse_of || record.seq;
+        const key = index === 0 ? `${sourceSeq}:media` : `${record.seq}:media:${index}`;
+        const blob = await getMedia(key);
         if (token !== proofKey) return;
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          proofUrls.push(url);
-          const el = document.createElement(record.media_kind === 'video' ? 'video' : 'img');
-          if (el.tagName === 'VIDEO') {
-            el.controls = true;
-            el.playsInline = true;
-            el.muted = false;
-          } else {
-            el.alt = `${proofText('proof_photo')} ${record.seq}`;
-          }
-          el.src = url;
-          elements.push(el);
+        if (!blob) continue;
+        const url = URL.createObjectURL(blob);
+        proofUrls.push(url);
+        const el = document.createElement(item.kind === 'video' ? 'video' : 'img');
+        if (el.tagName === 'VIDEO') {
+          el.controls = true;
+          el.playsInline = true;
+          el.muted = false;
+        } else {
+          el.alt = `${proofText('proof_photo')} ${record.seq}${items.length > 1 ? ` ${index + 1}` : ''}`;
         }
+        el.src = url;
+        elements.push(el);
       }
       if (record.audio_hash) {
         const blob = await getMedia(`${record.seq}:audio`);
@@ -420,7 +442,11 @@
           // The hash covers every stored field, so the export keeps them all.
           lines.push(JSON.stringify(record));
           const attachments = [];
-          if (record.media_hash && !record.photo_reuse_of) attachments.push({ key: `${record.seq}:media`, seq: record.seq });
+          const items = recordMedia(record);
+          for (const [index, item] of items.entries()) {
+            if (index === 0 && item.reuse_of) continue;
+            attachments.push({ key: index === 0 ? `${record.seq}:media` : `${record.seq}:media:${index}`, seq: record.seq });
+          }
           if (record.audio_hash) attachments.push({ key: `${record.seq}:audio`, seq: record.seq });
           for (const item of attachments) {
             const blob = await getMedia(item.key);

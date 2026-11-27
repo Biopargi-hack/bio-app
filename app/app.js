@@ -116,6 +116,13 @@ const WORDS = {
     media_video_ready: 'Video added',
     media_rejected: 'Attached, but it does not count as evidence',
     media_clear: 'Remove',
+    media_clear_all: 'Remove all',
+    media_unusable_flag: 'does not count',
+    media_ready_many: 'N files added',
+    media_ready_many_note: 'N files go with the record.',
+    media_partly_unusable: 'N files do not count as evidence.',
+    media_limit: 'Up to 6 files per record.',
+    saved_with_files: 'saved with N files',
     media_ready_hint: 'This is what will be attached to the record.',
     photo_readable: 'Photo is readable and goes with the record.',
     video_readable: 'Video goes with the record.',
@@ -266,6 +273,13 @@ const WORDS = {
     media_video_ready: 'Video lisatud',
     media_rejected: 'Lisatud, aga tõendina ei loe',
     media_clear: 'Eemalda',
+    media_clear_all: 'Eemalda kõik',
+    media_unusable_flag: 'ei loe tõendina',
+    media_ready_many: 'N faili lisatud',
+    media_ready_many_note: 'N faili läheb kirje külge.',
+    media_partly_unusable: 'N faili ei loe tõendina.',
+    media_limit: 'Korraga kuni 6 faili.',
+    saved_with_files: 'salvestatud koos N failiga',
     media_ready_hint: 'See läheb kirje külge.',
     photo_readable: 'Pilt on loetav ja läheb kirje külge.',
     video_readable: 'Video läheb kirje külge.',
@@ -327,7 +341,9 @@ let spokenLangs = new Set();
 const SILENCE_MS = 2500;
 let speechSession = null;
 let audioSpeechSession = null;
-let photoState = null;
+let mediaItems = [];
+let galleryUrls = [];
+const MAX_MEDIA = 6;
 let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
@@ -343,7 +359,6 @@ let audioStarting = false;
 
 let gradeMode = false;
 let selectedGrade = 0;
-let previewUrl = null;
 let lastSavedRecord = null;
 
 function applyLanguage() {
@@ -559,7 +574,7 @@ function notifyRecords(record) {
   }
 }
 
-async function appendRecord(payload, mediaFile, audioBlob) {
+async function appendRecord(payload, mediaFiles = [], audioBlob) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(['records', 'media'], 'readwrite');
@@ -601,7 +616,12 @@ async function appendRecord(payload, mediaFile, audioBlob) {
       record = { ...body, hash: sha256Sync(body) };
       store.put(record);
       const media = tx.objectStore('media');
-      if (mediaFile && !payload.photo_reuse_of) media.put({ key: `${seq}:media`, blob: mediaFile });
+      mediaFiles.forEach((file, position) => {
+        if (!file) return;
+        // The first file can be a re-shot of an earlier photo; that blob stays on the earlier record.
+        if (position === 0 && payload.photo_reuse_of) return;
+        media.put({ key: position === 0 ? `${seq}:media` : `${seq}:media:${position}`, blob: file });
+      });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
     };
     tx.oncomplete = () => resolve(record);
@@ -748,60 +768,94 @@ function formatBytes(bytes) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function releasePreviewUrl() {
-  if (previewUrl) {
-    URL.revokeObjectURL(previewUrl);
-    previewUrl = null;
-  }
+function releaseGalleryUrls() {
+  for (const url of galleryUrls) URL.revokeObjectURL(url);
+  galleryUrls = [];
 }
 
 function hideMediaPreview() {
   const box = $('mediaPreview');
-  const image = $('mediaPreviewImage');
-  const video = $('mediaPreviewVideo');
-  if (image) {
-    image.hidden = true;
-    image.removeAttribute('src');
-  }
-  if (video) {
-    video.pause?.();
-    video.hidden = true;
-    video.removeAttribute('src');
-  }
-  releasePreviewUrl();
+  const gallery = $('mediaGallery');
+  releaseGalleryUrls();
+  gallery?.replaceChildren();
   if (box) box.hidden = true;
 }
 
-// The chosen photo or video stays on screen, so the checker sees the attachment
-// before the record is appended.
+// Every chosen photo or video stays on screen, so the checker sees all attachments
+// before the record is appended. A sticker on one line often needs three photos.
 function renderMediaPreview() {
   const box = $('mediaPreview');
-  if (!box) return;
-  if (!photoState?.file) {
-    hideMediaPreview();
+  const gallery = $('mediaGallery');
+  if (!box || !gallery) return;
+  releaseGalleryUrls();
+  gallery.replaceChildren();
+  if (!mediaItems.length) {
+    box.hidden = true;
     return;
   }
-  const image = $('mediaPreviewImage');
-  const video = $('mediaPreviewVideo');
-  releasePreviewUrl();
-  previewUrl = URL.createObjectURL(photoState.file);
-  if (photoState.kind === 'video') {
-    video.src = previewUrl;
-    video.hidden = false;
-    image.hidden = true;
-    image.removeAttribute('src');
-  } else {
-    image.src = previewUrl;
-    image.hidden = false;
-    video.pause?.();
-    video.hidden = true;
-    video.removeAttribute('src');
-  }
-  const readyKey = photoState.kind === 'video' ? 'media_video_ready' : 'media_photo_ready';
-  $('mediaPreviewTitle').textContent = photoState.usable ? t(readyKey) : t('media_rejected');
-  $('mediaPreviewDetail').textContent = `${photoState.name || ''} ${formatBytes(photoState.size)}`.trim();
+  mediaItems.forEach((item, index) => {
+    const li = document.createElement('li');
+    li.className = 'media-item';
+    if (!item.usable) li.classList.add('is-unusable');
+    const frame = document.createElement('div');
+    frame.className = 'media-item-frame';
+    if (item.file) {
+      const url = URL.createObjectURL(item.file);
+      galleryUrls.push(url);
+      if (item.kind === 'video') {
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.playsInline = true;
+        video.muted = true;
+        frame.append(video);
+      } else {
+        const image = document.createElement('img');
+        image.src = url;
+        image.alt = item.name || '';
+        frame.append(image);
+      }
+    }
+    const bar = document.createElement('div');
+    bar.className = 'media-item-bar';
+    const name = document.createElement('span');
+    name.className = 'media-item-name';
+    name.textContent = item.name || String(index + 1);
+    name.title = [item.name, formatBytes(item.size), item.detail].filter(Boolean).join(' · ');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'quiet small';
+    remove.dataset.remove = String(index);
+    remove.textContent = '×';
+    remove.title = t('media_clear');
+    remove.setAttribute('aria-label', `${t('media_clear')} ${index + 1}: ${item.name || ''}`.trim());
+    bar.append(name, remove);
+    li.append(frame, bar);
+    if (!item.usable) {
+      const flag = document.createElement('span');
+      flag.className = 'media-item-flag';
+      flag.textContent = t('media_unusable_flag');
+      li.append(flag);
+    }
+    gallery.append(li);
+  });
+  const total = mediaItems.reduce((sum, item) => sum + (Number(item.size) || 0), 0);
+  $('mediaPreviewTitle').textContent = mediaTitle();
+  $('mediaPreviewDetail').textContent = formatBytes(total);
   box.hidden = false;
 }
+
+function mediaTitle() {
+  if (!mediaItems.length) return '';
+  if (mediaItems.length === 1) {
+    const item = mediaItems[0];
+    if (!item.usable) return t('media_rejected');
+    return t(item.kind === 'video' ? 'media_video_ready' : 'media_photo_ready');
+  }
+  if (mediaItems.every((item) => !item.usable)) return t('media_rejected');
+  return t('media_ready_many').replace('N', mediaItems.length);
+}
+
 
 function showSavedRecord(record) {
   const card = $('lastRecord');
@@ -816,10 +870,19 @@ function showSavedRecord(record) {
     thumb.hidden = true;
   }
   $('lastRecordTitle').textContent = `${t('record_added')} ${record.seq}`;
-  const mediaWord = record.media_kind === 'video' ? 'saved_with_video' : record.media_kind === 'image' ? 'saved_with_photo' : 'saved_no_media';
-  const detail = [t(mediaWord), record.media_name || '', formatBytes(record.media_size)]
-    .filter(Boolean)
-    .join(' · ');
+  const items = Array.isArray(record.media_items) ? record.media_items : [];
+  const count = Number(record.media_count) || items.length;
+  let detail;
+  if (count > 1) {
+    detail = [
+      t('saved_with_files').replace('N', count),
+      items.map((item) => item.name).filter(Boolean).slice(0, 2).join(', '),
+      formatBytes(record.media_size_total)
+    ].filter(Boolean).join(' · ');
+  } else {
+    const mediaWord = record.media_kind === 'video' ? 'saved_with_video' : record.media_kind === 'image' ? 'saved_with_photo' : 'saved_no_media';
+    detail = [t(mediaWord), record.media_name || '', formatBytes(record.media_size)].filter(Boolean).join(' · ');
+  }
   $('lastRecordDetail').textContent = detail;
   card.hidden = false;
 }
@@ -828,35 +891,48 @@ function refreshSavedRecord() {
   if (lastSavedRecord) showSavedRecord(lastSavedRecord);
 }
 
-function clearMedia() {
+function clearMedia(index = null) {
+  if (index === null) {
+    mediaItems = [];
+    photoFailed = false;
+  } else {
+    mediaItems = mediaItems.filter((_, position) => position !== index);
+  }
   $('photo').value = '';
-  photoState = null;
   photoPending = false;
-  photoFailed = false;
-  hideMediaPreview();
+  renderMediaPreview();
   updateTier();
 }
 
 function tierFor() {
-  return photoState?.usable ? 'B' : 'C';
+  return mediaItems.some((item) => item.usable) ? 'B' : 'C';
 }
 
 function hasEvidence() {
-  return Boolean(photoState?.usable);
+  return mediaItems.some((item) => item.usable);
 }
 
-function mediaNoteText(state) {
-  if (!state) return '';
-  if (state.reason === 'unreadable') return t('media_unreadable');
-  if (state.reason === 'unusable') return t('photo_unusable');
-  return state.kind === 'video' ? t('video_readable') : t('photo_readable');
+function mediaNoteText() {
+  if (!mediaItems.length) return '';
+  const rejected = mediaItems.filter((item) => !item.usable);
+  const good = mediaItems.length - rejected.length;
+  if (!rejected.length) {
+    if (mediaItems.length === 1) {
+      return mediaItems[0].kind === 'video' ? t('video_readable') : t('photo_readable');
+    }
+    return t('media_ready_many_note').replace('N', mediaItems.length);
+  }
+  if (!good) {
+    return rejected.some((item) => item.reason === 'unreadable') ? t('media_unreadable') : t('photo_unusable');
+  }
+  return t('media_partly_unusable').replace('N', rejected.length);
 }
 
 function showMediaNote() {
   const el = $('photoNote');
   if (!el) return;
-  el.title = photoState?.detail || '';
-  note('photoNote', mediaNoteText(photoState), Boolean(photoState && !photoState.usable));
+  el.title = mediaItems.map((item) => item.detail).filter(Boolean).join(' | ');
+  note('photoNote', mediaNoteText(), mediaItems.some((item) => !item.usable));
 }
 
 function updateTier() {
@@ -871,14 +947,33 @@ function reusedPhoto(photo) {
 
 let allRecordsCache = [];
 
-function mediaPayload() {
+function mediaPayload(previous = null) {
+  const first = mediaItems[0] || null;
   return {
     speech_lang: spokenLangs.size ? [...spokenLangs].join(',') : speechLang,
-    media_kind: photoState?.kind || '',
-    media_hash: photoState?.media_hash || photoState?.hash || '',
-    media_name: photoState?.name || '',
-    media_mime: photoState?.mime || '',
-    media_size: photoState?.size || 0,
+    media_count: mediaItems.length,
+    media_size_total: mediaItems.reduce((sum, item) => sum + (Number(item.size) || 0), 0),
+    media_items: mediaItems.map((item, index) => ({
+      index,
+      kind: item.kind,
+      name: item.name || '',
+      mime: item.mime || '',
+      size: Number(item.size) || 0,
+      usable: Boolean(item.usable),
+      media_hash: item.media_hash || '',
+      photo_hash: item.hash || '',
+      photo_thumb: item.thumb || '',
+      reuse_of: index === 0 ? previous?.seq || null : null
+    })),
+    media_kind: first?.kind || '',
+    media_hash: first?.media_hash || first?.hash || '',
+    media_name: first?.name || '',
+    media_mime: first?.mime || '',
+    media_size: first ? Number(first.size) || 0 : 0,
+    photo_hash: first?.hash || '',
+    photo_thumb: first?.thumb || '',
+    photo_usable: Boolean(first?.usable),
+    photo_reuse_of: previous?.seq || null,
     audio_hash: audioState?.hash || '',
     audio_mime: audioState?.mime || '',
     audio_size: audioState?.size || 0,
@@ -919,7 +1014,7 @@ function resetCaptureInputs() {
   setGrade(0);
   spokenLangs = new Set();
   $('photo').value = '';
-  photoState = null;
+  mediaItems = [];
   audioState = null;
   photoFailed = false;
   hideMediaPreview();
@@ -955,7 +1050,7 @@ function quickRecord(kind, grade = 0) {
     const transcript = isGrade ? (typed || gradeReason) : typed || WORDS[lang].default_reason;
     const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : 'clean';
     const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : WORDS[lang].quick_reason;
-    const previous = reusedPhoto(photoState);
+    const previous = reusedPhoto(mediaItems[0]);
     const record = await appendRecord({
       asset,
       tag_sig: currentTag,
@@ -967,15 +1062,11 @@ function quickRecord(kind, grade = 0) {
       tier,
       reason,
       supervisor: '',
-      photo_hash: photoState?.hash || '',
-      photo_thumb: photoState?.thumb || '',
-      photo_usable: photoState?.usable || false,
-      photo_reuse_of: previous?.seq || null,
       language: speechLang,
       default_assessment: defaultAssessment,
       quick: true,
-      ...mediaPayload()
-    }, photoState?.file, audioState?.blob);
+      ...mediaPayload(previous)
+    }, mediaItems.map((item) => item.file), audioState?.blob);
     notifyRecords(record);
     const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
@@ -1375,17 +1466,25 @@ function bind() {
   });
   $('photo').addEventListener('change', async (event) => {
     const token = ++photoToken;
-    const file = event.target.files?.[0];
-    photoState = null;
-    photoPending = Boolean(file);
+    const files = [...(event.target.files || [])];
+    // Clearing the value lets the same camera file be picked again next time.
+    event.target.value = '';
+    if (!files.length) { updateTier(); return; }
+    photoPending = true;
     photoFailed = false;
-    if (!file) { updateTier(); return; }
     try {
-      const result = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
-      if (token !== photoToken) return;
-      photoState = result;
-      renderMediaPreview();
-      showMediaNote();
+      for (const file of files) {
+        if (token !== photoToken) return;
+        if (mediaItems.length >= MAX_MEDIA) {
+          note('photoNote', t('media_limit'), true);
+          break;
+        }
+        const result = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
+        if (token !== photoToken) return;
+        mediaItems = [...mediaItems, result];
+        renderMediaPreview();
+        showMediaNote();
+      }
     } catch (error) {
       if (token === photoToken) {
         photoFailed = true;
@@ -1395,8 +1494,13 @@ function bind() {
       if (token === photoToken) { photoPending = false; updateTier(); }
     }
   });
+  $('mediaGallery')?.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-remove]');
+    if (!button) return;
+    clearMedia(Number(button.dataset.remove));
+  });
   $('saveBtn').addEventListener('click', saveFromForm);
-  $('mediaClearBtn')?.addEventListener('click', clearMedia);
+  $('mediaClearBtn')?.addEventListener('click', () => clearMedia());
   window.addEventListener('online', updateNetwork);
   window.addEventListener('offline', updateNetwork);
 }
