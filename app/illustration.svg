@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" width="400" height="320" role="img" aria-labelledby="ill-title ill-desc">
-  <title id="ill-title">Tap a waterproof NFC card on a cleaned machine; the phone writes a signed, append-only proof record.</title>
+  <title id="ill-title">Tap a waterproof NFC card on a cleaned machine; the phone writes a tamper evident, append only proof record.</title>
   <desc id="ill-desc">For A. Le Coq production: on a cleaned machine a red NFC card is tapped with a phone; a small proof card shows a clean check, a verdict and an append-only hash. No paper form, no photo required.</desc>
 
   <defs>
