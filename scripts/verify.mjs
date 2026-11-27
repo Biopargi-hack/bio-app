@@ -34,7 +34,6 @@ const REQUIRED_FILES = [
   "app/sheet.html",
   "app/data.js",
   "app/hygieen.json",
-  "app/taptoprove_ledger.xlsx",
 ];
 
 for (const file of REQUIRED_FILES) {
@@ -156,14 +155,14 @@ if (!indexSource.includes('id="records"') && !indexSource.includes('id="cipSumma
 
 const cipRaw = existsSync(join(appDir, "sample_cip.csv")) ? readFileSync(join(appDir, "sample_cip.csv")) : Buffer.alloc(0);
 if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.includes(0x3b) && cipRaw.includes(0x2c)) {
-  ok("sample CIP is Excel friendly with BOM, semicolon and comma decimals");
+  ok("sample CIP uses BOM, semicolon separators and comma decimals");
 } else {
   fail("app/sample_cip.csv: expected UTF-8 BOM, semicolon separators and comma decimals");
 }
-if (indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes("hygiene_download")) {
-  ok("the workbook download is on the landing page");
+if (indexSource.includes('docs.google.com/spreadsheets/d/') && !indexSource.includes('taptoprove_ledger.xlsx') && !appSource.includes('hygiene_download')) {
+  ok("the landing links to the live Google Sheet and has no Excel download");
 } else {
-  fail("app/index.html: the XLSX workbook download is missing");
+  fail("app/index.html: the live Google Sheet link or the Excel removal is missing");
 }
 if (indexSource.includes('id="wbHygieneScroll"') && !indexSource.includes('id="wbRecordsScroll"') && !indexSource.includes("workbook-tabs")) {
   ok("the landing embeds the Hügieen sheet without a tab strip");
@@ -185,14 +184,20 @@ if (appSource.includes("await refreshCount();") && appSource.includes("renderWor
 } else {
   fail("app/app.js: the save refresh is missing");
 }
+
+if (appSource.includes("fetch('/api/ledger'") && appSource.includes('toend-sync-queue') && existsSync(join(root, 'functions/api/ledger.js'))) {
+  ok("saved records queue and post to the Sheets writer");
+} else {
+  fail("app: the Google Sheets sync path is missing");
+}
 const stylesSource = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
 
 
 const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
-if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetExcelBtn"')) {
-  ok("live sheet reads IndexedDB, listens for records and exports Excel CSV");
+if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetJsonlBtn"') && !sheetSource.includes('sheetExcelBtn')) {
+  ok("live sheet reads IndexedDB, listens for records and links to Google Sheets");
 } else {
-  fail("app/sheet.html: live sheet wiring is missing");
+  fail("app/sheet.html: live sheet wiring or the Excel removal is missing");
 }
 if (appSource.includes("notifyRecords(record)") && sheetSource.includes("new BroadcastChannel('toend-records')") && indexSource.includes('id="sheetLink"')) {
   ok("capture app broadcasts saved records and links to live sheet");
@@ -205,10 +210,10 @@ if (appSource.includes("if (!recordsChannel)") && sheetSource.includes('db.onver
   fail("app: record event fallback or sheet database handoff is missing");
 }
 const freshExportReads = (sheetSource.match(/const current = await allRecords\(\);/g) || []).length;
-if (freshExportReads >= 2 && sheetSource.includes("import { csvCell, recordHeaders }") && sheetSource.includes("recordHeaders(current)")) {
-  ok("sheet exports fresh complete CSV and JSONL with attachments");
+if (freshExportReads >= 1 && sheetSource.includes('id="sheetJsonlBtn"') && sheetSource.includes('recordMedia(record)')) {
+  ok("sheet exports fresh JSONL with attachments");
 } else {
-  fail("app/sheet.html: fresh complete export wiring is missing");
+  fail("app/sheet.html: fresh JSONL export wiring is missing");
 }
 
 const cameraWired = indexSource.includes('id="photoBtn"') && indexSource.includes('id="videoBtn"') && indexSource.includes('capture="environment"') && appSource.includes('photoBtn') && appSource.includes('videoBtn');

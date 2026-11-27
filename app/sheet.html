@@ -70,7 +70,7 @@
       </div>
       <div class="sheet-actions">
         <a href="/" data-i18n="capture">Open capture</a>
-        <button id="sheetExcelBtn" type="button" data-i18n="excel">Excel CSV</button>
+        <a href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit" target="_blank" rel="noopener" data-i18n="sheet_link">Google Sheet</a>
         <button id="sheetJsonlBtn" type="button" data-i18n="jsonl">JSONL + files</button>
       </div>
     </div>
@@ -123,7 +123,6 @@
   </footer>
 
   <script type="module">
-    import { csvCell, recordHeaders } from './data.js';
     const $ = (id) => document.getElementById(id);
     const EVENT_KEY = 'toend-records-event';
     const CHANNEL = 'toend-records';
@@ -132,25 +131,25 @@
       en: {
         skip: 'Jump to records', subtitle: 'Proof for the production line', localOnly: 'This device',
         title: 'Live records', intro: 'This page follows new checks on this device. Open the capture app in another tab and append a record. The row appears here without a reload.',
-        capture: 'Open capture', excel: 'Excel CSV', live: 'Live', seq: '#', time: 'Time', asset: 'Asset',
+        capture: 'Open capture', sheet_link: 'Google Sheet', live: 'Live', seq: '#', time: 'Time', asset: 'Asset',
         checkpoint: 'Checkpoint', verdict: 'Verdict', grade: 'Grade', proof: 'Proof', proof_close: 'Close', tier: 'Tier', tag: 'Tag', note: 'Note',
         hash: 'Hash', empty: 'No records yet. Open the capture app and append one.',
-        foot: 'Same device only. Records live in this browser. Cross-device sync needs a shared store.',
+        foot: 'Saved checks are sent to the Live tab in Google Sheets. Records also stay in this browser for the hash chain.',
         footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'One pager',
         count: (n) => `${n} record${n === 1 ? '' : 's'}`, updated: (s) => `Updated ${s}`,
-        excel_empty: 'No records to export yet.', excel_done: 'Excel CSV ready.', excel_failed: 'Excel CSV failed.', jsonl: 'JSONL + files', jsonl_done: 'JSONL ready.', jsonl_failed: 'JSONL export failed.', attachment_missing: 'Attachment missing, nothing exported.',
+        export_empty: 'No records to export yet.', refresh_failed: 'Live refresh failed.', jsonl: 'JSONL + files', jsonl_done: 'JSONL ready.', jsonl_failed: 'JSONL export failed.', attachment_missing: 'Attachment missing, nothing exported.',
         saveNote: 'Live records'
       },
       et: {
         skip: 'Hüppa kirjete juurde', subtitle: 'Tõend tootmisliinile', localOnly: 'See seade',
         title: 'Elavad kirjed', intro: 'See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.',
-        capture: 'Ava salvestus', excel: 'Excel CSV', live: 'Otseülekanne', seq: '#', time: 'Aeg', asset: 'Seade',
+        capture: 'Ava salvestus', sheet_link: 'Google Sheet', live: 'Otseülekanne', seq: '#', time: 'Aeg', asset: 'Seade',
         checkpoint: 'Kontrollpunkt', verdict: 'Otsus', grade: 'Hinne', proof: 'Tõend', proof_close: 'Sulge', tier: 'Tase', tag: 'Silt', note: 'Märkus',
         hash: 'Räsikood', empty: 'Kirjeid veel pole. Ava salvestusleht ja lisa kirje.',
-        foot: 'Ainult samas seadmes. Kirjed on selles brauseris. Erinevate seadmete vaheliseks sünkroniseerimiseks on vaja jagatud hoidlat.',
+        foot: 'Salvestatud kontrollid saadetakse Google Sheetsi Live lehele. Kirjed jäävad räsiahela jaoks ka sellesse brauserisse.',
         footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'Üheleht',
         count: (n) => `${n} kirjet`, updated: (s) => `Uuendatud ${s}`,
-        excel_empty: 'Eksportimiseks pole kirjeid.', excel_done: 'Excel CSV on valmis.', excel_failed: 'Excel CSV ebaõnnestus.', jsonl: 'JSONL + failid', jsonl_done: 'JSONL on valmis.', jsonl_failed: 'JSONL eksport ebaõnnestus.', attachment_missing: 'Manus puudub, midagi ei eksporditud.',
+        export_empty: 'Eksportimiseks pole kirjeid.', refresh_failed: 'Värskendamine ebaõnnestus.', jsonl: 'JSONL + failid', jsonl_done: 'JSONL on valmis.', jsonl_failed: 'JSONL eksport ebaõnnestus.', attachment_missing: 'Manus puudub, midagi ei eksporditud.',
         saveNote: 'Elavad kirjed'
       }
     };
@@ -403,7 +402,7 @@
         render(before);
       } catch (error) {
         console.warn('live sheet refresh failed', error);
-        $('exportText').textContent = t('excel_failed');
+        $('exportText').textContent = t('refresh_failed');
       }
     }
 
@@ -418,25 +417,11 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    async function exportExcel() {
-      try {
-        const current = await allRecords();
-        if (!current.length) { $('exportText').textContent = t('excel_empty'); return; }
-        const headers = recordHeaders(current);
-        const rows = [headers.map(csvCell).join(';')];
-        for (const record of current) rows.push(headers.map((key) => csvCell(record[key])).join(';'));
-        downloadFile('\ufeff' + rows.join('\r\n') + '\r\n', `toend-records-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
-        $('exportText').textContent = t('excel_done');
-      } catch (error) {
-        console.warn('Excel export failed', error);
-        $('exportText').textContent = t('excel_failed');
-      }
-    }
 
     async function exportJsonl() {
       try {
         const current = await allRecords();
-        if (!current.length) { $('exportText').textContent = t('excel_empty'); return; }
+        if (!current.length) { $('exportText').textContent = t('export_empty'); return; }
         const lines = [];
         for (const record of current) {
           // The hash covers every stored field, so the export keeps them all.
@@ -467,7 +452,6 @@
       localStorage.setItem('toend-lang', lang);
       applyLanguage();
     });
-    $('sheetExcelBtn').addEventListener('click', exportExcel);
     $('sheetJsonlBtn').addEventListener('click', exportJsonl);
     $('proofClose').addEventListener('click', closeProof);
     $('proofDialog').addEventListener('close', closeProof);

@@ -218,17 +218,20 @@
               <strong id="lastRecordTitle"></strong>
               <span id="lastRecordDetail"></span>
             </div>
-            <a class="link-button ghost small" href="/sheet" data-i18n="open_sheet">Vaata kirjeid</a>
+            <div class="last-record-actions">
+              <a class="link-button ghost small" href="/sheet" data-i18n="open_sheet">Vaata kirjeid</a>
+              <span id="syncStatus" class="sync-status" data-state="idle" data-i18n="sync_idle" role="status">Salvestatud selles seadmes</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
     <section id="hygieen" class="sample-sheet panel" aria-labelledby="workbook-title">
       <div class="section-head">
-        <h2 id="workbook-title" data-i18n="workbook_title">Tööraamat</h2>
-        <a class="link-button ghost small" href="taptoprove_ledger.xlsx" download data-i18n="hygiene_download">Laadi tööraamat alla</a>
+        <h2 id="workbook-title" data-i18n="workbook_title">Elav Google Sheet</h2>
+        <a class="link-button ghost small" href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit" target="_blank" rel="noopener" data-i18n="open_google_sheet">Ava Google Sheet</a>
       </div>
-      <p class="note" data-i18n="workbook_note">Tööraamatu leht Hügieen, samad veerud ja värvid mis Exceli failis. Hinne lisandub lahtrisse kohe pärast salvestamist. Mõlemad lehed on allalaaditavas failis. Keri tabelit külgsuunas.</p>
+      <p class="note" data-i18n="workbook_note">Iga salvestatud kontroll läheb kohe Google Sheetsi Live lehele. Fotod ja videod on seal lingina, kui need õnnestub üles laadida. Allolev tabel näitab selle seadme kirjeid.</p>
       <div class="workbook">
         <div class="workbook-scroll" id="wbHygieneScroll" tabindex="0" aria-label="Hügieen"></div>
       </div>

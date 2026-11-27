@@ -835,10 +835,15 @@ main {
 .last-record-text { grid-area: text; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .last-record-text strong { font: 700 14px/1.3 var(--sans); }
 .last-record-text span { font: 400 12px/1.4 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
-.last-record .link-button { grid-area: link; width: 100%; }
+.last-record-actions { grid-area: link; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.last-record-actions .link-button { width: 100%; }
+.sync-status { font: 600 12px/1.3 var(--mono); color: var(--muted); }
+.sync-status[data-state="done"] { color: var(--mint); }
+.sync-status[data-state="failed"] { color: var(--accent); }
+.sync-status[data-state="pending"] { color: var(--muted); }
 @media (min-width: 560px) {
   .last-record { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "thumb text link"; }
-  .last-record .link-button { width: auto; }
+  .last-record-actions .link-button { width: auto; }
 }
 .save-row { margin-top: 16px; padding-top: 20px; border-top: 1px solid var(--line); }
 .save-row .action { min-height: 48px; padding: 0 24px; border-radius: 8px; font: 700 14px/1 var(--sans); text-transform: none; }

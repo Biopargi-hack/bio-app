@@ -82,10 +82,6 @@ const WORDS = {
     record_video: 'Filmi video',
     instrument: 'Instrument reading',
     save: 'Append record',
-    excel: 'Excel CSV',
-    excel_empty: 'No records yet. Append one first.',
-    excel_done: 'Excel CSV ready. Rows:',
-    excel_failed: 'Excel export failed.',
     sheet: 'Live records',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
@@ -140,9 +136,13 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
-    workbook_title: 'Workbook',
-    hygiene_download: 'Download workbook',
-    workbook_note: 'The Hügieen sheet of the workbook, same columns and colours as the Excel file. A grade lands in its cell right after a save. Both sheets are in the downloadable file. Scroll sideways for more columns.',
+    workbook_title: 'Live Google Sheet',
+    open_google_sheet: 'Open Google Sheet',
+    sync_idle: 'Saved on this device',
+    sync_pending: 'Sending to Google Sheets',
+    sync_done: 'Sent to Google Sheets',
+    sync_failed: 'Waiting to send, check connection',
+    workbook_note: 'Every saved check goes straight to the Live tab in Google Sheets. Photos and videos are linked there when they can be uploaded. The table below shows this device.',
     workbook_count: 'N records on this device',
     landing_table: 'View table',
     paper: 'Print the paper form',
@@ -242,19 +242,19 @@ const WORDS = {
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     save: 'Lisa kirje',
-    excel: 'Excel CSV',
-    excel_empty: 'Kirjeid veel pole. Lisa esmalt üks kirje.',
-    excel_done: 'Excel CSV on valmis. Ridu:',
-    excel_failed: 'Exceli eksport ebaõnnestus.',
     sheet: 'Elavad kirjed',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
-    workbook_title: 'Tööraamat',
-    hygiene_download: 'Laadi tööraamat alla',
-    workbook_note: 'Tööraamatu leht Hügieen, samad veerud ja värvid mis Exceli failis. Hinne lisandub lahtrisse kohe pärast salvestamist. Mõlemad lehed on allalaaditavas failis. Keri tabelit külgsuunas.',
+    workbook_title: 'Elav Google Sheet',
+    open_google_sheet: 'Ava Google Sheet',
+    sync_idle: 'Salvestatud selles seadmes',
+    sync_pending: 'Saadan Google Sheetsi',
+    sync_done: 'Saadetud Google Sheetsi',
+    sync_failed: 'Ootab saatmist, kontrolli ühendust',
+    workbook_note: 'Iga salvestatud kontroll läheb kohe Google Sheetsi Live lehele. Fotod ja videod on seal lingina, kui need õnnestub üles laadida. Allolev tabel näitab selle seadme kirjeid.',
     workbook_count: 'Selles seadmes N kirjet',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
@@ -654,10 +654,121 @@ async function appendRecord(payload, mediaFiles = [], audioBlob) {
       });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
     };
-    tx.oncomplete = () => resolve(record);
+    tx.oncomplete = () => {
+      resolve(record);
+      void pushRecord(record, mediaFiles, audioBlob);
+    };
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error('Record write aborted'));
   });
+}
+
+const SYNC_QUEUE_KEY = 'toend-sync-queue';
+
+function queuedSeqs() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || '[]');
+    return Array.isArray(value) ? value.filter((seq) => Number.isInteger(seq)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function queueSeq(seq) {
+  const queue = queuedSeqs();
+  if (!queue.includes(seq)) queue.push(seq);
+  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
+}
+
+function unqueueSeq(seq) {
+  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queuedSeqs().filter((item) => item !== seq)));
+}
+
+function setSyncStatus(state) {
+  const el = $('syncStatus');
+  if (!el) return;
+  el.textContent = t(state);
+  el.dataset.state = state;
+}
+
+async function mediaBlob(key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction('media', 'readonly').objectStore('media').get(key);
+    request.onsuccess = () => resolve(request.result?.blob || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function syncMedia(record, mediaFiles, audioBlob) {
+  const items = [];
+  for (let position = 0; position < mediaFiles.length; position += 1) {
+    const file = mediaFiles[position];
+    if (!file) continue;
+    const meta = record.media_items?.[position] || {};
+    items.push({
+      name: meta.name || file.name || 'photo',
+      mime: meta.mime || file.type || 'application/octet-stream',
+      kind: meta.kind || 'photo',
+      dataUrl: await mediaDataUrl(file)
+    });
+  }
+  if (audioBlob) {
+    items.push({
+      name: 'haal',
+      mime: record.audio_mime || audioBlob.type || 'audio/webm',
+      kind: 'audio',
+      dataUrl: await mediaDataUrl(audioBlob)
+    });
+  }
+  return items;
+}
+
+async function pushRecord(record, mediaFiles = [], audioBlob = null) {
+  queueSeq(record.seq);
+  setSyncStatus('sync_pending');
+  try {
+    const media = await syncMedia(record, mediaFiles, audioBlob);
+    const response = await fetch('/api/ledger', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ record, media })
+    });
+    if (!response.ok) throw new Error(`sync ${response.status}`);
+    unqueueSeq(record.seq);
+    setSyncStatus('sync_done');
+    return true;
+  } catch (error) {
+    console.warn('Sheets sync failed', error);
+    setSyncStatus('sync_failed');
+    return false;
+  }
+}
+
+async function flushQueue() {
+  const queue = queuedSeqs();
+  if (!queue.length) return;
+  const records = await allRecords();
+  for (const seq of queue) {
+    const record = records.find((item) => item.seq === seq);
+    if (!record) {
+      unqueueSeq(seq);
+      continue;
+    }
+    const specs = Array.isArray(record.media_items) && record.media_items.length
+      ? record.media_items.map((_, position) => `${seq}:media${position ? `:${position}` : ''}`)
+      : record.media_hash ? [`${seq}:media`] : [];
+    const mediaFiles = [];
+    for (const key of specs) {
+      const blob = await mediaBlob(key);
+      if (!blob) continue;
+      const position = specs.indexOf(key);
+      const meta = record.media_items?.[position] || {};
+      mediaFiles.push(new File([blob], meta.name || `media-${key}`, { type: meta.mime || blob.type }));
+    }
+    const audioBlob = await mediaBlob(`${seq}:audio`);
+    await pushRecord(record, mediaFiles, audioBlob);
+  }
 }
 
 async function bitmapFor(file) {
@@ -1112,9 +1223,8 @@ async function refreshCount() {
   renderWorkbook();
 }
 
-/* The embedded workbook mirrors app/taptoprove_ledger.xlsx: the Hügieen sheet
-   with the same columns, colours and values that sync_ledger.py writes,
-   filled from this device's records. */
+/* The embedded grid mirrors the Live Google Sheet. It follows the same
+   checkpoint rows and grade colours, filled from this device's records. */
 const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
 const HYGIENE_ROWS = [
   ['Pesu / Wash', 'Wash'],
@@ -1173,7 +1283,7 @@ function isoMonday(year, week) {
   return monday.getUTCFullYear() === year ? monday : null;
 }
 
-function excelDate(date) {
+function sheetDate(date) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${pad(date.getUTCDate())}.${pad(date.getUTCMonth() + 1)}.${date.getUTCFullYear()}`;
 }
@@ -1205,7 +1315,7 @@ function hygieneSheet(records) {
   }
   return {
     header: ['Kontrollpunktid', ...columns.map((column) => `N${String(column.bucket).padStart(2, '0')}`)],
-    dates: ['Kuupäev', ...columns.map((column) => (column.monday ? excelDate(column.monday) : 'kuupäev puudub'))],
+    dates: ['Kuupäev', ...columns.map((column) => (column.monday ? sheetDate(column.monday) : 'kuupäev puudub'))],
     rows: HYGIENE_ROWS.map(([label, checkpoint]) => [
       label,
       ...columns.map((column) => grades.get(`${checkpoint}|${year}-${column.bucket}`) ?? '')
@@ -1840,7 +1950,7 @@ function bind() {
   });
   $('saveBtn').addEventListener('click', saveFromForm);
   $('mediaClearBtn')?.addEventListener('click', () => clearMedia());
-  window.addEventListener('online', updateNetwork);
+  window.addEventListener('online', () => { updateNetwork(); void flushQueue(); });
   window.addEventListener('offline', updateNetwork);
 }
 
@@ -1861,6 +1971,7 @@ async function start() {
   }
   navigator.storage?.persist?.().catch(() => {});
   await refreshCount();
+  void flushQueue();
   await registerServiceWorker();
 }
 
