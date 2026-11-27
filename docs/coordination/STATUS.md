@@ -6,7 +6,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | Photo and video preview, Proof column, table media links | PR #105 | device tap test |
-| @linnudtonisted | OpenCode | review | ET/RU/EN voice buttons; Filmi video copy | `fix/voice_language_detect` | device test |
+| @linnudtonisted | OpenCode | review | Normalize cache hash across Windows and CI | `fix/cache_hash` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Restore prior layout | `fix/restore-previous-layout` | device test |
 
