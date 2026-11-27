@@ -74,3 +74,5 @@ Format:
 - **2026-11-27 16:20** — Grade 3 now saves once and closes the tag. Grades 2 and 1 require a comment before save. Added performer field in grade mode with ET and EN copy. Verified with verify 20 passed and browser flows at 390px and 1280px.
 
 - **2026-11-27 16:28** — After an NFC tap the page hides the demo hero, guidance rail, long form and footer. Grade buttons sit directly under the tag readout. A saved grade now shows a clear closed card with record number, hides the old note, and keeps its text correct after language toggle. Verified with verify 20 passed and browser checks at 390px and 1280px.
+
+- **2026-11-27 16:54** — The grade view now needs only a comment for grades 2 and 1. Removed the performer field and its copy, kept all dropdowns hidden in grade mode, and updated the decision and status records.

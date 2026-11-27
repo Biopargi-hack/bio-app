@@ -553,8 +553,9 @@ body.grade-mode .capture-layout { display: block; }
 body.grade-mode .proof-pad { margin-top: 0; }
 body.grade-mode .readout { margin-bottom: 16px; }
 body.grade-mode .pad-actions { display: none; }
-body.grade-mode #gradePerformerField { margin-top: 14px; }
 #gradeDone:not([hidden]) ~ #quickNote { display: none; }
+body.grade-mode #faultField,
+body.grade-mode #faultSaveBtn { display: none; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }

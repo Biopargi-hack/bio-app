@@ -95,8 +95,6 @@ const WORDS = {
     grade3_label: '3 clean',
     grade2_label: '2 dirty',
     grade1_label: '1 serious',
-    performer_label: 'Performed by',
-    performer_placeholder: 'name or initials',
     grade_comment_label: 'Comment',
     grade_comment_placeholder: 'what you saw',
     grade_comment_required: 'A comment is required for grade 2 or 1.',
@@ -211,8 +209,6 @@ const WORDS = {
     grade3_label: '3 korras',
     grade2_label: '2 must',
     grade1_label: '1 tõsine',
-    performer_label: 'Teostaja',
-    performer_placeholder: 'nimi või initsiaalid',
     grade_comment_label: 'Kommentaar',
     grade_comment_placeholder: 'mida nägid',
     grade_comment_required: 'Hinde 2 või 1 korral tuleb kommentaar.',
@@ -779,7 +775,6 @@ function quickRecord(kind, grade = 0) {
       return;
     }
     const gradeComment = $('gradeComment').value.trim();
-    const performer = $('performer').value.trim();
     if (isGrade && grade !== 3 && !gradeComment) {
       note('quickNote', WORDS[lang].grade_comment_required, true);
       $('gradeComment').focus({ preventScroll: true });
@@ -805,7 +800,6 @@ function quickRecord(kind, grade = 0) {
       method: isGrade ? 'Rated' : isClean ? 'Declared' : 'Visual',
       verdict,
       grade: isGrade ? grade : null,
-      performer: isGrade ? performer : '',
       transcript,
       tier,
       reason,
@@ -827,7 +821,6 @@ function quickRecord(kind, grade = 0) {
       $('gradeRow').hidden = true;
       $('gradeCommentField').hidden = true;
       $('gradeSaveBtn').hidden = true;
-      $('gradePerformerField').hidden = true;
       $('faultBtn').hidden = true;
       $('gradeDoneDetail').textContent = `${WORDS[lang].grade_closed_record} ${record.seq}. ${WORDS[lang].grade_closed_hint}`;
       lastGradeSeq = record.seq;
@@ -857,7 +850,6 @@ function resetGradeUi() {
   if ($('gradeCommentField')) $('gradeCommentField').hidden = true;
   if ($('gradeSaveBtn')) $('gradeSaveBtn').hidden = true;
   if ($('gradeComment')) $('gradeComment').value = '';
-  if ($('gradePerformerField')) $('gradePerformerField').hidden = !gradeMode;
   if ($('gradeDone')) $('gradeDone').hidden = true;
   if ($('faultBtn')) $('faultBtn').hidden = gradeMode;
 }
@@ -1187,7 +1179,6 @@ async function start() {
     $('cleanBtn').hidden = true;
     $('defaultBtn').hidden = true;
     $('faultBtn').hidden = true;
-    $('gradePerformerField').hidden = false;
     $('gradeCommentField').hidden = true;
     $('gradeSaveBtn').hidden = true;
     note('quickNote', WORDS[lang].grade_note);

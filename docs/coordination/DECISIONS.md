@@ -7,11 +7,11 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ## 2026-11-27: Grade 3 closes the tag, lower grades need a comment
 
-**Decision.** A grade 3 tap saves once and closes the grade flow for that tag. Grades 2 and 1 open a comment field and only save after text is entered. A performer field is visible in grade mode and is stored with the record.
+**Decision.** A grade 3 tap saves once and closes the grade flow for that tag. Grades 2 and 1 open one comment field and only save after text is entered. The grade view has no performer field and no dropdown.
 
-**Why.** Repeated taps saved grade 3 as records 14, 15, 16 and so on. A clean result needs no further input. A fault needs a human comment and a named performer.
+**Why.** Repeated taps saved grade 3 as records 14, 15, 16 and so on. A clean result needs no further input. A fault needs one human comment, not a name or a type picker.
 
-**Consequence.** The record payload gains a `performer` field. No record is edited or deleted, so the append-only chain stays intact. New tag reads reset the grade flow.
+**Consequence.** The record payload keeps the comment in `transcript` and `reason`. No record is edited or deleted, so the append-only chain stays intact. New tag reads reset the grade flow.
 
 ---
 
