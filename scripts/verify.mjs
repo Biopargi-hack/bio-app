@@ -118,12 +118,15 @@ for (const name of htmlFiles) {
 
   for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/gi)) {
     const reference = match[1];
-    if (/^(?:[a-z]+:|\/\/|\/|#)/i.test(reference)) continue;
+    if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
 
-    const path = reference.split(/[?#]/)[0];
+    let path = reference.split(/[?#]/)[0];
     if (!path) continue;
 
-    if (!existsSync(resolve(appDir, path))) {
+    const candidates = path.startsWith('/')
+      ? [resolve(appDir, path.slice(1)), resolve(appDir, `${path.slice(1)}.html`)]
+      : [resolve(appDir, path)];
+    if (!candidates.some((candidate) => existsSync(candidate))) {
       fail(`${name}: broken local reference "${reference}"`);
     }
   }
@@ -148,7 +151,7 @@ if (existsSync(swPath)) {
     const assets = [...list[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
     if (assets.length === 0) fail("app/sw.js: ASSETS list is empty");
     for (const asset of assets) {
-      if (!existsSync(resolve(appDir, asset))) {
+      if (!existsSync(resolve(appDir, asset)) && !existsSync(resolve(appDir, `${asset}.html`))) {
         fail(`app/sw.js precaches missing file "${asset}"`);
       }
     }
