@@ -18,7 +18,7 @@ Say plainly: the card ID shows which card was tapped. It is not a cryptographic 
 ## Before the demo
 
 - Open the live site on a phone and reload once so the offline shell is fresh.
-- Write the five cards in the app under Write 5 cards. Give each one a real place name.
+- Write the five cards with your own NFC tool. Give each one a real place name. The app no longer writes cards.
 - Tap one card. Confirm the place is filled, KINNITA PUHAS is focused, and the chain row shows `nfc <card ID>`.
 - Open `/?asset=filler&tag=T1%20TEST&via=nfc` once. Confirm the row shows the same card ID.
 - Press the fixed default button and confirm the row shows tier C, the fixed reason and `default_assessment: true`.

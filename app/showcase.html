@@ -107,7 +107,7 @@
     <section class="hero-demo" aria-labelledby="heroDemoTitle">
       <p class="kicker" id="heroKicker">Näide, 27. november 2026</p>
       <h1 id="heroDemoTitle">Üks puudutus.<br>Kõik andmed koos.</h1>
-      <p class="lead" id="heroLead">Ühel villimisliinil on 100 kindlat kohta. Spetsialist käib kord kuus. Kui ta midagi ei märgi, on koht korras. Kui koht on must, jääb siia pilt, tekst ja hinne. Vaataja näeb kõiki andmeid, muutja saab neid lisada.</p>
+      <p class="lead" id="heroLead">100 kindlat kohta ühel liinil. Puuduta kleebist, vali hinne ja lisa tõend.</p>
       <div class="hero-actions">
         <a class="solid" href="#board" id="boardNav">Vaata 100 kohta</a>
         <a class="ghost" href="#nfc" id="nfcHeroNav">Kopeeri NFC link</a>
@@ -132,7 +132,7 @@
         </div>
       </div>
       <div class="grid" id="grid" role="group" aria-label="Kontrollikohad"></div>
-      <p class="hint" id="boardHint">Tühi ruut on korras. Sinine ruut on hinne 2. Must ruut on hinne 1. Vali ruut, et näha üksikasju.</p>
+      <p class="hint" id="boardHint">Tühi on korras. Sinine on 2, must on 1.</p>
     </section>
 
     <div class="split">
@@ -159,25 +159,25 @@
 
       <section class="panel" aria-labelledby="ruleTitle">
         <div class="panel-head"><h2 id="ruleTitle">Reegel</h2></div>
-        <p class="rule" id="ruleOne">Hinne 3 tähendab: kõik on puhas ja korras.</p>
-        <p class="rule" id="ruleTwo">Hinne 2 tähendab: koht on must või lekib. Sinna jääb pilt, hääl, video või tekst.</p>
-        <div class="rule-state" id="ruleState">Praegu on kõik kohad märkimata, seega korras.</div>
+        <p class="rule" id="ruleOne">3 on korras.</p>
+        <p class="rule" id="ruleTwo">2 on must või leke. Lisa tõend.</p>
+        <div class="rule-state" id="ruleState">Kõik kohad on korras.</div>
       </section>
     </div>
 
     <section class="panel" aria-labelledby="dbTitle">
       <div class="panel-head">
         <h2 id="dbTitle">Andmed ühes kohas</h2>
-        <span id="dbNote">Näite andmed on ainult sellel lehel</span>
+        <span id="dbNote">Näite andmed, Supabase tuleb</span>
       </div>
       <div class="role-grid">
         <div class="role-cell">
           <strong id="editorTitle">Muutja</strong>
-          <p id="editorText">Lisab märkuse, pildi, hääle, video ja teksti. Vahetab hinde. Näeb kõiki kohti.</p>
+          <p id="editorText">Lisab hinded ja tõendid.</p>
         </div>
         <div class="role-cell">
           <strong id="viewerTitle">Vaataja</strong>
-          <p id="viewerText">Näeb kõiki kohti, hinded ja tõendid. Ei saa andmeid muuta.</p>
+          <p id="viewerText">Näeb kõik andmed.</p>
         </div>
       </div>
       <table aria-label="Märkused">
@@ -192,7 +192,7 @@
         </thead>
         <tbody id="recordRows"></tbody>
       </table>
-      <p class="hint" id="emptyRows">Märkusi veel pole. Kõik muu on korras.</p>
+      <p class="hint" id="emptyRows">Märkusi pole.</p>
     </section>
 
     <section class="panel" id="nfc" aria-labelledby="nfcTitle">
@@ -203,7 +203,7 @@
           <small id="stickerNote">kleebis kontrollikohal</small>
         </div>
         <div>
-          <p class="rule" id="nfcLead">Pane telefon vastu kleebist. Avanenud leht on juba õige koha ja õige kaardiga.</p>
+          <p class="rule" id="nfcLead">Avab õige koha ja kaardiga.</p>
           <code id="nfcUrl"></code>
           <div class="action-row">
             <button class="solid" type="button" id="copyBtn">Kopeeri link</button>
@@ -216,7 +216,7 @@
   </main>
 
   <footer class="showcase-footer">
-    <span id="footerNote">TapToProve näide. Andmed ja tõendid on siin ainult demonstreerimiseks.</span>
+    <span id="footerNote">Näide. Andmebaas on Supabase, ühendus tuleb.</span>
     <a href="index.html" id="footerLink">Ava töövaade</a>
   </footer>
 
@@ -236,24 +236,24 @@
       et: {
         topSubtitle: 'Näide ja NFC link', backLink: 'Tagasi appi', nfcNav: 'NFC link',
         heroKicker: 'Näide, 27. november 2026',
-        heroLead: 'Ühel villimisliinil on 100 kindlat kohta. Spetsialist käib kord kuus. Kui ta midagi ei märgi, on koht korras. Kui koht on must, jääb siia pilt, tekst ja hinne. Vaataja näeb kõiki andmeid, muutja saab neid lisada.',
+        heroLead: '100 kindlat kohta ühel liinil. Puuduta kleebist, vali hinne ja lisa tõend.',
         boardNav: 'Vaata 100 kohta', nfcHeroNav: 'Kopeeri NFC link',
         boardTitle: 'Üks liin, 100 kohta', roleLabel: 'Roll', langLabel: 'Keel',
-        boardHint: 'Tühi ruut on korras. Sinine ruut on hinne 2. Must ruut on hinne 1. Vali ruut, et näha üksikasju.',
+        boardHint: 'Tühi on korras. Sinine on 2, must on 1.',
         selectedTitle: 'Valitud koht', selectedMeta: 'Hinne 3, märkusi pole',
         ruleTitle: 'Reegel',
-        ruleOne: 'Hinne 3 tähendab: kõik on puhas ja korras.',
-        ruleTwo: 'Hinne 2 tähendab: koht on must või lekib. Sinna jääb pilt, hääl, video või tekst.',
-        ruleState: 'Praegu on kõik kohad märkimata, seega korras.',
-        dbTitle: 'Andmed ühes kohas', dbNote: 'Näite andmed on ainult sellel lehel',
-        editorTitle: 'Muutja', editorText: 'Lisab märkuse, pildi, hääle, video ja teksti. Vahetab hinde. Näeb kõiki kohti.',
-        viewerTitle: 'Vaataja', viewerText: 'Näeb kõiki kohti, hinded ja tõendid. Ei saa andmeid muuta.',
+        ruleOne: '3 on korras.',
+        ruleTwo: '2 on must või leke. Lisa tõend.',
+        ruleState: 'Kõik kohad on korras.',
+        dbTitle: 'Andmed ühes kohas', dbNote: 'Näite andmed, Supabase tuleb',
+        editorTitle: 'Muutja', editorText: 'Lisab hinded ja tõendid.',
+        viewerTitle: 'Vaataja', viewerText: 'Näeb kõik andmed.',
         thPlace: 'Koht', thLine: 'Liin', thGrade: 'Hinne', thProof: 'Tõend', thNote: 'Märkus',
-        emptyRows: 'Märkusi veel pole. Kõik muu on korras.',
+        emptyRows: 'Märkusi pole.',
         nfcTitle: 'NFC link', stickerNote: 'kleebis kontrollikohal',
-        nfcLead: 'Pane telefon vastu kleebist. Avanenud leht on juba õige koha ja õige kaardiga.',
+        nfcLead: 'Avab õige koha ja kaardiga.',
         copy: 'Kopeeri link', open: 'Ava näide',
-        footerNote: 'TapToProve näide. Andmed ja tõendid on siin ainult demonstreerimiseks.', footerLink: 'Ava töövaade',
+        footerNote: 'Näide. Andmebaas on Supabase, ühendus tuleb.', footerLink: 'Ava töövaade',
         dirty: 'must', serious: 'tõsine', clean: 'korras', none: 'märkusi pole',
         viewerOnly: 'Vaataja õigus, muutmist ei võimaldata.', saved: 'Salvestatud', photo: 'pilt', voice: 'hääl 00:04', video: 'video 00:12', text: 'tekst',
         copied: 'Link on kopeeritud.', copyFailed: 'Kopeerimine ei õnnestunud, vali tekst käsitsi.',
@@ -261,24 +261,24 @@
       en: {
         topSubtitle: 'Example and NFC link', backLink: 'Back to app', nfcNav: 'NFC link',
         heroKicker: 'Example, 27 November 2026',
-        heroLead: 'One filling line has 100 fixed spots. The specialist visits once a month. If nothing is marked, the spot is clean. If a spot is dirty, the photo, text and grade stay here. A viewer sees all data, an editor can add it.',
+        heroLead: '100 fixed spots on one line. Tap the sticker, pick a grade and add proof.',
         boardNav: 'See 100 spots', nfcHeroNav: 'Copy NFC link',
         boardTitle: 'One line, 100 spots', roleLabel: 'Role', langLabel: 'Language',
-        boardHint: 'An empty square means clean. Blue means grade 2. Black means grade 1. Pick a square for details.',
+        boardHint: 'Empty is clean. Blue is 2, black is 1.',
         selectedTitle: 'Selected spot', selectedMeta: 'Grade 3, no notes',
         ruleTitle: 'Rule',
-        ruleOne: 'Grade 3 means everything is clean and in order.',
-        ruleTwo: 'Grade 2 means the spot is dirty or leaking. A photo, voice note, video or text stays with it.',
-        ruleState: 'All spots are unmarked, so all are clean.',
-        dbTitle: 'All data in one place', dbNote: 'Example data lives only on this page',
-        editorTitle: 'Editor', editorText: 'Adds a note, photo, voice note, video and text. Changes the grade. Sees every spot.',
-        viewerTitle: 'Viewer', viewerText: 'Sees every spot, grade and proof. Cannot change data.',
+        ruleOne: '3 clean.',
+        ruleTwo: '2 is dirty or leaking. Add proof.',
+        ruleState: 'All spots are clean.',
+        dbTitle: 'All data in one place', dbNote: 'Demo data, Supabase next',
+        editorTitle: 'Editor', editorText: 'Adds grades and proof.',
+        viewerTitle: 'Viewer', viewerText: 'Sees all data.',
         thPlace: 'Spot', thLine: 'Line', thGrade: 'Grade', thProof: 'Proof', thNote: 'Note',
-        emptyRows: 'No notes yet. Everything else is clean.',
+        emptyRows: 'No notes.',
         nfcTitle: 'NFC link', stickerNote: 'sticker on the checkpoint',
-        nfcLead: 'Touch the phone to the sticker. The page opens with the right spot and card already set.',
+        nfcLead: 'Opens with the right spot and card.',
         copy: 'Copy link', open: 'Open example',
-        footerNote: 'TapToProve example. Data and proofs are here for the demo only.', footerLink: 'Open work view',
+        footerNote: 'Example. Supabase database, connection next.', footerLink: 'Open work view',
         dirty: 'dirty', serious: 'serious', clean: 'clean', none: 'no notes',
         viewerOnly: 'Viewer role, editing is disabled.', saved: 'Saved', photo: 'photo', voice: 'voice 00:04', video: 'video 00:12', text: 'text',
         copied: 'Link copied.', copyFailed: 'Copy failed, select the text manually.',
