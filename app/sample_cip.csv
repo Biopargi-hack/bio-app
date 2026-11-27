@@ -1,29 +1,29 @@
-day,cycle,peak_temp_c,hold_min,conductivity_ms,verdict
-1,1,75.2,18,29.8,signed clean
-1,2,70.4,12,22.1,short
-2,3,76.1,19,30.2,signed clean
-2,4,69.8,11,21.4,short
-3,5,74.6,18,28.9,signed clean
-3,6,71.2,13,23.6,short
-4,7,77.0,19,30.4,signed clean
-4,8,68.9,10,20.3,short
-5,9,75.5,18,29.5,signed clean
-5,10,70.1,12,21.8,short
-6,11,76.4,19,30.1,signed clean
-6,12,69.3,11,20.9,short
-7,13,74.9,18,29.1,signed clean
-7,14,71.5,13,23.9,short
-8,15,75.8,18,29.9,signed clean
-8,16,68.5,10,19.8,short
-9,17,76.7,19,30.5,signed clean
-9,18,70.8,12,22.6,short
-10,19,75.1,18,29.3,signed clean
-10,20,69.6,11,21.2,short
-11,21,77.2,19,30.6,signed clean
-11,22,71.0,13,23.4,short
-12,23,74.4,18,28.7,signed clean
-12,24,70.2,12,22.0,short
-13,25,75.9,18,30.0,signed clean
-13,26,78.1,19,30.1,cannot sign
-14,27,69.9,11,21.5,short
-14,28,71.3,13,23.7,short
+﻿day;cycle;peak_temp_c;hold_min;conductivity_ms;verdict
+1;1;75,2;18;29,8;signed clean
+1;2;70,4;12;22,1;short
+2;3;76,1;19;30,2;signed clean
+2;4;69,8;11;21,4;short
+3;5;74,6;18;28,9;signed clean
+3;6;71,2;13;23,6;short
+4;7;77,0;19;30,4;signed clean
+4;8;68,9;10;20,3;short
+5;9;75,5;18;29,5;signed clean
+5;10;70,1;12;21,8;short
+6;11;76,4;19;30,1;signed clean
+6;12;69,3;11;20,9;short
+7;13;74,9;18;29,1;signed clean
+7;14;71,5;13;23,9;short
+8;15;75,8;18;29,9;signed clean
+8;16;68,5;10;19,8;short
+9;17;76,7;19;30,5;signed clean
+9;18;70,8;12;22,6;short
+10;19;75,1;18;29,3;signed clean
+10;20;69,6;11;21,2;short
+11;21;77,2;19;30,6;signed clean
+11;22;71,0;13;23,4;short
+12;23;74,4;18;28,7;signed clean
+12;24;70,2;12;22,0;short
+13;25;75,9;18;30,0;signed clean
+13;26;78,1;19;30,1;cannot sign
+14;27;69,9;11;21,5;short
+14;28;71,3;13;23,7;short

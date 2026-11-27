@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | bug sweep and flow fixes | feat/flow_bugs | none |
+| @AARenor | omp | review | Excel friendly CSV and record export | fix/excel_export | none |
 | @linnudtonisted | OpenCode | review | Restore speech text field; remove tier display | PR #48 (`fix/transcript-field`) | device test |
 | @Pepukarv | OpenCode | review | three-point illustration; C tier hidden | feat/three_points | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
