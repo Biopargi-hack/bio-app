@@ -68,6 +68,7 @@ const WORDS = {
     speech_stopped: 'Voice stopped',
     listening: 'Listening',
     record_stop_hint: 'Press the button again when you are done.',
+    speech_to_record: 'Browser speech is not answering, recording instead. Press again when you are done.',
     transcribing: 'Writing it down...',
     record_failed: 'Could not write the voice down. Check the microphone permission and the connection.',
     record_short: 'The recording was too short. Press, speak, and press again.',
@@ -227,6 +228,7 @@ const WORDS = {
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan',
     record_stop_hint: 'Vajuta nuppu uuesti, kui oled lõpetanud.',
+    speech_to_record: 'Brauseri kõnetuvastus ei vasta, salvestan ise. Vajuta uuesti, kui oled lõpetanud.',
     transcribing: 'Kirjutan üles…',
     record_failed: 'Häält ei saanud üles kirjutada. Kontrolli mikrofoniluba ja ühendust.',
     record_short: 'Salvestus jäi liiga lühikeseks. Vajuta, räägi ja vajuta uuesti.',
@@ -1356,6 +1358,7 @@ let recordChunks = [];
 let recordStream = null;
 let recorderReady = null;
 let recordMime = '';
+let recordError = '';
 // iPhone Safari has no Web Speech API; MediaRecorder there writes audio/mp4.
 const AUDIO_TYPES = [
   'audio/webm;codecs=opus',
@@ -1386,8 +1389,16 @@ function canRecordAudio() {
   return Boolean(navigator.mediaDevices?.getUserMedia) && typeof MediaRecorder !== 'undefined';
 }
 
+// iPhone Safari exposes a speech service that can refuse after the mic is
+// granted, so the phone uses the microphone and Whisper directly.
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 function startRecorder() {
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
+  recordError = '';
   recorderReady = navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
     if (!voiceHold) {
       stream.getTracks().forEach((track) => track.stop());
@@ -1400,7 +1411,7 @@ function startRecorder() {
     recordChunks = [];
     recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordChunks.push(event.data); };
     recorder.start();
-  }).catch(() => { recorder = null; });
+  }).catch((error) => { recorder = null; recordError = error?.name || 'unknown'; });
 }
 
 function stopRecorder() {
@@ -1459,7 +1470,8 @@ async function toggleRecordOnly() {
     recordState = 'idle';
     if (!text) {
       resetVoiceUI();
-      note('audioNote', t(tooShort ? 'record_short' : 'record_failed'), true);
+      const denied = recordError === 'NotAllowedError' || recordError === 'SecurityError' || recordError === 'PermissionDeniedError';
+      note('audioNote', t(tooShort ? 'record_short' : denied ? 'audio_denied' : 'record_failed'), true);
       return;
     }
     const field = $('transcript');
@@ -1478,6 +1490,15 @@ async function toggleRecordOnly() {
   button.textContent = t('listening');
   note('audioNote', t('record_stop_hint'));
   startRecorder();
+}
+
+// A browser can expose speech recognition and still refuse it after the
+// microphone was granted; then the recording path is used instead.
+async function switchToRecording() {
+  resetVoiceUI();
+  await stopRecorder();
+  toggleRecordOnly();
+  note('audioNote', t('speech_to_record'));
 }
 
 async function polishUtterance(base, owned, token) {
@@ -1629,6 +1650,11 @@ function startSpeechSession(langCode, handlers) {
       finish();
       return;
     }
+    if (denied && handlers.onDenied) {
+      session.cancel();
+      handlers.onDenied(error);
+      return;
+    }
     if (!denied && handlers.onChunkFull) {
       finish({ restart: true });
       return;
@@ -1684,6 +1710,7 @@ function beginHeldSpeech(langCode, attempt = 0) {
     onText: (text) => writeSpeech(text, true),
     onSilence: () => { voiceHold = false; },
     onChunkFull: () => { voiceHold = true; },
+    onDenied: () => { switchToRecording(); },
     onUnsupported: (error) => {
       if (langCode === SPEECH_FALLBACK) return false;
       if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
@@ -1719,6 +1746,10 @@ function toggleVoice() {
     voiceHold = false;
     if (speechSession && !speechSession.finished) speechSession.stop();
     else resetVoiceUI();
+    return;
+  }
+  if (canRecordAudio() && isIOS()) {
+    toggleRecordOnly();
     return;
   }
   if (!speechRecognition()) {

@@ -123,6 +123,33 @@ if (audioTypeWired) {
   fail("app/app.js: the audio type or file extension mapping is missing");
 }
 
+const iosMicWired = appSource.includes("function isIOS()")
+  && appSource.includes("canRecordAudio() && isIOS()")
+  && appSource.includes("speech_to_record");
+if (iosMicWired) {
+  ok("an iPhone uses the microphone and Whisper instead of the speech service");
+} else {
+  fail("app/app.js: the iPhone microphone path is missing");
+}
+
+const speechDeniedWired = appSource.includes("onDenied: () => { switchToRecording(); }")
+  && appSource.includes("handlers.onDenied(error)")
+  && appSource.includes("async function switchToRecording()");
+if (speechDeniedWired) {
+  ok("a refused speech service switches to recording instead of claiming the mic is blocked");
+} else {
+  fail("app/app.js: the speech refusal does not fall back to recording");
+}
+
+const micErrorWired = appSource.includes("recordError = error?.name")
+  && appSource.includes("recordError === 'NotAllowedError'")
+  && appSource.includes("denied ? 'audio_denied'");
+if (micErrorWired) {
+  ok("the microphone refusal message is shown only for a real permission error");
+} else {
+  fail("app/app.js: the microphone error is not mapped to the right message");
+}
+
 const speechUnlimited = appSource.includes("const SPEECH_CHUNK_CHARS = 160")
   && appSource.includes("onMicFree")
   && !/transcript[^;\n]{0,80}slice\(0,\s*300\)/.test(appSource);
