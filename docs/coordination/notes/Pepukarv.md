@@ -51,3 +51,7 @@ Format:
 - **2026-11-27 16:42** — PR #57 opened for #54. verify and pr-notes green, preview deploy pending. Helper open_pr.mjs committed and pushed but gh could not resolve the worktree branch; created the PR with explicit --head feat/minimal_capture and the same template body.
 
 - **2026-11-27 16:44** — PR #57 (minimal capture) was shipped with an admin squash merge after the owner said to just do it. I authored the PR, so no separate review approval was obtained; verify, pr-notes and the preview deploy were green. The bypass is stated here and in the PR comment, not hidden as a demo emergency. Open PRs #50 and #47 overlap app.js/index.html/styles.css and need a rebase on the new main.
+
+- **2026-11-27 17:57** — Started #70 on fix/remove_checkpoints_title: owner asked to remove the 'Kaheksa kohta. Uks rutiin.' heading from the landing page, keeping the checkpoint buttons.
+
+- **2026-11-27 17:58** — Finished #70: removed the h2 'Kaheksa kohta. Uks rutiin.' / 'Eight places. One habit.' and its ET/EN i18n keys from the landing page. Kept the checkpoint buttons and their instruction, with the section now labelled by that instruction. verify 23/0; headless Chrome 390+1280: 8/8 checks, heading absent in both languages, 8 checkpoint buttons still click through to the rating view, no errors or overflow. Per the owner's standing 'just do it' instruction this small fix is shipped with an admin squash merge; I authored it and did not obtain a separate review approval. Recorded plainly here and in the PR comment.
