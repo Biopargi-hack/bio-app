@@ -7,7 +7,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | demo | Landing describes, NFC host records only, live | PR #97 merged to `main` | device tap test |
 | @linnudtonisted | OpenCode | review | Speech-to-text: detect language from first words | `fix/speech-to-text`, issue #44 | device test |
-| @Pepukarv | OpenCode | review | Remove 'Kaheksa kohta. Üks rutiin.' heading from landing | #70, fix/remove_checkpoints_title | none |
+| @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Restore prior layout | `fix/restore-previous-layout` | device test |
 
 ## Demo-critical path
