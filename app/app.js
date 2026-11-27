@@ -9,7 +9,7 @@ const METHODS = ['Visual', 'ATP swab', 'Temperature', 'CIP cycle', 'Declared'];
 const WORDS = {
   en: {
     subtitle: 'Production line flight recorder',
-    intro_kicker: 'Live demo, no server yet',
+    intro_kicker: 'Live demo, records stay on this device',
     intro_title: 'Make a record with your own hands.',
     intro_body: 'Tap a sticker, say what you did, attach a photo when one exists. The record shows what it can prove, and whether anyone changed it later.',
     beat1: 'Stick it on anything, tap it',
@@ -52,7 +52,7 @@ const WORDS = {
   },
   et: {
     subtitle: 'Tootmisliini lennuregistraator',
-    intro_kicker: 'Otse demo, serverit veel pole',
+    intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
     intro_title: 'Tee kirje oma kätega.',
     intro_body: 'Puuduta kleepsi, ütle mida tegid, lisa foto kui see on olemas. Kirje näitab, mida see tõestab ja kas keegi on seda hiljem muutnud.',
     beat1: 'Kleebi kuhu tahes, puuduta',
