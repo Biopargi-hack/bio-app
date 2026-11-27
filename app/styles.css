@@ -236,6 +236,17 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 64px
 .file-field input { font: 400 12px/1.3 var(--mono); }
 .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .voice { width: 100%; margin: 4px 0 18px; }
+.lang-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.lang-btn {
+  min-height: 44px;
+  padding: 8px 6px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: 700 15px/1 var(--mono);
+}
+.lang-btn:hover { background: var(--wash); }
+.lang-btn.active { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 .voice.audio { margin-top: 0; }
 .voice.recording { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 button:disabled { opacity: .45; cursor: not-allowed; }

@@ -29,7 +29,7 @@ const WORDS = {
     asset: 'Asset',
     checkpoint: 'Checkpoint',
     method: 'Method',
-    voice_lang: 'Voice language',
+    voice_lang: 'Speech language',
     verdict: 'Verdict',
     clean: 'Clean',
     not_clean: 'Not clean',
@@ -46,7 +46,7 @@ const WORDS = {
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
-    note_hint: 'Choose Estonian, Russian or English above. Speech is written in that language.',
+    note_hint: 'Pick ET, RU or EN, then speak. The app writes the text in the language it hears.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
@@ -55,7 +55,6 @@ const WORDS = {
     audio_badge: 'Voice note',
     instrument: 'Instrument reading',
     tier: 'Evidence tier',
-    reason: 'Reason when there is no hard evidence',
     supervisor: 'Supervisor signature',
     save: 'Append record',
     ledger_title: 'Traceable dataset',
@@ -147,7 +146,7 @@ const WORDS = {
     asset: 'Koht',
     checkpoint: 'Kontrollpunkt',
     method: 'Meetod',
-    voice_lang: 'Hääle keel',
+    voice_lang: 'Kõne keel',
     verdict: 'Otsus',
     clean: 'Puhas',
     not_clean: 'Ei ole puhas',
@@ -164,7 +163,7 @@ const WORDS = {
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
-    note_hint: 'Vali ülal eesti, vene või inglise keel. Räägitud tekst kirjutatakse samas keeles.',
+    note_hint: 'Vali ET, RU või EN ja räägi. Rakendus kirjutab teksti selles keeles, mida ta kuuleb.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     evidence: 'Foto või video tõend',
@@ -173,7 +172,6 @@ const WORDS = {
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     tier: 'Tõendi tase',
-    reason: 'Põhjus, kui kõva tõend puudub',
     supervisor: 'Vastutaja allkiri',
     save: 'Lisa kirje',
     ledger_title: 'Jälgitav andmestik',
@@ -249,6 +247,8 @@ const WORDS = {
 };
 
 let lang = 'et';
+let speechLang = 'et-EE';
+let spokenLangs = new Set();
 let ndefReader = null;
 let recognition = null;
 let audioRecognition = null;
@@ -286,6 +286,22 @@ function note(id, text, isError = false) {
 
 function t(key) {
   return WORDS[lang][key] || key;
+}
+
+function setSpeechLang(code) {
+  speechLang = code;
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    const active = button.dataset.lang === code;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function detectSpokenLang(text) {
+  const value = String(text || '');
+  if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
+  if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|must|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin)\b/i.test(value)) return 'et-EE';
+  return 'en-US';
 }
 
 function populateSelects() {
@@ -566,7 +582,7 @@ let allRecordsCache = [];
 
 function mediaPayload() {
   return {
-    speech_lang: $('voiceLang').value,
+    speech_lang: spokenLangs.size ? [...spokenLangs].join(',') : speechLang,
     media_kind: photoState?.kind || '',
     media_hash: photoState?.media_hash || photoState?.hash || '',
     media_name: photoState?.name || '',
@@ -601,16 +617,12 @@ async function saveRecord() {
 
   const tier = tierFor();
   const verdict = $('verdict').value;
-  const reason = $('reason').value.trim();
+  const reason = tier === 'C' ? t('default_reason') : '';
   const supervisor = $('supervisor').value.trim();
   const instrument = $('instrument').value.trim();
 
   if (verdict === 'cannot sign' && supervisor) {
     note('saveNote', 'Cannot sign: remove the supervisor signature.', true);
-    return;
-  }
-  if (tier === 'C' && !reason) {
-    note('saveNote', 'Tier C needs a reason. Say why there is no hard evidence.', true);
     return;
   }
   if (tier === 'C' && verdict !== 'cannot sign' && !supervisor) {
@@ -636,7 +648,7 @@ async function saveRecord() {
     photo_thumb: photoState?.thumb || '',
     photo_usable: photoState?.usable || false,
     photo_reuse_of: previous?.seq || null,
-    language: $('voiceLang').value,
+    language: speechLang,
     ...mediaPayload()
   });
 
@@ -648,7 +660,7 @@ async function finishRecord(record, noteId, message) {
   demoBreak = null;
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
-  $('reason').value = '';
+  spokenLangs = new Set();
   $('supervisor').value = '';
   $('instrument').value = '';
   $('photo').value = '';
@@ -696,7 +708,7 @@ async function quickRecord(kind, grade = 0) {
     photo_thumb: photoState?.thumb || '',
     photo_usable: photoState?.usable || false,
     photo_reuse_of: previous?.seq || null,
-    language: $('voiceLang').value,
+    language: speechLang,
     default_assessment: isDefault,
     quick: true,
     ...mediaPayload()
@@ -958,7 +970,9 @@ function appendSpoken(text, langCode) {
   field.value = field.value.trim() ? `${field.value.trim()}\n${paragraph}` : paragraph;
   field.focus({ preventScroll: true });
   field.setSelectionRange(field.value.length, field.value.length);
-  note('audioNote', `${t('spoken_saved')} ${String(langCode).slice(0, 2).toUpperCase()}`);
+  const detected = detectSpokenLang(paragraph) || langCode;
+  spokenLangs.add(detected);
+  note('audioNote', `${t('spoken_saved')} ${detected.slice(0, 2).toUpperCase()}`);
 }
 
 function speechRecognition() {
@@ -982,7 +996,7 @@ function toggleVoice() {
     audioRecognition.stop();
     audioRecognition = null;
   }
-  const langCode = $('voiceLang').value;
+  const langCode = speechLang;
   recognition = new Recognition();
   recognition.lang = langCode;
   recognition.interimResults = false;
@@ -1018,7 +1032,7 @@ async function toggleAudio() {
   }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const langCode = $('voiceLang').value;
+    const langCode = speechLang;
     const Recognition = speechRecognition();
     if (Recognition) {
       audioRecognition = new Recognition();
@@ -1163,6 +1177,17 @@ function bind() {
     $('faultType').focus();
   });
   $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      setSpeechLang(button.dataset.lang);
+      if (recognition) toggleVoice();
+      if (audioRecognition) {
+        audioRecognition.stop();
+        audioRecognition = null;
+      }
+      note('audioNote', `${t('voice_lang')}: ${button.textContent}`);
+    });
+  });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('audioBtn').addEventListener('click', toggleAudio);
   $('photo').addEventListener('change', async (event) => {
@@ -1195,6 +1220,7 @@ async function start() {
   applyLanguage();
   renderTagSlots();
   bind();
+  setSpeechLang(speechLang);
   updateTier();
   updateNetwork();
   if (gradeMode) {

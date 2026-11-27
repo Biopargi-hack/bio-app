@@ -5,6 +5,24 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Speech language is explicit, detected from the text
+
+**Decision.** The single language dropdown is replaced by ET / RU / EN buttons;
+Estonian is the default. Each recorded sentence is also classified from its
+text (Cyrillic → RU, Estonian letters/words → ET, otherwise EN) and the detected
+codes are stored in `speech_lang`. The "Reason when there is no hard evidence"
+field is removed; tier C uses the fixed default reason instead.
+
+**Why.** Web Speech API needs one BCP-47 language per session and cannot listen
+in three languages at once. English was the old default, so spoken Estonian was
+written as English. Explicit buttons plus text classification make the recorded
+language correct and keep tier C traceable without extra typing.
+
+**Consequence.** The worker picks ET/RU/EN before speaking. A wrong pick can
+still mis-transcribe; the detected language is stored, not the selected one.
+
+---
+
 ## 2026-11-27 — One writable note field, speech in the chosen language
 
 **Decision.** Capture has one clearly writable note field. Typing goes straight
