@@ -1,4 +1,4 @@
-import { imageHashBits, isoWeekKey } from './data.js';
+import { imageHashBits } from './data.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -136,12 +136,9 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
-    hygiene_note: 'Last six weeks.',
+    workbook_title: 'Workbook',
     hygiene_download: 'Download workbook',
-    hygiene_live: 'Grades: 3 clean, 2 dirty, 1 serious. Cells fill from records on this device. The full year is in the workbook.',
-    hygiene_checkpoint: 'Checkpoint',
-    hygiene_date: 'Date',
-    hygiene_unavailable: 'Hygiene grid data is unavailable.',
+    workbook_note: 'The full year of checks is in the workbook.',
     landing_table: 'View table',
   },
   et: {
@@ -231,12 +228,9 @@ const WORDS = {
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
-    hygiene_note: 'Viimased kuus nädalat.',
+    workbook_title: 'Tööraamat',
     hygiene_download: 'Laadi tööraamat alla',
-    hygiene_live: 'Hinded: 3 korras, 2 must, 1 tõsine. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
-    hygiene_checkpoint: 'Kontrollpunkt',
-    hygiene_date: 'Kuupäev',
-    hygiene_unavailable: 'Hügieenitabeli andmed pole saadaval.',
+    workbook_note: 'Kogu aasta kontrollid on Exceli failis.',
     landing_table: 'Vaata tabelit',
     paper: 'Prindi pabervorm',
     quick_title: 'Dokumenteeri kontroll',
@@ -348,7 +342,6 @@ let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
 let currentSource = 'typed';
-let hygieneData = null;
 let dbPromise = null;
 let saving = false;
 let audioToken = 0;
@@ -377,7 +370,6 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  renderHygieneGrid();
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
@@ -1076,112 +1068,8 @@ function quickRecord(kind, grade = 0) {
 
 async function refreshCount() {
   allRecordsCache = await allRecords();
-  fillHygieneFromRecords();
 }
 
-
-
-function isoWeek(value) {
-  try {
-    return Number(isoWeekKey(value).split('-W')[1]);
-  } catch {
-    return null;
-  }
-}
-
-function gradeClass(grade) {
-  return Number(grade) === 3 ? 'good' : Number(grade) === 2 ? 'warn' : Number(grade) === 1 ? 'bad' : '';
-}
-
-function setHygieneCell(cell, grade) {
-  if (!cell || !grade) return;
-  cell.textContent = String(grade);
-  cell.className = gradeClass(grade);
-}
-
-function hygieneKey(asset) {
-  if (!hygieneData) return null;
-  const lower = String(asset || '').toLocaleLowerCase('et');
-  const aliases = {
-    siirupiruumi_sein: 'Siirupituba',
-    syrup_room_wall: 'Siirupituba'
-  };
-  const alias = aliases[lower.replace(/\s+/g, '_')];
-  if (alias) return alias;
-  for (const label of hygieneData.rows) {
-    const parts = label.split('/').map((part) => part.trim().toLocaleLowerCase('et'));
-    if (parts.includes(lower)) return label.split('/')[0].trim();
-  }
-  return null;
-}
-
-function gradeFromRecord(record) {
-  if (record.grade) return Number(record.grade);
-  if (record.verdict === 'clean') return 3;
-  if (record.verdict === 'not clean') return 2;
-  if (record.verdict === 'serious') return 1;
-  if (record.verdict === 'cannot sign') return 2;
-  return null;
-}
-
-function visibleHygieneWeeks() {
-  const weeks = hygieneData.weeks;
-  const current = `N${isoWeek(new Date())}`;
-  let end = weeks.indexOf(current);
-  if (end < 0) end = weeks.length - 1;
-  return weeks.slice(Math.max(0, end - 5), end + 1);
-}
-
-function renderHygieneGrid() {
-  const host = $('hygieneGrid');
-  if (!host || !hygieneData) return;
-  const weeks = visibleHygieneWeeks();
-  const head = `<tr><th class="cp-col">${t('hygiene_checkpoint')}</th>${weeks.map((week) => `<th>${week}</th>`).join('')}</tr>`;
-  const dates = `<tr><td class="cp-col">${t('hygiene_date')}</td>${weeks.map((week) => `<td class="date-cell">${(hygieneData.dates?.[week] || '').slice(0, 5)}</td>`).join('')}</tr>`;
-  const rows = hygieneData.rows.map((label) => {
-    const key = label.split('/')[0].trim();
-    const cells = weeks.map((week) => {
-      const grade = hygieneData.seed?.[key]?.[week] || '';
-      return `<td class="${gradeClass(grade)}" data-asset="${key}" data-week="${week}">${grade}</td>`;
-    }).join('');
-    return `<tr><th class="cp-col">${label}</th>${cells}</tr>`;
-  }).join('');
-  host.innerHTML = `<table id="hygieneTable"><thead>${head}${dates}</thead><tbody>${rows}</tbody></table>`;
-  fillHygieneFromRecords();
-}
-
-function fillHygieneFromRecords() {
-  if (!hygieneData || !allRecordsCache) return;
-  const workbookYear = Object.values(hygieneData.dates || {})[0]?.split('.').pop() || String(new Date().getFullYear());
-  let unmapped = 0;
-  for (const record of allRecordsCache) {
-    const key = hygieneKey(record.asset);
-    let week = null;
-    try {
-      const weekKey = isoWeekKey(record.created_at);
-      if (weekKey.startsWith(`${workbookYear}-W`)) week = Number(weekKey.split('-W')[1]);
-    } catch { /* A bad date cannot be painted. */ }
-    if (!key || !week) { unmapped += 1; continue; }
-    const cell = document.querySelector(`#hygieneTable td[data-asset="${key}"][data-week="N${week}"]`);
-    if (!cell) { unmapped += 1; continue; }
-    setHygieneCell(cell, gradeFromRecord(record));
-  }
-  const note = $('hygieneUnmapped');
-  if (note) note.textContent = unmapped ? `${unmapped} ${lang === 'et' ? 'kirjet ei näidatud päevikus' : 'records not shown in the workbook'}` : '';
-}
-
-
-async function loadHygieneGrid() {
-  try {
-    const response = await fetch('hygieen.json');
-    if (!response.ok) throw new Error(String(response.status));
-    hygieneData = await response.json();
-    renderHygieneGrid();
-  } catch (error) {
-    const host = $('hygieneGrid');
-    if (host) host.textContent = t('hygiene_unavailable');
-  }
-}
 
 
 function setAsset(name, tagId = '', origin = 'typed') {
@@ -1521,7 +1409,6 @@ async function start() {
     $('grade3').focus({ preventScroll: true });
   }
   navigator.storage?.persist?.().catch(() => {});
-  await loadHygieneGrid();
   await refreshCount();
   await registerServiceWorker();
 }

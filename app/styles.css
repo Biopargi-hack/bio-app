@@ -755,58 +755,6 @@ input::selection, textarea::selection { background: var(--accent-tint); color: v
   letter-spacing: -.02em;
 }
 .sample-label { margin: 8px 0 0; font: 400 12px/1.5 var(--mono); color: var(--muted); }
-.sheet-scroll { overflow-x: auto; padding-top: 12px; border-top: 1px solid var(--line); }
-#hygieneTable { width: 100%; min-width: 620px; border-collapse: collapse; font: 500 12px/1.25 var(--mono); font-variant-numeric: tabular-nums; }
-#hygieneTable th, #hygieneTable td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
-#hygieneTable th { font: 600 11px/1 var(--mono); color: var(--muted); text-transform: uppercase; }
-#hygieneTable .cp-col { position: sticky; left: 0; z-index: 1; min-width: 170px; max-width: 190px; text-align: left; white-space: normal; background: var(--paper); }
-#hygieneTable thead th { position: sticky; top: 0; background: var(--paper); }
-#hygieneTable .date-cell { color: var(--muted); font-size: 10px; }
-#hygieneTable .good { color: var(--mint); font-weight: 700; }
-#hygieneTable .warn { color: var(--accent); font-weight: 700; }
-#hygieneTable .bad { color: #8b001f; font-weight: 700; }
-@media (max-width: 720px) {
-  .sample-sheet .section-head { display: block; }
-  .sample-sheet .link-button { margin-top: 12px; }
-}
-@media (max-width: 560px) {
-  .sheet-scroll { overflow: visible; border-top: 0; padding-top: 0; }
-  #hygieneTable { min-width: 0; border-collapse: separate; border-spacing: 0 8px; }
-  #hygieneTable thead { display: none; }
-  #hygieneTable tbody { display: block; }
-  #hygieneTable tbody tr {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--paper);
-  }
-  #hygieneTable tbody th {
-    grid-column: 1 / -1;
-    position: static;
-    min-width: 0;
-    max-width: none;
-    padding: 0 0 4px;
-    border: 0;
-    font-size: 12px;
-  }
-  #hygieneTable tbody td {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 6px 4px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    font-size: 11px;
-  }
-  #hygieneTable tbody td::before { content: attr(data-week) " "; color: var(--muted); font-size: 10px; }
-  #hygieneTable tbody td:empty::after { content: "·"; color: var(--muted); }
-}
-
-
 /* A compact work surface: capture first, supporting information below. */
 :root { --sans: system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body { background: var(--wash); font-family: var(--sans); }
@@ -898,9 +846,7 @@ main {
 .sample-sheet .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 12px; padding: 0; border: 0; }
 .sample-sheet .eyebrow { margin: 0; }
 .sample-sheet h2, .explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
-.sample-sheet .note { font-size: 13px; }
-.sheet-scroll { margin-top: 20px; }
-#hygieneTable .good { color: var(--ink); }
+.sample-sheet .note { margin: 0; font-size: 13px; }
 .explainer .section-head { max-width: 760px; margin: 0; padding: 0; border: 0; }
 .explainer .section-head p:not(.eyebrow) { max-width: 70ch; margin: 14px 0 0; color: var(--muted); font: 400 15px/1.65 var(--sans); }
 .step-grid, .benefit-grid { display: grid; gap: 16px; margin-top: 24px; }

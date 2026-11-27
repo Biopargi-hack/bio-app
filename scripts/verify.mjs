@@ -122,17 +122,18 @@ if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.include
 } else {
   fail("app/sample_cip.csv: expected UTF-8 BOM, semicolon separators and comma decimals");
 }
-if (indexSource.includes('id="hygieneGrid"') && indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes("fetch('hygieen.json')")) {
-  ok("hygiene workbook grid is embedded with an XLSX download");
+if (indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes("hygiene_download")) {
+  ok("the workbook download is on the landing page");
 } else {
-  fail("app/index.html: hygiene workbook grid or XLSX download is missing");
+  fail("app/index.html: the XLSX workbook download is missing");
+}
+if (indexSource.includes("hygieneGrid") || appSource.includes("hygieneGrid")) {
+  fail("app: the six week hygiene grid is still wired in");
+} else {
+  ok("no six week hygiene grid remains");
 }
 const stylesSource = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
-if (appSource.includes("visibleHygieneWeeks()") && !stylesSource.includes("min-width: 2480px")) {
- ok("hygiene grid stays compact with a six week window");
-} else {
- fail("app: hygiene grid still uses the full year width");
-}
+
 
 const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
 if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetExcelBtn"')) {
