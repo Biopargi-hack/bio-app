@@ -168,6 +168,47 @@ main { max-width: 1180px; margin: 0 auto; padding: 30px clamp(16px, 4vw, 32px) 4
 .asset-stamp.flash { animation: stamp .32s ease-out; }
 @keyframes stamp { from { transform: rotate(-.5deg) scale(1.04); } to { transform: rotate(-.5deg) scale(1); } }
 
+.quick {
+  border: 1px solid var(--ink);
+  border-left: 5px solid var(--teal);
+  background: #eef3ee;
+  padding: 12px;
+  margin: 0 0 14px;
+}
+.quick-title {
+  margin: 0 0 6px;
+  font: 700 12px/1 var(--mono);
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.quick-prompt { margin: 0 0 10px; font: 700 20px/1.2 var(--display); }
+.quick-actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+button.confirm {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+  min-height: 56px;
+  font-size: 18px;
+}
+button.confirm:hover { background: #24564e; }
+button.fault {
+  background: var(--orange);
+  color: var(--ink);
+  border-color: var(--orange);
+  min-height: 56px;
+  font-size: 16px;
+}
+button.fault:hover { background: #cf4521; }
+button.fault-save {
+  margin-top: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  width: 100%;
+}
+.fault-field { margin-top: 10px; }
+[hidden] { display: none !important; }
+
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .save-row { margin-top: 16px; }
 

@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | _fill in_ | idle | _pick a task_ | — | — |
+| @AARenor | omp | review | NFC quick confirm and nfc.arle.top domain | `feat/nfc_quick_confirm` | — |
 | @linnudtonisted | _fill in_ | idle | _pick a task_ | — | — |
 | @Pepukarv | _fill in_ | idle | _pick a task_ | — | — |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |

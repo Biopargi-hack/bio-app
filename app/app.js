@@ -10,13 +10,13 @@ const WORDS = {
   en: {
     subtitle: 'Production line flight recorder',
     intro_kicker: 'Live demo, records stay on this device',
-    intro_title: 'Make a record with your own hands.',
-    intro_body: 'Tap a sticker, say what you did, attach a photo when one exists. The record shows what it can prove, and whether anyone changed it later.',
-    beat1: 'Stick it on anything, tap it',
-    beat2: 'Speak the check',
-    beat3: 'Bad photo gets refused',
-    beat4: 'Audit, then break the chain',
-    beat5: 'Sample month, paper timer',
+    intro_title: 'Cleanliness confirmed in two seconds.',
+    intro_body: 'Imagine a lemonade or beer line at A. Le Coq. Today every check ends in a paper form. We put a waterproof NFC sticker on each important machine. Tap it, press one green button, and the check is recorded.',
+    beat1: 'Tap the sticker',
+    beat2: 'Green button, done in 2 seconds',
+    beat3: 'Red button and a fault from the list',
+    beat4: 'Photo when one is possible',
+    beat5: 'Audit the record later',
     capture_title: 'New check',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
@@ -48,18 +48,56 @@ const WORDS = {
     sample_label: 'Sample data, synthetic, not A. Le Coq',
     cip_note: 'Three cycles short of temperature. One record cannot be signed.',
     paper: 'Print the paper form',
-    footer: 'Built for Hack the Future of Food 2026. Tap, speak, keep the record.'
+    quick_title: 'One tap confirmation',
+    quick_prompt: 'Everything is clean and in order',
+    confirm: 'CONFIRM',
+    fault: 'Problem',
+    fault_type: 'What is wrong',
+    fault_foam: 'foam on the floor',
+    fault_seal: 'residue on the seal',
+    fault_floor: 'dirt on the floor',
+    fault_nophoto: 'photo not possible',
+    fault_save: 'Save fault',
+    quick_reason: 'NFC quick confirmation',
+    quick_fault_reason: 'Fault chosen from the NFC quick list',
+    quick_done: 'Quick record',
+    record_added: 'Record',
+    record_one: 'record',
+    record_many: 'records',
+    chain_intact: 'chain intact, append only.',
+    chain_break_prev: 'Break at record',
+    chain_prev_detail: 'previous hash does not match.',
+    chain_break_hash: 'fields no longer match the stored hash.',
+    tamper_demo: 'Demo: record N was edited in a copy. The chain breaks at N. Stored records are untouched.',
+    nfc_unsupported: 'This browser cannot read NFC. Type the asset name or open a QR link with ?asset=...',
+    nfc_armed: 'NFC reader armed. Tap a sticker.',
+    nfc_tap_again: 'Reader armed. Tap a sticker.',
+    nfc_tag_read: 'Tag read',
+    nfc_tagged_asset: 'tagged asset',
+    nfc_tag: 'NFC tag',
+    nfc_permission: 'NFC needs permission and HTTPS',
+    nfc_write_no_reader: 'Write needs a working NFC reader first.',
+    nfc_write_no_asset: 'Type the asset name before writing the tag.',
+    nfc_write_done: 'Wrote to the tag.',
+    nfc_write_failed: 'Tag write failed',
+    q_unsigned: 'Unsigned clean checks',
+    q_tierc: 'Tier C without signature',
+    q_today: 'Everything today',
+    empty_records: 'Nothing here yet. Tap a tag and append a check.',
+    answer_note: 'matching records. Answered in',
+    ms_from_device: 'ms from this device.',
+    footer: 'Built for Hack the Future of Food 2026. Tap the sticker, confirm, keep the record.'
   },
   et: {
     subtitle: 'Tootmisliini lennuregistraator',
     intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
-    intro_title: 'Tee kirje oma kätega.',
-    intro_body: 'Puuduta kleepsi, ütle mida tegid, lisa foto kui see on olemas. Kirje näitab, mida see tõestab ja kas keegi on seda hiljem muutnud.',
-    beat1: 'Kleebi kuhu tahes, puuduta',
-    beat2: 'Ütle kontroll ette',
-    beat3: 'Kehv foto lükatakse tagasi',
-    beat4: 'Kontrolli, siis murra ahel',
-    beat5: 'Näidis kuu, paber ja taimer',
+    intro_title: 'Puhtus kinnitatakse kahe sekundiga.',
+    intro_body: 'Kujuta ette limonaadi või õlleliini A. Le Coqis. Praegu lõppeb iga kontroll pabervormiga. Paneme igale olulisele masinale veekindla NFC-kleepsu. Puuduta seda, vajuta ühte rohelist nuppu ja kontroll on kirjas.',
+    beat1: 'Puuduta kleepsu',
+    beat2: 'Roheline nupp, valmis 2 sekundiga',
+    beat3: 'Punane nupp ja viga listist',
+    beat4: 'Foto kui võimalik',
+    beat5: 'Kontrolli kirjet hiljem',
     capture_title: 'Uus kontroll',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
@@ -91,11 +129,49 @@ const WORDS = {
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
     cip_note: 'Kolm tsüklit jäid temperatuurist lühemaks. Ühte kirjet ei saa allkirjastada.',
     paper: 'Prindi pabervorm',
-    footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta silti, ütle kontroll ette, hoia kirje alles.'
+    quick_title: 'Ühe puudutusega kinnitus',
+    quick_prompt: 'Kõik on puhas ja korras',
+    confirm: 'KINNITA',
+    fault: 'Probleem',
+    fault_type: 'Mis viga on',
+    fault_foam: 'vaht maas',
+    fault_seal: 'jäägid tihendil',
+    fault_floor: 'mustus põrandal',
+    fault_nophoto: 'foto ei ole võimalik',
+    fault_save: 'Salvesta viga',
+    quick_reason: 'NFC kiirkinnitus',
+    quick_fault_reason: 'Viga valitud NFC kiirlistist',
+    quick_done: 'Kiirkirje',
+    record_added: 'Kirje',
+    record_one: 'kirje',
+    record_many: 'kirjet',
+    chain_intact: 'ahel terve, ainult lisamine.',
+    chain_break_prev: 'Murdekoht kirjes',
+    chain_break_hash: 'väljad ei ühti salvestatud räsiga.',
+    chain_prev_detail: 'eelmine räs ei ühti.',
+    tamper_demo: 'Demo: kirje N muudeti koopias. Ahel murdub kohas N. Salvestatud kirjed on puutumata.',
+    nfc_unsupported: 'See brauser ei saa NFC silti lugeda. Kirjuta masina nimi või ava QR link parametriga ?asset=...',
+    nfc_armed: 'NFC lugeja on valmis. Puuduta kleepsu.',
+    nfc_tap_again: 'Lugeja on valmis. Puuduta kleepsu.',
+    nfc_tag_read: 'Silt loetud',
+    nfc_tagged_asset: 'märgistatud koht',
+    nfc_tag: 'NFC silt',
+    nfc_permission: 'NFC vajab luba ja HTTPS ühendust',
+    nfc_write_no_reader: 'Silti saab kirjutada ainult töötava NFC lugejaga.',
+    nfc_write_no_asset: 'Kirjuta enne sildile kirjutamist masina nimi.',
+    nfc_write_done: 'Kirjutasime sildile.',
+    nfc_write_failed: 'Sildi kirjutamine ebaõnnestus',
+    q_unsigned: 'Allkirjastamata puhtad kontrollid',
+    q_tierc: 'C tase ilma allkirjata',
+    q_today: 'Kõik tänased',
+    empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
+    answer_note: 'vastavat kirjet. Vastus leiti',
+    ms_from_device: 'ms jooksul seadmest.',
+    footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta kleepsu, kinnita puhtus, hoia kirje alles.'
   }
 };
 
-let lang = 'en';
+let lang = 'et';
 let ndefReader = null;
 let recognition = null;
 let photoState = null;
@@ -184,14 +260,14 @@ function checkChain(records) {
     const { hash, ...body } = record;
     const expectedPrev = i === 0 ? '0'.repeat(64) : records[i - 1].hash;
     if (record.prev_hash !== expectedPrev) {
-      return { valid: false, breakSeq: record.seq, message: `Break at record ${record.seq}: previous hash does not match.` };
+      return { valid: false, breakSeq: record.seq, message: `${WORDS[lang].chain_break_prev} ${record.seq}: ${WORDS[lang].chain_prev_detail}` };
     }
     const recomputed = sha256Local(body);
     if (recomputed !== hash) {
-      return { valid: false, breakSeq: record.seq, message: `Break at record ${record.seq}: fields no longer match the stored hash.` };
+      return { valid: false, breakSeq: record.seq, message: `${WORDS[lang].chain_break_prev} ${record.seq}: ${WORDS[lang].chain_break_hash}` };
     }
   }
-  return { valid: true, breakSeq: null, message: `${records.length} ${records.length === 1 ? 'record' : 'records'}, chain intact, append only.` };
+  return { valid: true, breakSeq: null, message: `${records.length} ${records.length === 1 ? WORDS[lang].record_one : WORDS[lang].record_many}, ${WORDS[lang].chain_intact}` };
 }
 
 // Hash check must be synchronous for the demo view, so use a small non-crypto
@@ -361,8 +437,12 @@ async function saveRecord() {
     language: $('voiceLang').value
   });
 
+  await finishRecord(record, 'saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
+}
+
+async function finishRecord(record, noteId, message) {
   demoBreak = null;
-  note('saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
+  note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
   $('reason').value = '';
   $('supervisor').value = '';
@@ -376,12 +456,44 @@ async function saveRecord() {
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
 }
 
+async function quickRecord(kind) {
+  const asset = $('asset').value.trim();
+  if (!asset) {
+    note('quickNote', lang === 'et' ? 'Puuduta kleepsu või kirjuta masina nimi.' : 'Tap the sticker or type the machine name.', true);
+    return;
+  }
+  const isClean = kind === 'clean';
+  const previous = photoState ? reusedPhoto(photoState.hash) : null;
+  const tier = !isClean && photoState?.usable && !previous ? 'B' : 'C';
+  const transcript = isClean ? WORDS[lang].quick_prompt : $('faultType').value;
+  const record = await appendRecord({
+    asset,
+    checkpoint: $('checkpoint').value,
+    method: isClean ? 'Declared' : 'Visual',
+    verdict: isClean ? 'clean' : 'not clean',
+    transcript,
+    tier,
+    reason: isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
+    supervisor: '',
+    instrument: '',
+    photo_hash: photoState?.hash || '',
+    photo_thumb: photoState?.thumb || '',
+    photo_usable: photoState?.usable || false,
+    photo_reuse_of: previous?.seq || null,
+    language: $('voiceLang').value,
+    quick: true
+  });
+  $('faultField').hidden = true;
+  $('faultSaveBtn').hidden = true;
+  await finishRecord(record, 'quickNote', `${WORDS[lang].quick_done} ${record.seq}.`);
+}
+
 function renderRecords(records) {
   const host = $('records');
   const query = $('filter').value.trim().toLowerCase();
   const shown = records.filter((r) => !query || `${r.asset} ${r.checkpoint} ${r.transcript}`.toLowerCase().includes(query));
   if (!shown.length) {
-    host.innerHTML = '<div class="empty-row">Nothing here yet. Tap a tag and append a check.</div>';
+    host.innerHTML = `<div class="empty-row">${WORDS[lang].empty_records}</div>`;
     return;
   }
   host.innerHTML = shown.map((r) => {
@@ -422,7 +534,7 @@ function runQuestion(kind) {
   if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C' && !r.supervisor);
   if (kind === 'today') found = allRecordsCache.filter((r) => r.created_at.slice(0, 10) === today);
   const elapsed = (performance.now() - started).toFixed(1);
-  note('answerNote', `${found.length} matching record(s). Answered in ${elapsed} ms from this device.`);
+  note('answerNote', `${found.length} ${WORDS[lang].answer_note} ${elapsed} ${WORDS[lang].ms_from_device}`);
   $('filter').value = '';
   renderRecords(found);
 }
@@ -444,14 +556,14 @@ function showTamper() {
   }
   demoBreak = allRecordsCache[0].seq;
   const box = $('chainStatus');
-  box.textContent = `Demo: record ${demoBreak} was edited in a copy. The chain breaks at ${demoBreak}. Stored records are untouched.`;
+  box.textContent = WORDS[lang].tamper_demo.replaceAll('N', demoBreak);
   box.classList.add('broken');
   renderRecords(allRecordsCache);
 }
 
 async function initNfc() {
   if (!('NDEFReader' in window)) {
-    note('nfcNote', 'This browser cannot read NFC. Type the asset name or open a QR link with ?asset=...');
+    note('nfcNote', WORDS[lang].nfc_unsupported);
     return;
   }
   const reader = new NDEFReader();
@@ -459,32 +571,32 @@ async function initNfc() {
     await reader.scan();
     reader.onreading = (event) => {
       const text = event.message.records.find((r) => r.recordType === 'text');
-      const value = text ? new TextDecoder().decode(text.data) : 'tagged asset';
-      setAsset(value, 'NFC tag');
-      note('nfcNote', `Tag read: ${value}`);
+      const value = text ? new TextDecoder().decode(text.data) : WORDS[lang].nfc_tagged_asset;
+      setAsset(value, WORDS[lang].nfc_tag);
+      note('nfcNote', `${WORDS[lang].nfc_tag_read}: ${value}`);
     };
     ndefReader = reader;
-    note('nfcNote', 'NFC reader armed. Tap a sticker.');
+    note('nfcNote', WORDS[lang].nfc_armed);
   } catch (error) {
-    note('nfcNote', `NFC needs permission and HTTPS: ${error.message}`, true);
+    note('nfcNote', `${WORDS[lang].nfc_permission}: ${error.message}`, true);
   }
 }
 
 async function writeTag() {
   if (!ndefReader) {
-    note('nfcNote', 'Write needs a working NFC reader first.', true);
+    note('nfcNote', WORDS[lang].nfc_write_no_reader, true);
     return;
   }
   const name = $('asset').value.trim();
   if (!name) {
-    note('nfcNote', 'Type the asset name before writing the tag.', true);
+    note('nfcNote', WORDS[lang].nfc_write_no_asset, true);
     return;
   }
   try {
     await ndefReader.write({ records: [{ recordType: 'text', data: name }] });
-    note('nfcNote', `Wrote "${name}" to the tag.`);
+    note('nfcNote', `${WORDS[lang].nfc_write_done} ${name}`);
   } catch (error) {
-    note('nfcNote', `Tag write failed: ${error.message}`, true);
+    note('nfcNote', `${WORDS[lang].nfc_write_failed}: ${error.message}`, true);
   }
 }
 
@@ -589,9 +701,16 @@ function bind() {
   });
   $('scanBtn').addEventListener('click', () => {
     if (!ndefReader) initNfc();
-    else note('nfcNote', 'Reader armed. Tap a sticker.');
+    else note('nfcNote', WORDS[lang].nfc_tap_again);
   });
   $('writeBtn').addEventListener('click', writeTag);
+  $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
+  $('faultBtn').addEventListener('click', () => {
+    $('faultField').hidden = false;
+    $('faultSaveBtn').hidden = false;
+    $('faultType').focus();
+  });
+  $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('photo').addEventListener('change', async (event) => {
     const file = event.target.files?.[0];
