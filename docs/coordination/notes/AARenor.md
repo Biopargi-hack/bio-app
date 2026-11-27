@@ -96,3 +96,5 @@ Format:
 - **2026-11-27 18:23** — Admin squash merge by AARenor, the owner. No separate reviewer approval; this visual direction was shipped directly from the supplied reference.
 
 - **2026-11-27 18:26** — Resolved the restyle merge on feat/hygiene_grid. Kept the new pill nav, hero and step panels, added the View table link to the hero and the real Hügieen grid after the steps. Removed the folded sample CIP table because its renderer was not part of this branch. Verify passes 32 checks and headless desktop and mobile show 8 rows, 54 columns, both links, no errors and no overflow.
+
+- **2026-11-27 18:35** — Made the landing hygiene table compact. It now shows only the last six ISO weeks with eight checkpoint rows, shorter dates and a 620px minimum width instead of a 2480px full year grid. The heading is short and the grade scale moved to the note. Verify passes 33 checks. Playwright desktop and mobile showed seven columns, a saved grade in N48, no console errors and no page overflow.
