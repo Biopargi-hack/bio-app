@@ -73,7 +73,7 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 | `app/index.html` | Screens, copy and the embedded workbook |
 | `app/styles.css` | Visual system for the NFC record view, the subpages and the capture form |
 | `app/landing.css` | Black, white and red landing view on taptoprove.ee; imports `styles.css` as a layer for the capture form and workbook |
-| `app/landing.js` | Landing demo: simulated card tap, in-page hash chain with a tamper toggle, nothing saved |
+| `app/landing.js` | Landing demo: simulated card tap onto a phone mock with a grade, nothing saved |
 | `app/sheet.html` | Live records table, Excel CSV and JSONL with attachments |
 | `app/app.js` | Capture, photo and video preview, hash chain, broadcast and the workbook sheets |
 | `app/sw.js` | Offline shell |
