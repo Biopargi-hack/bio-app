@@ -72,9 +72,9 @@ if (appSource.includes("kind === 'defaults'") && appSource.includes('class="defa
   fail("app/app.js: fixed default is not visible in the audit view");
 }
 
-// The showcase page must carry the demo NFC link and its tag id.
+// The showcase page must carry the demo NFC link, built from the current host.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
-if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=")) {
+if (showcase.includes("TAP-DEMO-01") && showcase.includes("/?asset=") && showcase.includes("location.origin")) {
   ok("showcase carries the NFC demo link");
 } else {
   fail("app/showcase.html: NFC demo link or tag id is missing");

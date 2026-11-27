@@ -1,6 +1,6 @@
 # Tap to Prove: demo runbook
 
-Live site: https://taptoprove.ee
+Live site: https://toend-41x.pages.dev until taptoprove.ee DNS is delegated, then https://taptoprove.ee
 Repo: https://github.com/Biopargi-hack/bio-app
 
 ## The three minute story

@@ -47,3 +47,5 @@ Format:
 - **2026-11-27 12:44**, Opened PR 16 for the taptoprove.ee domain change. PR template now has all four required sections.
 
 - **2026-11-27 12:48**, Moved URL tag prefill ahead of startup fetches so an NFC tap fills the form on first read. Showcase now uses one filling line, thicker dark borders and the plain /showcase path. Gate reports 18 passed, browser checked at 1280 and 390, first read prefill verified. Owner will use admin merge because the demo needs it live now.
+
+- **2026-11-27 12:58** — NFC payload URLs now use location.origin, so cards written during the DNSSEC hold still open on pages.dev or nfc.arle.top. Showcase link is relative. Browser check with mocked NDEF wrote a localhost URL, old query URL prefilled, no page errors.
