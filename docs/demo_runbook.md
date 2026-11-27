@@ -1,7 +1,7 @@
 # Tap to Prove: demo runbook
 
-Live site: https://taptoprove.ee
-NFC card links: https://nfc.taptoprove.ee/?asset=...&tag=...&via=nfc
+Landing page only: https://taptoprove.ee
+Record entry only: https://nfc.taptoprove.ee/?asset=...&tag=...&via=nfc
 Repo: https://github.com/Biopargi-hack/bio-app
 
 ## The three minute story
@@ -19,7 +19,7 @@ Say plainly: the card ID shows which card was tapped. It is not a cryptographic 
 
 ## Before the demo
 
-- Open the live site on a phone and reload once so the offline shell is fresh.
+- Open the NFC host on a phone and reload once so its offline shell is fresh. The landing host has no record form.
 - Write the five cards with your own NFC tool. Give each one a real place name. The app does not write cards.
 - Tap one card. Confirm the place is filled, grade buttons 3, 2 and 1 are visible, and the chain row shows `nfc <card ID>`.
 - Open `https://nfc.taptoprove.ee/?asset=filler&tag=T1%20TEST&via=nfc` once. Confirm the row shows the same card ID and grade buttons.

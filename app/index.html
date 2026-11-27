@@ -3,6 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>
+    (function () {
+      var record = /^nfc\./.test(location.hostname) || new URLSearchParams(location.search).get('view') === 'record';
+      document.documentElement.dataset.mode = record ? 'record' : 'landing';
+    })();
+  </script>
   <title>Tap to Prove</title>
   <meta name="description" content="NFC-kaart ja telefonirakendus tootmisliini hügieenikontrolliks. Puuduta kaarti, vali hinne ja kirje salvestub kohe.">
   <meta name="theme-color" content="#ffffff">
@@ -20,12 +26,12 @@
       <div class="nav-links">
         <a href="#explainer" data-i18n="nav_what">Mis see on</a>
         <a href="#how" data-i18n="nav_how">Kuidas töötab</a>
-        <a href="#capture" data-i18n="nav_try">Proovi</a>
+        <a href="https://nfc.taptoprove.ee/" data-i18n="nav_try">Proovi</a>
       </div>
       <div class="nav-meta">
         <span id="net" class="net" role="status">Online</span>
         <button id="langToggle" class="switch" type="button" aria-label="Switch to Estonian">ET</button>
-        <a class="nav-cta" href="#capture" data-i18n="nav_cta">Proovi kontrolli</a>
+        <a class="nav-cta" href="https://nfc.taptoprove.ee/" data-i18n="nav_cta">Proovi kontrolli</a>
       </div>
     </nav>
   </header>
@@ -34,8 +40,7 @@
     <section class="hero panel" aria-labelledby="intro-title">
         <h1 id="intro-title" data-i18n="intro_title">Hügieenikontroll ühe puudutusega.</h1>
         <p class="hero-note" data-i18n="hero_note">NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.</p>
-        <a class="link-button primary" href="#capture" data-i18n="landing_start">Proovi kontrolli</a>
-        <a class="hero-quiet" href="#hygieen" data-i18n="landing_table">Vaata tabelit</a>
+        <a class="link-button primary" href="https://nfc.taptoprove.ee/" data-i18n="landing_start">Proovi kontrolli</a>
         <p class="hero-proof" data-i18n="hero_proof">Pabervormi ega fotot pole vaja.</p>
     </section>
 

@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | demo | Landing and NFC hosts split, live on both domains | PR #89 merged to `main` | device tap test |
+| @AARenor | omp | doing | Landing describes, NFC host records only | `feat/host_views` | device tap test |
 | @linnudtonisted | OpenCode | review | Speech-to-text: detect language from first words | `fix/speech-to-text`, issue #44 | device test |
 | @Pepukarv | OpenCode | review | Remove 'Kaheksa kohta. Üks rutiin.' heading from landing | #70, fix/remove_checkpoints_title | none |
 | @stevenlaas123-pixel | omp | review | Redesign capture-first interface | `feat/interface-redesign-current`, issue #92 | device test |
