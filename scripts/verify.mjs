@@ -111,7 +111,7 @@ if (speechUnlimited) {
 }
 
 const spellingWired = appSource.includes("if (userOwned)") && appSource.includes("fetch('./api/transcribe'");
-if (spellingWired && existsSync(join(root, "functions/api/transcribe.js")) && !readFileSync(join(root, "functions/api/transcribe.js"), "utf8").includes("gsk_")) {
+if (spellingWired && existsSync(join(root, "functions/api/transcribe.js")) && existsSync(join(appDir, "_worker.js")) && !readFileSync(join(root, "functions/api/transcribe.js"), "utf8").includes("gsk_") && readFileSync(join(appDir, "_worker.js"), "utf8").includes("onRequestPost")) {
   ok("a typed letter stays and spelling is corrected online");
 } else {
   fail("app: voice still drops a typed letter or the spelling check is missing");

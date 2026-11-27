@@ -39,4 +39,4 @@ jobs:
             BRANCH="main"
           fi
           npx --yes wrangler@4.151.0 pages deploy app \
-            --project-name=toend --branch="$BRANCH" --functions=functions
+            --project-name=toend --branch="$BRANCH"
