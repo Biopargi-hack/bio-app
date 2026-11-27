@@ -293,7 +293,6 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  if ($('assetSource')) $('assetSource').textContent = sourceLabel();
 }
 
 function note(id, text, isError = false) {
