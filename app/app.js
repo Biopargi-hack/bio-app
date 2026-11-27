@@ -139,7 +139,13 @@ const WORDS = {
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     workbook_title: 'Workbook',
     hygiene_download: 'Download workbook',
-    workbook_note: 'The full year of checks is in the workbook.',
+    workbook_note: 'The Kirjed sheet of the workbook, 22 columns. A row appears here right after a check is saved. Scroll the table sideways.',
+    workbook_empty: 'No records yet. Pick a grade and press Append record: the row appears here at once.',
+    workbook_count: 'N records on this device',
+    workbook_shown: 'latest N shown',
+    workbook_photo: 'photo',
+    workbook_video: 'video',
+    workbook_voice: 'voice',
     landing_table: 'View table',
   },
   et: {
@@ -232,7 +238,13 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     workbook_title: 'Tööraamat',
     hygiene_download: 'Laadi tööraamat alla',
-    workbook_note: 'Kogu aasta kontrollid on Exceli failis.',
+    workbook_note: 'Tööraamatu leht Kirjed, 22 veergu. Rida ilmub siia kohe pärast kontrolli salvestamist. Keri tabelit külgsuunas.',
+    workbook_empty: 'Kirjeid veel pole. Vali hinne ja vajuta „Lisa kirje“: rida ilmub siia kohe.',
+    workbook_count: 'Selles seadmes N kirjet',
+    workbook_shown: 'näidatud viimased N',
+    workbook_photo: 'foto',
+    workbook_video: 'video',
+    workbook_voice: 'hääl',
     landing_table: 'Vaata tabelit',
     paper: 'Prindi pabervorm',
     quick_title: 'Dokumenteeri kontroll',
@@ -364,6 +376,7 @@ let audioStarting = false;
 let gradeMode = false;
 let selectedGrade = 0;
 let lastSavedRecord = null;
+let freshSeq = 0;
 
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
@@ -1029,6 +1042,7 @@ function resetCaptureInputs() {
 
 async function finishRecord(record, noteId, message) {
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
+  freshSeq = record.seq;
   resetCaptureInputs();
   showSavedRecord(record);
   await refreshCount();
@@ -1080,6 +1094,126 @@ function quickRecord(kind, grade = 0) {
 
 async function refreshCount() {
   allRecordsCache = await allRecords();
+  renderWorkbook();
+}
+
+// The embedded workbook: the Kirjed sheet, newest rows first, built from the
+// same device store the capture form writes and refreshed after every save.
+const WORKBOOK_COLUMNS = [
+  'seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier',
+  'reason', 'transcript', 'source', 'teostaja', 'evidence', 'media', 'media_2',
+  'media_3', 'media_4', 'media_5', 'media_6', 'audio', 'chain_ok', 'hash'
+];
+const WORKBOOK_LIMIT = 12;
+const WORKBOOK_LONG = new Set(['reason', 'transcript', 'evidence']);
+const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
+
+function recordAttachments(record) {
+  const items = Array.isArray(record.media_items) ? record.media_items : [];
+  if (items.length) return items;
+  if (!record.media_hash) return [];
+  return [{ kind: record.media_kind || 'image', name: record.media_name || '' }];
+}
+
+function workbookEvidence(record) {
+  return [['photo', record.photo_hash], ['media', record.media_hash], ['audio', record.audio_hash]]
+    .filter(([, value]) => value)
+    .map(([label, value]) => `${label}:${value}`)
+    .join(' ');
+}
+
+function workbookMedia(record, position) {
+  const item = recordAttachments(record)[position];
+  if (!item) return '';
+  if (item.name) return item.name;
+  return t(item.kind === 'video' ? 'workbook_video' : 'workbook_photo');
+}
+
+function workbookAudio(record) {
+  if (!record.audio_hash) return '';
+  const seconds = Number(record.audio_duration) || 0;
+  return seconds ? `${Math.round(seconds)} s` : t('workbook_voice');
+}
+
+function workbookValue(record, field) {
+  if (field === 'grade') return record.grade || WORKBOOK_GRADE[record.verdict] || '';
+  if (field === 'teostaja') return record.supervisor || record.device_id || '';
+  if (field === 'evidence') return workbookEvidence(record);
+  if (field === 'audio') return workbookAudio(record);
+  if (field === 'media' || field.startsWith('media_')) {
+    return workbookMedia(record, field === 'media' ? 0 : Number(field.split('_')[1]) - 1);
+  }
+  return record[field] ?? '';
+}
+
+// TRUE when the row hash recomputes and every prev_hash links to its neighbour.
+// Rows after a broken link stay FALSE, as in the workbook's chain_ok column.
+function workbookChain(records) {
+  const status = new Map();
+  const shown = new Set(records.slice(-WORKBOOK_LIMIT).map((record) => record.seq));
+  let previous = '0'.repeat(64);
+  let broken = false;
+  for (const record of records) {
+    const { hash, ...body } = record;
+    let valid = !broken && Boolean(hash) && record.prev_hash === previous;
+    if (valid && shown.has(record.seq)) valid = sha256Sync(body) === hash;
+    if (!valid) broken = true;
+    status.set(record.seq, valid);
+    previous = hash || '';
+  }
+  return status;
+}
+
+function renderWorkbook() {
+  const head = $('workbookHead');
+  const body = $('workbookBody');
+  if (!head || !body) return;
+  if (head.dataset.lang !== lang) {
+    head.replaceChildren(...WORKBOOK_COLUMNS.map((field) => {
+      const cell = document.createElement('th');
+      cell.scope = 'col';
+      cell.textContent = field;
+      return cell;
+    }));
+    head.dataset.lang = lang;
+  }
+  const records = allRecordsCache;
+  const empty = $('workbookEmpty');
+  const box = $('workbookScroll');
+  if (!records.length) {
+    body.replaceChildren();
+    if (box) box.hidden = true;
+    if (empty) {
+      empty.textContent = t('workbook_empty');
+      empty.hidden = false;
+    }
+    note('workbookStatus', '');
+    return;
+  }
+  if (box) box.hidden = false;
+  if (empty) empty.hidden = true;
+  const chain = workbookChain(records);
+  const shown = records.slice(-WORKBOOK_LIMIT).reverse();
+  body.replaceChildren(...shown.map((record) => {
+    const row = document.createElement('tr');
+    row.dataset.seq = String(record.seq);
+    if (record.seq === freshSeq) row.classList.add('fresh');
+    for (const field of WORKBOOK_COLUMNS) {
+      const cell = document.createElement('td');
+      if (field === 'chain_ok') {
+        const ok = chain.get(record.seq);
+        cell.textContent = ok ? 'TRUE' : 'FALSE';
+        cell.className = ok ? 'chain-ok' : 'chain-bad';
+      } else {
+        cell.textContent = String(workbookValue(record, field));
+        if (WORKBOOK_LONG.has(field) || field === 'hash') cell.className = 'long';
+        if (cell.textContent.length > 40) cell.title = cell.textContent;
+      }
+      row.append(cell);
+    }
+    return row;
+  }));
+  note('workbookStatus', `${t('workbook_count').replace('N', records.length)} · ${t('workbook_shown').replace('N', shown.length)}`);
 }
 
 
@@ -1340,6 +1474,13 @@ function bind() {
     applyLanguage();
     if (speechSession) toggleVoice();
     refreshCount();
+  });
+  // The workbook table follows records saved in another tab on this device.
+  recordsChannel?.addEventListener('message', () => {
+    refreshCount().catch(() => {});
+  });
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'toend-records-event') refreshCount().catch(() => {});
   });
   $('asset').addEventListener('input', () => {
     currentTag = '';

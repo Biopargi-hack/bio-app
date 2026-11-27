@@ -859,6 +859,23 @@ main {
 .sample-sheet .eyebrow { margin: 0; }
 .sample-sheet h2, .explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
 .sample-sheet .note { margin: 0; font-size: 13px; }
+/* The embedded workbook: the Kirjed sheet, scrollable like the file it mirrors. */
+.sheet-scroll { margin-top: 18px; overflow-x: auto; border-top: 1px solid var(--line); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+.sheet-scroll::-webkit-scrollbar { height: 10px; }
+.sheet-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+#workbookTable { width: 100%; border-collapse: collapse; font: 400 11px/1.35 var(--mono); font-variant-numeric: tabular-nums; }
+#workbookTable th, #workbookTable td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; white-space: nowrap; }
+#workbookTable thead th { background: var(--paper); color: var(--muted); font: 600 10px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; border-bottom: 2px solid var(--ink); }
+#workbookTable th:first-child, #workbookTable td:first-child { position: sticky; left: 0; z-index: 2; background: var(--paper); }
+#workbookTable tbody tr.fresh td { background-color: var(--paper); background-image: linear-gradient(var(--accent-tint), var(--accent-tint)); }
+#workbookTable td.long { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+#workbookTable td.chain-ok { color: var(--mint); font-weight: 600; }
+#workbookTable td.chain-bad { color: var(--accent); font-weight: 700; }
+#workbookEmpty { margin-top: 16px; }
+#workbookStatus { margin-top: 10px; }
+@media (max-width: 720px) {
+  #workbookTable th, #workbookTable td { padding: 7px 8px; }
+}
 .explainer .section-head { max-width: 760px; margin: 0; padding: 0; border: 0; }
 .explainer .section-head p:not(.eyebrow) { max-width: 70ch; margin: 14px 0 0; color: var(--muted); font: 400 15px/1.65 var(--sans); }
 .step-grid, .benefit-grid { display: grid; gap: 16px; margin-top: 24px; }

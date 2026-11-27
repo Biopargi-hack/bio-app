@@ -4,14 +4,14 @@ Updated 2026-11-27. Two host names, one deploy, both can record.
 
 | Host | Used for | Example |
 | --- | --- | --- |
-| `https://taptoprove.ee` | Landing page with description, steps, hygiene table and a capture form. "Proovi kontrolli" scrolls to that form. | `https://taptoprove.ee/` |
-| `https://nfc.taptoprove.ee` | Direct record entry only from an NFC card, plus the same hygiene table. No landing copy. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
+| `https://taptoprove.ee` | Landing page with description, steps, the embedded workbook table and a capture form. "Proovi kontrolli" scrolls to that form. | `https://taptoprove.ee/` |
+| `https://nfc.taptoprove.ee` | Direct record entry only from an NFC card, plus the same workbook table. No landing copy. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
 
 Both names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS hides only the sections that do not belong: the landing host hides the live-records link, the NFC host hides landing copy.
 
 ## View split and storage
 
-Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Both hosts show the hygiene table; its cells fill from records saved on that same device.
+Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Both hosts show the workbook table: the `Kirjed` columns from the Excel file, one row per record, filled right after a save on that same device.
 
 Records are scoped to the origin where they are saved. Cards write into the nfc origin store; a check started on the landing host stores in the landing origin. There is no shared ledger between origins and no split device ID within one origin.
 
