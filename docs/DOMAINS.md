@@ -9,6 +9,8 @@ Updated 2026-11-27. Two host names, one deploy, both can record.
 
 Both names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS hides only the sections that do not belong: the landing host hides the live-records link, the NFC host hides landing copy.
 
+Each host loads one stylesheet. The NFC host loads `styles.css` only. The landing host loads `landing.css`, which imports `styles.css` as a cascade layer: the black, white and red landing design applies everywhere except the capture form and the workbook table, which keep the `styles.css` look with the landing red. `landing.js` runs the in-page card tap demo and saves nothing.
+
 ## View split and storage
 
 Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Both hosts show the workbook table: the `Kirjed` columns from the Excel file, one row per record, filled right after a save on that same device.
