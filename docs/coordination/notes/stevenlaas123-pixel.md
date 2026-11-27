@@ -13,3 +13,4 @@ Format:
 
 - **2026-11-27 09:00** — hardened the repo: public visibility, protected `main`,
   `crew` team, CI gate, coordination kit. Next: assign roles in `STATUS.md`.
+- **2026-11-27** — resolved `fix/capture-integrity` merge with `origin/main`: retained atomic record and attachment writes alongside the minimal capture UI; audit panel remains removed by main.

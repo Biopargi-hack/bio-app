@@ -292,7 +292,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .cip-chart { overflow: hidden; }
 .cip-chart svg { display: block; width: 100%; height: auto; }
 .paper-link { display: inline-block; margin-top: 10px; color: var(--ink); font: 700 14px/1.2 var(--display); text-transform: uppercase; border-bottom: 1px solid var(--accent); }
-.lang-btn, [data-question], .media-link, .paper-link { min-height: 44px; }
+.lang-btn { min-height: 44px; }
 
 footer { padding: 20px clamp(16px, 4vw, 40px); border-top: 1px solid var(--ink); font: 400 11px/1.4 var(--mono); color: var(--muted); }
 
@@ -549,3 +549,7 @@ footer { background: var(--paper); }
   .field-grid { grid-template-columns: 1fr; gap: 0; }
   .topbar { padding: 10px 16px; }
 }
+
+/* Minimal app: one focused capture column, no ledger or audit panel */
+.workbench { grid-template-columns: 1fr; max-width: 760px; }
+.station { border-right: 0; }

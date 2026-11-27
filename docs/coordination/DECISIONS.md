@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Minimal capture app: ledger removed, line selector added
+
+**Decision.** The main app no longer shows the proof-chain panel: no record list, audit questions, filter, JSONL export, tamper-break demo or sample CIP summary. Those functions were removed from `app.js` and the gate was updated. A **Line** dropdown (All lines, Line 1–5) was added above the asset field; choosing a line pre-fills the asset in both Estonian and English. Records are still appended with a hash chain.
+
+**Why.** The owner asked for a minimal app: the ledger content was not wanted on the capture screen. The dropdown makes a line's cleaning checkable through the site without typing.
+
+**Consequence.** The original demo story loses its on-screen audit and tamper-break beat; the showcase page still demonstrates the wider flow. This is an explicit change of scope requested by the owner, not a hidden regression.
+
+---
+
 ## 2026-11-27 — Card-based app shell with one dominant action
 
 **Decision.** The app, showcase and paper form share a card system: soft `#F3F6F7` page background, white rounded surfaces with a light shadow, an at-a-glance status card, boxed inputs, chip-shaped filters and one large primary action. Press feedback and row entrance are short and disabled under reduced motion. The layout follows Dribbble tap-to-pay and health-dashboard patterns: big status, quick chips, calm hierarchy.

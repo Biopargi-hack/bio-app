@@ -39,7 +39,6 @@
         <li><b>02</b><span data-i18n="beat2">Green button, done in 2 seconds</span></li>
         <li><b>03</b><span data-i18n="beat3">Red button and a fault from the list</span></li>
         <li><b>04</b><span data-i18n="beat4">Photo when one is possible</span></li>
-        <li><b>05</b><span data-i18n="beat5">Audit the record later</span></li>
       </ol>
     </section>
 
@@ -47,7 +46,6 @@
       <section id="capture" class="station" aria-labelledby="capture-title">
         <div class="section-head">
           <h2 id="capture-title" data-i18n="capture_title">Tap station</h2>
-          <span id="chainBadge" class="tagpill">chain ready</span>
         </div>
 
         <div class="readout" id="assetStamp">
@@ -82,6 +80,18 @@
           <p id="quickNote" class="note" role="status"></p>
         </div>
 
+
+        <label class="field">
+          <span data-i18n="line">Line</span>
+          <select id="line">
+            <option value="all" data-i18n="line_all">All lines</option>
+            <option value="1" data-i18n="line_1">Line 1</option>
+            <option value="2" data-i18n="line_2">Line 2</option>
+            <option value="3" data-i18n="line_3">Line 3</option>
+            <option value="4" data-i18n="line_4">Line 4</option>
+            <option value="5" data-i18n="line_5">Line 5</option>
+          </select>
+        </label>
 
         <label class="field">
           <span data-i18n="asset">Asset</span>
@@ -152,42 +162,6 @@
         </div>
       </section>
 
-      <aside class="chain" aria-labelledby="ledger-title">
-        <div class="section-head">
-          <h2 id="ledger-title" data-i18n="ledger_title">Proof chain</h2>
-          <span id="chainCount" class="tagpill">0 records</span>
-        </div>
-
-        <div class="chain-status" id="chainStatus" data-i18n="chain_empty">No records yet. The first one starts the chain.</div>
-
-        <div class="audit-questions" aria-label="Auditor questions">
-          <button type="button" data-question="unsigned" data-i18n="q_unsigned">Unsigned clean checks</button>
-          <button type="button" data-question="tierc" data-i18n="q_tierc">Tier C without signature</button>
-          <button type="button" data-question="today" data-i18n="q_today">Everything today</button>
-          <button type="button" data-question="defaults" data-i18n="q_defaults">Fixed defaults</button>
-          <button type="button" data-question="media" data-i18n="q_media">Records with media</button>
-        </div>
-        <p id="answerNote" class="note" role="status"></p>
-
-        <label class="field">
-          <span data-i18n="filter">Filter by asset or checkpoint</span>
-          <input id="filter" type="search" placeholder="filler, wash, drain">
-        </label>
-
-        <div id="records" class="records" aria-live="polite"></div>
-
-        <div class="row ledger-actions">
-          <button id="exportBtn" class="quiet" type="button" data-i18n="export">Export JSONL</button>
-          <button id="tamperBtn" class="quiet" type="button" data-i18n="tamper">Show tamper break</button>
-        </div>
-
-        <section class="sample" aria-labelledby="sample-title">
-          <h3 id="sample-title" data-i18n="sample_title">Sample CIP month</h3>
-          <p class="sample-label" data-i18n="sample_label">Sample data, synthetic, not A. Le Coq</p>
-          <div id="cipSummary" class="cip-summary"></div>
-          <p class="note" data-i18n="cip_note">Three cycles short of temperature. One record cannot be signed.</p>
-          <a class="paper-link" href="paper.html" target="_blank" rel="noopener" data-i18n="paper">Print the paper form</a>
-        </section>
       </aside>
     </div>
   </main>

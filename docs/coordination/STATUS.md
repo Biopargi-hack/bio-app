@@ -7,7 +7,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | bug sweep and flow fixes | feat/flow_bugs | none |
 | @linnudtonisted | OpenCode | review | ET/RU/EN buttons start capture; no signature field | `fix/voice-buttons-supervisor` | device test |
-| @Pepukarv | OpenCode | review | Dribbble-inspired full UX pass; headless checked | feat/dribbble_ux | none |
+| @Pepukarv | OpenCode | review | minimal capture app: ledger removed, line selector added | feat/minimal_app | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 
 ## Demo-critical path
