@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Capture screen fills its right side with guidance
+
+**Decision.** The capture section is a two-column card on desktop: the form on the left, a guidance rail on the right with `app/check-flow.svg`, a three-step flow and short cards about the fixed default and offline capture. On narrow screens the rail stacks below the form. All copy is in ET and EN through `data-i18n`, and the new illustration is in the service worker precache (v6).
+
+**Why.** The owner asked that the right side of the capture card not sit empty. Guidance is more useful there than another control, and it does not bring back the removed ledger.
+
+**Consequence.** No data model or record flow changed. The verify gate still passes (20 checks), the illustration loads offline, and the capture form keeps one primary action.
+
+---
+
 ## 2026-11-27 — Minimal capture app: ledger removed, line selector added
 
 **Decision.** The main app no longer shows the proof-chain panel: no record list, audit questions, filter, JSONL export, tamper-break demo or sample CIP summary. Those functions were removed from `app.js` and the gate was updated. A **Line** dropdown (All lines, Line 1–5) was added above the asset field; choosing a line pre-fills the asset in both Estonian and English. Records are still appended with a hash chain.
