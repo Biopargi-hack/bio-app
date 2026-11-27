@@ -16,13 +16,9 @@ test("imageHashBits keeps all 64 bits distinct", () => {
   assert.equal(imageHashBits(a).length, 16);
 });
 
-test("recordHeaders exports chain and evidence fields", () => {
-  const rows = [{ seq: 1, hash: "h", prev_hash: "0", reason: "declared", media_hash: "m", photo_thumb: "data:image/png;base64,AA" }];
-  const headers = recordHeaders(rows);
-  assert.ok(headers.includes("prev_hash"));
-  assert.ok(headers.includes("reason"));
-  assert.ok(headers.includes("media_hash"));
-  assert.ok(!headers.includes("photo_thumb"));
+test("recordHeaders keeps useful fields but omits hashes and attachment internals", () => {
+  const rows = [{ seq: 1, asset: "Pesu", grade: 2, transcript: "Must", hash: "h", prev_hash: "0", reason: "declared", media_hash: "m", photo_hash: "p", audio_hash: "a", media_items: [{ kind: "image" }], photo_thumb: "data:image/png;base64,AA" }];
+  assert.deepEqual(recordHeaders(rows), ["seq", "asset", "reason", "grade", "transcript"]);
 });
 
 test("isoWeekKey uses Tallinn local date and ISO year", () => {
