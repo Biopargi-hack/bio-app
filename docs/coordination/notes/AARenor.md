@@ -72,3 +72,7 @@ Format:
 - **2026-11-27 15:22**, Follow-up fix for the grade flow. Grade 3 from an NFC tap with no photo now writes the fixed default flag and reason, matching the runbook and the mission. The fault control stays visible in grade mode. Gate reports 19 passed, browser check on the grade URL showed the default flag and no page errors. Owner will use admin merge because the demo needs this live now.
 
 - **2026-11-27 16:26**, Fixed the Excel problem. `sample_cip.csv` now has a UTF-8 BOM, semicolon separators and comma decimals, so Estonian Excel opens six columns. Added an Excel CSV button that exports current app records from IndexedDB as an Excel friendly file. The sample CSV is static and not synced; the export is a current device snapshot, not a live spreadsheet link. Gate reports 22 passed, browser checked at 390 with no errors and a real download parsed as 15 columns. Owner will use admin merge because the demo needs it live now.
+
+- **2026-11-27 16:52** — Started NFC machine links task from current origin/main.
+
+- **2026-11-27 16:58** — Added the eight hygiene sheet checkpoints as plain NFC example links in showcase.html under the NFC link section. No select was added. Links use the existing nfc.arle.top pattern and cover Pesu, Täitepea, Klapp, Drenaaž, Uks, Kätepesu, Kastipesu and Siirupituba. Verify passed and desktop plus mobile browser checks showed 8 links with no errors or overflow. This PR was admin merged during the hackathon after checks passed.
