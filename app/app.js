@@ -117,7 +117,7 @@ const WORDS = {
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     hygiene_note: 'Last six weeks.',
     hygiene_download: 'Download workbook',
-    hygiene_live: 'Grades: 3 clean, 2 needs review, 1 not clean. Cells fill from records on this device. The full year is in the workbook.',
+    hygiene_live: 'Grades: 3 clean, 2 dirty, 1 serious. Cells fill from records on this device. The full year is in the workbook.',
     hygiene_checkpoint: 'Checkpoint',
     hygiene_date: 'Date',
     hygiene_unavailable: 'Hygiene grid data is unavailable.',
@@ -211,7 +211,7 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     hygiene_note: 'Viimased kuus nädalat.',
     hygiene_download: 'Laadi tööraamat alla',
-    hygiene_live: 'Hinded: 3 korras, 2 vajab ülevaatamist, 1 ei ole korras. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
+    hygiene_live: 'Hinded: 3 korras, 2 must, 1 tõsine. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
     hygiene_checkpoint: 'Kontrollpunkt',
     hygiene_date: 'Kuupäev',
     hygiene_unavailable: 'Hügieenitabeli andmed pole saadaval.',
@@ -864,6 +864,7 @@ function gradeFromRecord(record) {
   if (record.verdict === 'clean') return 3;
   if (record.verdict === 'not clean') return 2;
   if (record.verdict === 'serious') return 1;
+  if (record.verdict === 'cannot sign') return 2;
   return null;
 }
 

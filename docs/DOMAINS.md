@@ -4,14 +4,14 @@ Updated 2026-11-27. Two host names, one deploy, two views.
 
 | Host | Used for | Example |
 | --- | --- | --- |
-| `https://taptoprove.ee` | Landing page only. Description, steps and a button to the NFC host. No record form and no table. | `https://taptoprove.ee/` |
-| `https://nfc.taptoprove.ee` | Record entry only. No landing copy, no ledger and no table. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
+| `https://taptoprove.ee` | Landing page only. Description, steps, a hygiene table and a button to the NFC host. No record form. | `https://taptoprove.ee/` |
+| `https://nfc.taptoprove.ee` | This host is record entry only, plus the same hygiene table. No landing copy or ledger view. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
 
 Both names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS then hides the sections that do not belong to that host.
 
 ## View split and storage
 
-The landing host describes the product and has no capture form. The NFC host is record entry only. This matters for storage: IndexedDB, `toend-device`, `toend-records-event` and the hash chain are scoped to one origin. Every record lands in the nfc origin store. There is no second ledger on the landing host and no split device ID.
+The landing host describes the product and has no capture form. The NFC host is record entry. Both hosts show the hygiene table; its cells fill from records saved on that same device. This matters for storage: IndexedDB, `toend-device`, `toend-records-event` and the hash chain are scoped to one origin. Every record lands in the nfc origin store. There is no second ledger on the landing host and no split device ID.
 
 Offline warm-up happens on the NFC host. Open `https://nfc.taptoprove.ee/` on the demo phone and reload once so its service worker caches the shell. Reloading the landing host does not cache the record view.
 
