@@ -122,6 +122,33 @@ if (audioTypeWired) {
   fail("app/app.js: the audio type or file extension mapping is missing");
 }
 
+const iosMicWired = appSource.includes("function isIOS()")
+  && appSource.includes("canRecordAudio() && isIOS()")
+  && appSource.includes("speech_to_record");
+if (iosMicWired) {
+  ok("an iPhone uses the microphone and Whisper instead of the speech service");
+} else {
+  fail("app/app.js: the iPhone microphone path is missing");
+}
+
+const speechDeniedWired = appSource.includes("onDenied: () => { switchToRecording(); }")
+  && appSource.includes("handlers.onDenied(error)")
+  && appSource.includes("async function switchToRecording()");
+if (speechDeniedWired) {
+  ok("a refused speech service switches to recording instead of claiming the mic is blocked");
+} else {
+  fail("app/app.js: the speech refusal does not fall back to recording");
+}
+
+const micErrorWired = appSource.includes("recordError = error?.name")
+  && appSource.includes("recordError === 'NotAllowedError'")
+  && appSource.includes("denied ? 'audio_denied'");
+if (micErrorWired) {
+  ok("the microphone refusal message is shown only for a real permission error");
+} else {
+  fail("app/app.js: the microphone error is not mapped to the right message");
+}
+
 const speechUnlimited = appSource.includes("const SPEECH_CHUNK_CHARS = 160")
   && appSource.includes("onMicFree")
   && !/transcript[^;\n]{0,80}slice\(0,\s*300\)/.test(appSource);
@@ -159,41 +186,25 @@ if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.include
 } else {
   fail("app/sample_cip.csv: expected UTF-8 BOM, semicolon separators and comma decimals");
 }
-if (indexSource.includes('docs.google.com/spreadsheets/d/') && !indexSource.includes('taptoprove_ledger.xlsx') && !appSource.includes('hygiene_download')) {
-  ok("the landing links to the live Google Sheet and has no Excel download");
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371#gid=221436371";
+const sheetLinks = (indexSource.match(/https:\/\/docs\.google\.com\/spreadsheets\/d\/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs\/edit\?gid=221436371#gid=221436371/g) || []).length;
+if (sheetLinks >= 3 && !indexSource.includes("taptoprove_ledger.xlsx") && !indexSource.includes("wbHygieneScroll") && !appSource.includes("renderHygieneSheet")) {
+  ok("the landing links the Google Sheet and does not embed the Excel workbook");
 } else {
-  fail("app/index.html: the live Google Sheet link or the Excel removal is missing");
-}
-if (indexSource.includes('id="wbHygieneScroll"') && !indexSource.includes('id="wbRecordsScroll"') && !indexSource.includes("workbook-tabs")) {
-  ok("the landing embeds the Hügieen sheet without a tab strip");
-} else {
-  fail("app: the embedded Hügieen sheet is missing or the records tab is back");
-}
-if (appSource.includes("function renderHygieneSheet(") && appSource.includes("const HYGIENE_ROWS") && appSource.includes("'Kontrollpunktid'") && !appSource.includes("function renderRecordsSheet(")) {
-  ok("the workbook shows the Hügieen checkpoints and colours");
-} else {
-  fail("app/app.js: the Hügieen sheet builder is missing");
+  fail(`app: the Google Sheet link is missing (${sheetLinks}) or the Excel workbook is still on the page`);
 }
 if (appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
-  ok("a saved check fills its checkpoint cell");
+  ok("a saved check still carries its checkpoint name");
 } else {
   fail("app/app.js: the saved checkpoint is missing");
 }
-if (appSource.includes("await refreshCount();") && appSource.includes("renderWorkbook();")) {
-  ok("workbook sheets follow the saved records");
-} else {
-  fail("app/app.js: the save refresh is missing");
-}
 
+const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
 if (appSource.includes("fetch('/api/ledger'") && appSource.includes('toend-sync-queue') && existsSync(join(root, 'functions/api/ledger.js'))) {
   ok("saved records queue and post to the Sheets writer");
 } else {
   fail("app: the Google Sheets sync path is missing");
 }
-const stylesSource = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
-
-
-const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
 if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetJsonlBtn"') && !sheetSource.includes('sheetExcelBtn')) {
   ok("live sheet reads IndexedDB, listens for records and links to Google Sheets");
 } else {
@@ -275,10 +286,10 @@ if (stylesForMode.includes('html[data-mode="landing"] #sheetLink') && stylesForM
 } else {
   fail("app/styles.css: host view rules are missing");
 }
-if (indexSource.includes('href="#capture"') && indexSource.includes('href="#hygieen"')) {
- ok("landing CTA goes to capture and the table link is present");
+if (indexSource.includes('href="#capture"') && indexSource.includes(SHEET_URL)) {
+ ok("landing CTA goes to capture and the table opens the Google Sheet");
 } else {
-  fail("app/index.html: landing CTA or table link is wrong");
+  fail("app/index.html: landing CTA or the Google Sheet link is wrong");
 }
 if (domainsSource.includes("record entry only") && domainsSource.includes("nfc origin")) {
   ok("DOMAINS.md explains the one-way storage");

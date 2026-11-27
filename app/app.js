@@ -14,6 +14,7 @@ const WORDS = {
     offline_title: 'Works offline',
     offline_copy: 'Checks are written to the device first, even with no network.',
     line: 'Line',
+    worker: 'Worker',
     line_all: 'All lines',
     place_prompt: 'Choose a place',
     place_required: 'Choose a place or tap the NFC card.',
@@ -67,6 +68,7 @@ const WORDS = {
     speech_stopped: 'Voice stopped',
     listening: 'Listening',
     record_stop_hint: 'Press the button again when you are done.',
+    speech_to_record: 'Browser speech is not answering, recording instead. Press again when you are done.',
     transcribing: 'Writing it down...',
     record_failed: 'Could not write the voice down. Check the microphone permission and the connection.',
     record_short: 'The recording was too short. Press, speak, and press again.',
@@ -126,7 +128,7 @@ const WORDS = {
     media_ready_hint: 'This is what will be attached to the record.',
     photo_readable: 'Photo is readable and goes with the record.',
     video_readable: 'Video goes with the record.',
-    photo_unusable: 'Too flat or too dark for evidence. The record still saves, but as tier C.',
+    photo_unusable: 'Too flat or too dark for evidence. The record still saves.',
     media_unreadable: 'This file cannot be read. Choose another one.',
     saved_with_photo: 'saved with the photo',
     saved_with_video: 'saved with the video',
@@ -136,14 +138,13 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
-    workbook_title: 'Live Google Sheet',
-    open_google_sheet: 'Open Google Sheet',
+    sheet_title: 'Table',
+    sheet_open: 'Open in Google Sheets',
+    sheet_note: 'Checks go straight to Google Sheets when online. A failed send retries when the connection returns. The table opens in a new tab.',
     sync_idle: 'Saved on this device',
     sync_pending: 'Sending to Google Sheets',
     sync_done: 'Sent to Google Sheets',
     sync_failed: 'Waiting to send, check connection',
-    workbook_note: 'Every saved check goes straight to the Live tab in Google Sheets. Photos and videos are linked there when they can be uploaded. The table below shows this device.',
-    workbook_count: 'N records on this device',
     landing_table: 'View table',
     paper: 'Print the paper form',
     grade_short: 'grade',
@@ -172,6 +173,7 @@ const WORDS = {
     offline_title: 'Töötab võrguta',
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
     line: 'Liin',
+    worker: 'Teostaja',
     line_all: 'Kõik liinid',
     place_prompt: 'Vali koht',
     place_required: 'Vali koht või puuduta NFC-kaarti.',
@@ -225,6 +227,7 @@ const WORDS = {
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan',
     record_stop_hint: 'Vajuta nuppu uuesti, kui oled lõpetanud.',
+    speech_to_record: 'Brauseri kõnetuvastus ei vasta, salvestan ise. Vajuta uuesti, kui oled lõpetanud.',
     transcribing: 'Kirjutan üles…',
     record_failed: 'Häält ei saanud üles kirjutada. Kontrolli mikrofoniluba ja ühendust.',
     record_short: 'Salvestus jäi liiga lühikeseks. Vajuta, räägi ja vajuta uuesti.',
@@ -248,14 +251,13 @@ const WORDS = {
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
-    workbook_title: 'Elav Google Sheet',
-    open_google_sheet: 'Ava Google Sheet',
+    sheet_title: 'Tabel',
+    sheet_open: 'Ava Google Sheetsis',
+    sheet_note: 'Kontrollid lähevad võrgus olles kohe Google Sheetsi. Ebaõnnestunud saatmine proovib uuesti, kui ühendus naaseb. Tabel avaneb uues aknas.',
     sync_idle: 'Salvestatud selles seadmes',
     sync_pending: 'Saadan Google Sheetsi',
     sync_done: 'Saadetud Google Sheetsi',
     sync_failed: 'Ootab saatmist, kontrolli ühendust',
-    workbook_note: 'Iga salvestatud kontroll läheb kohe Google Sheetsi Live lehele. Fotod ja videod on seal lingina, kui need õnnestub üles laadida. Allolev tabel näitab selle seadme kirjeid.',
-    workbook_count: 'Selles seadmes N kirjet',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
     grade2_word: 'must',
@@ -315,7 +317,7 @@ const WORDS = {
     media_ready_hint: 'See läheb kirje külge.',
     photo_readable: 'Pilt on loetav ja läheb kirje külge.',
     video_readable: 'Video läheb kirje külge.',
-    photo_unusable: 'Pilt on liiga ühtlane või liiga tume, et tõendina lugeda. Kirje salvestub ikka, aga tasemel C.',
+    photo_unusable: 'Pilt on liiga ühtlane või liiga tume, et tõendina lugeda. Kirje salvestub ikka.',
     media_unreadable: 'Seda faili ei saa lugeda. Vali teine.',
     saved_with_photo: 'salvestatud koos pildiga',
     saved_with_video: 'salvestatud koos videoga',
@@ -1045,9 +1047,6 @@ function clearMedia(index = null) {
   updateTier();
 }
 
-function tierFor() {
-  return mediaItems.some((item) => item.usable) ? 'B' : 'C';
-}
 
 function hasEvidence() {
   return mediaItems.some((item) => item.usable);
@@ -1163,6 +1162,7 @@ function resetCaptureInputs() {
   hideMediaPreview();
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
+  if ($('worker')) $('worker').value = '';
   updateTier();
 }
 
@@ -1187,7 +1187,6 @@ function quickRecord(kind, grade = 0) {
     const isDefault = kind === 'default';
     const noEvidence = !hasEvidence();
     const defaultAssessment = (isDefault || (isGrade && grade === 3)) && noEvidence;
-    const tier = isGrade ? 'C' : noEvidence ? 'C' : tierFor();
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
     const typed = $('transcript').value.trim();
     const transcript = isGrade ? (typed || gradeReason) : typed || WORDS[lang].default_reason;
@@ -1203,9 +1202,8 @@ function quickRecord(kind, grade = 0) {
       verdict,
       grade: isGrade ? grade : isDefault ? 3 : null,
       transcript,
-      tier,
       reason,
-      supervisor: '',
+      supervisor: $('worker')?.value.trim() || '',
       language: speechLang,
       default_assessment: defaultAssessment,
       quick: true,
@@ -1220,23 +1218,8 @@ function quickRecord(kind, grade = 0) {
 
 async function refreshCount() {
   allRecordsCache = await allRecords();
-  renderWorkbook();
 }
 
-/* The embedded grid mirrors the Live Google Sheet. It follows the same
-   checkpoint rows and grade colours, filled from this device's records. */
-const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
-const HYGIENE_ROWS = [
-  ['Pesu / Wash', 'Wash'],
-  ['Täitepea / Filler head', 'Filler head'],
-  ['Klapp / Valve', 'Valve'],
-  ['Drenaaž / Drain', 'Drain'],
-  ['Uks / Door', 'Door'],
-  ['Kätepesu / Hand wash sink', 'Hand wash sink'],
-  ['Kastipesu / Crate washer', 'Crate washer'],
-  ['Siirupituba / Syrup room wall', 'Syrup room wall']
-];
-const HYGIENE_LEGEND = 'Hinded: 3 korras, 2 must, 1 tõsine';
 /* Longest name first, so Kätepesu is not read as Pesu. */
 const CHECKPOINT_NAMES = [
   ['Kätepesu', 'Hand wash sink'],
@@ -1249,166 +1232,15 @@ const CHECKPOINT_NAMES = [
   ['Uks', 'Door']
 ];
 
-/* The workbook grades the Hügieen sheet on the record's checkpoint field. */
+/* The record keeps the checkpoint name the Google Sheet groups by. */
 function checkpointFor(asset) {
   const text = String(asset || '').toLocaleLowerCase('et');
   if (!text) return '';
   for (const [estonian, english] of CHECKPOINT_NAMES) {
-    if (text.includes(estonian.toLocaleLowerCase('et'))) return english;
-    if (text.includes(english.toLocaleLowerCase('et'))) return english;
+    if (text.includes(estonian.toLocaleLowerCase('et')) || text.includes(english.toLocaleLowerCase('et'))) return estonian;
   }
   return '';
 }
-
-/* ISO week and the 5 week bucket the workbook puts a check in. */
-function isoWeekOf(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const weekday = day.getUTCDay() || 7;
-  day.setUTCDate(day.getUTCDate() + 4 - weekday);
-  const yearStart = Date.UTC(day.getUTCFullYear(), 0, 1);
-  const week = Math.ceil(((day.getTime() - yearStart) / 86400000 + 1) / 7);
-  return { year: day.getUTCFullYear(), week };
-}
-
-function hygieneBucket(week) {
-  return Math.min(53, Math.max(1, Math.floor((week + 4) / 5) * 5));
-}
-
-function isoMonday(year, week) {
-  const jan4 = new Date(Date.UTC(year, 0, 4));
-  const weekday = jan4.getUTCDay() || 7;
-  const monday = new Date(Date.UTC(year, 0, 4 - weekday + 1 + (week - 1) * 7));
-  return monday.getUTCFullYear() === year ? monday : null;
-}
-
-function sheetDate(date) {
-  const pad = (value) => String(value).padStart(2, '0');
-  return `${pad(date.getUTCDate())}.${pad(date.getUTCMonth() + 1)}.${date.getUTCFullYear()}`;
-}
-
-/* The Hügieen sheet: weeks in 5 week buckets, worst grade per checkpoint. */
-function hygieneSheet(records) {
-  const years = records.map((record) => isoWeekOf(record.created_at)?.year).filter((year) => Number.isFinite(year));
-  const year = years.length ? Math.min(...years) : new Date().getUTCFullYear();
-  const buckets = new Set([15, 20, 25, 30, 35, 40, 45, 50]);
-  for (const record of records) {
-    const iso = isoWeekOf(record.created_at);
-    if (!iso) continue;
-    const bucket = hygieneBucket(iso.week);
-    if (bucket < 15 || bucket > 50) buckets.add(bucket);
-  }
-  const columns = [...buckets].sort((a, b) => a - b).map((bucket) => ({
-    bucket,
-    monday: isoMonday(year, bucket)
-  }));
-  const grades = new Map();
-  for (const record of records) {
-    const iso = isoWeekOf(record.created_at);
-    if (!iso) continue;
-    const grade = [1, 2, 3].includes(record.grade) ? record.grade : WORKBOOK_GRADE[record.verdict];
-    if (!record.checkpoint || !grade) continue;
-    const key = `${record.checkpoint}|${iso.year}-${hygieneBucket(iso.week)}`;
-    const previous = grades.get(key);
-    grades.set(key, previous === undefined ? grade : Math.min(previous, grade));
-  }
-  return {
-    header: ['Kontrollpunktid', ...columns.map((column) => `N${String(column.bucket).padStart(2, '0')}`)],
-    dates: ['Kuupäev', ...columns.map((column) => (column.monday ? sheetDate(column.monday) : 'kuupäev puudub'))],
-    rows: HYGIENE_ROWS.map(([label, checkpoint]) => [
-      label,
-      ...columns.map((column) => grades.get(`${checkpoint}|${year}-${column.bucket}`) ?? '')
-    ])
-  };
-}
-
-function workbookLetter(index) {
-  let value = index;
-  let letters = '';
-  do {
-    letters = String.fromCharCode(65 + (value % 26)) + letters;
-    value = Math.floor(value / 26) - 1;
-  } while (value >= 0);
-  return letters;
-}
-
-function workbookCell(tag, text, className) {
-  const cell = document.createElement(tag);
-  if (className) cell.className = className;
-  cell.textContent = String(text ?? '');
-  return cell;
-}
-
-function workbookColgroup(widths) {
-  const group = document.createElement('colgroup');
-  for (const width of widths) {
-    const column = document.createElement('col');
-    column.style.width = width;
-    group.append(column);
-  }
-  return group;
-}
-
-/* Hügieen: header, dates, the eight checkpoints and the legend row. */
-function renderHygieneSheet(records) {
-  const host = $('wbHygieneScroll');
-  if (!host) return;
-  const sheet = hygieneSheet(records);
-  const table = document.createElement('table');
-  table.className = 'wb-sheet wb-hygiene';
-  table.append(workbookColgroup(['3.5ch', '28ch', ...sheet.header.slice(1).map(() => '14ch')]));
-
-  const head = document.createElement('thead');
-  const letters = document.createElement('tr');
-  letters.className = 'wb-letters';
-  letters.append(workbookCell('th', '', 'wb-corner'));
-  sheet.header.forEach((_, index) => letters.append(workbookCell('th', workbookLetter(index), index === 0 ? 'wb-pin' : '')));
-  const heading = document.createElement('tr');
-  heading.className = 'wb-header';
-  heading.append(workbookCell('th', '1', 'wb-rowhead'));
-  sheet.header.forEach((text, index) => heading.append(workbookCell('th', text, index === 0 ? 'wb-head wb-pin' : 'wb-head')));
-  const dates = document.createElement('tr');
-  dates.className = 'wb-dates';
-  dates.append(workbookCell('th', '2', 'wb-rowhead'));
-  sheet.dates.forEach((text, index) => dates.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
-  head.append(letters, heading, dates);
-  table.append(head);
-
-  const body = document.createElement('tbody');
-  sheet.rows.forEach((values, index) => {
-    const row = document.createElement('tr');
-    row.append(workbookCell('th', String(index + 3), 'wb-rowhead'));
-    values.forEach((value, column) => {
-      if (column === 0) {
-        row.append(workbookCell('th', value, 'wb-label wb-pin'));
-        return;
-      }
-      const cell = workbookCell('td', value === '' ? '' : String(value));
-      if (value === 3) cell.className = 'g3';
-      if (value === 2) cell.className = 'g2';
-      if (value === 1) cell.className = 'g1';
-      row.append(cell);
-    });
-    body.append(row);
-  });
-  const legend = document.createElement('tr');
-  legend.className = 'wb-legend-row';
-  legend.append(workbookCell('th', String(sheet.rows.length + 3), 'wb-rowhead'));
-  const legendCell = workbookCell('td', HYGIENE_LEGEND, 'wb-legend');
-  legendCell.colSpan = sheet.header.length;
-  legend.append(legendCell);
-  body.append(legend);
-  table.append(body);
-  host.replaceChildren(table);
-}
-
-function renderWorkbook() {
-  renderHygieneSheet(allRecordsCache);
-  note('workbookStatus', t('workbook_count').replace('N', allRecordsCache.length));
-}
-
-
 
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
@@ -1450,6 +1282,7 @@ let recordChunks = [];
 let recordStream = null;
 let recorderReady = null;
 let recordMime = '';
+let recordError = '';
 // iPhone Safari has no Web Speech API; MediaRecorder there writes audio/mp4.
 const AUDIO_TYPES = [
   'audio/webm;codecs=opus',
@@ -1480,8 +1313,16 @@ function canRecordAudio() {
   return Boolean(navigator.mediaDevices?.getUserMedia) && typeof MediaRecorder !== 'undefined';
 }
 
+// iPhone Safari exposes a speech service that can refuse after the mic is
+// granted, so the phone uses the microphone and Whisper directly.
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 function startRecorder() {
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
+  recordError = '';
   recorderReady = navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
     if (!voiceHold) {
       stream.getTracks().forEach((track) => track.stop());
@@ -1494,7 +1335,7 @@ function startRecorder() {
     recordChunks = [];
     recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordChunks.push(event.data); };
     recorder.start();
-  }).catch(() => { recorder = null; });
+  }).catch((error) => { recorder = null; recordError = error?.name || 'unknown'; });
 }
 
 function stopRecorder() {
@@ -1553,7 +1394,8 @@ async function toggleRecordOnly() {
     recordState = 'idle';
     if (!text) {
       resetVoiceUI();
-      note('audioNote', t(tooShort ? 'record_short' : 'record_failed'), true);
+      const denied = recordError === 'NotAllowedError' || recordError === 'SecurityError' || recordError === 'PermissionDeniedError';
+      note('audioNote', t(tooShort ? 'record_short' : denied ? 'audio_denied' : 'record_failed'), true);
       return;
     }
     const field = $('transcript');
@@ -1572,6 +1414,15 @@ async function toggleRecordOnly() {
   button.textContent = t('listening');
   note('audioNote', t('record_stop_hint'));
   startRecorder();
+}
+
+// A browser can expose speech recognition and still refuse it after the
+// microphone was granted; then the recording path is used instead.
+async function switchToRecording() {
+  resetVoiceUI();
+  await stopRecorder();
+  toggleRecordOnly();
+  note('audioNote', t('speech_to_record'));
 }
 
 async function polishUtterance(base, owned, token) {
@@ -1723,6 +1574,11 @@ function startSpeechSession(langCode, handlers) {
       finish();
       return;
     }
+    if (denied && handlers.onDenied) {
+      session.cancel();
+      handlers.onDenied(error);
+      return;
+    }
     if (!denied && handlers.onChunkFull) {
       finish({ restart: true });
       return;
@@ -1778,6 +1634,7 @@ function beginHeldSpeech(langCode, attempt = 0) {
     onText: (text) => writeSpeech(text, true),
     onSilence: () => { voiceHold = false; },
     onChunkFull: () => { voiceHold = true; },
+    onDenied: () => { switchToRecording(); },
     onUnsupported: (error) => {
       if (langCode === SPEECH_FALLBACK) return false;
       if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
@@ -1813,6 +1670,10 @@ function toggleVoice() {
     voiceHold = false;
     if (speechSession && !speechSession.finished) speechSession.stop();
     else resetVoiceUI();
+    return;
+  }
+  if (canRecordAudio() && isIOS()) {
+    toggleRecordOnly();
     return;
   }
   if (!speechRecognition()) {
@@ -1966,6 +1827,7 @@ async function start() {
   updateNetwork();
   if (asset && document.documentElement.dataset.mode === 'record') {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : 'link');
+    if (via === 'nfc') setGrade(3);
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });
   }

@@ -20,10 +20,10 @@ Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.t
 
 Production: https://taptoprove.ee
 
-Landing leht: https://taptoprove.ee. Kirjeldus, salvestusvorm ja tööraamatu tabel.
+Landing leht: https://taptoprove.ee. Kirjeldus, salvestusvorm ja link Google Sheetsi tabelile.
 NFC kaardid: https://nfc.taptoprove.ee. Ainult kirjevaade, ilma landinguta.
 Mõlemad aadressid serveerivad sama deploy, vaade valitakse domeeni järgi. Kirjed jäävad selle domeeni seadmesse, kus need salvestati.
-Landing page: https://taptoprove.ee, description, capture form and the workbook table.
+Landing page: https://taptoprove.ee, description, capture form and a link to the Google Sheet ledger.
 NFC cards: https://nfc.taptoprove.ee, record entry only, no landing copy.
 Both hosts serve the same deploy and pick the view from the hostname. Records stay in the device store of the origin that saved them.
 
@@ -70,13 +70,12 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 
 | File | Job |
 |---|---|
-| `app/index.html` | Screens, copy and the embedded live checkpoint grid |
+| `app/index.html` | Screens, copy and the Google Sheet link |
 | `app/styles.css` | Visual system for the NFC record view, the subpages and the capture form |
-| `app/landing.css` | Black, white and red landing view on taptoprove.ee; imports `styles.css` as a layer for the capture form and grid |
+| `app/landing.css` | Black, white and red landing view on taptoprove.ee; imports `styles.css` as a layer for the capture form and sheet card |
 | `app/landing.js` | Landing demo: simulated card tap onto a phone mock with a grade, nothing saved |
 | `app/sheet.html` | Live records table and JSONL with attachments; links to Google Sheets |
-| `app/app.js` | Capture, photo and video preview, hash chain, broadcast, Sheets sync and grid |
-| `functions/api/ledger.js` | Serverless writer to Google Sheets and Drive |
+| `app/app.js` | Capture, photo and video preview, hash chain, Sheets sync and broadcast |
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Static semicolon CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
@@ -91,7 +90,9 @@ No npm dependencies, no build command. Plain files go straight to Pages.
 
 ## Sheets connection
 
-Cloudflare Pages secrets `GOOGLE_SERVICE_ACCOUNT` and `SHEET_ID` hold the service account JSON and the ledger sheet id. The account `tapprove-sheets@arleserver.iam.gserviceaccount.com` has writer access to the sheet. Its private key stays outside the repo at `~/.config/secrets/taptoprove_sheets_sa.json`. `wrangler.toml` binds the `EVIDENCE` KV namespace for uploaded files. The old 5 minute sync job is paused, because the app writes directly.
+Every save posts to `/api/ledger`. A Pages Function signs a Google service account token, appends one row to the `Live` tab of the ledger sheet and stores each usable photo or video in a KV namespace with a public view link in the sheet. A failed send stays in a local queue and retries on the next save or when the connection returns. Files over 8 MB are skipped; the record still lands in the sheet. IndexedDB keeps the full record and attachments for the hash chain, and JSONL remains a manual backup. There is no Excel download and no CSV export.
+
+Cloudflare Pages secrets `GOOGLE_SERVICE_ACCOUNT` and `SHEET_ID` hold the service account JSON and the sheet id. The account `tapprove-sheets@arleserver.iam.gserviceaccount.com` has writer access. Its private key stays outside the repo at `~/.config/secrets/taptoprove_sheets_sa.json`. `wrangler.toml` binds the `EVIDENCE` KV namespace. The old five minute sync job is paused; the legacy generator now preserves the `Live` tab.
 
 ## Checks
 
@@ -116,36 +117,22 @@ handoffs use the issue template. PR comments are the async conversation.
 2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
 4. Use the asset field or tap a sticker, then append one record. Show the queued count on the device.
-5. Scroll to the checkpoint grid on the same page. Press a grade in the capture form, then press Append record. The grade lands in the current week column without a reload, and the same check goes to the `Live` tab of the Google Sheet. Open `/sheet` for the record table and JSONL, then print the paper form and time five checks against the app.
+5. Press a grade in the capture form, then press Append record. The check is stored on the device and sent to the `Live` tab of the Google Sheet. Tap the card named after a checkpoint (`Täitepea`, `Kastipesu`) and the phone mock plays the tap. Open `/sheet` for the record table of this device and the JSONL export, then print the paper form and time five checks against the app.
 
 ## What is real and what is sample
 
 Records, tags and photos the judge makes during the demo are live, stored in IndexedDB on the phone and sent to Google Sheets through `/api/ledger`. The CIP month is generated by us and is labelled as sample data, synthetic, not A. Le Coq. It never mixes into the judge's records.
 
-Every saved check posts to `/api/ledger`. The serverless writer signs a Google service account token, appends one row to the `Live` tab and stores each usable photo or video in a Cloudflare KV namespace with a public view link in the sheet. A failed send stays in a local queue and retries on the next save or when the connection returns. Files over 8 MB are skipped; the record still lands in the sheet. IndexedDB keeps the full record and attachments for the hash chain, and JSONL remains a manual backup. There is no Excel download and no CSV export.
+The sample CSV is static demo data with a UTF-8 BOM, semicolon separators and comma decimals. It is not synced with the app. JSONL is the manual backup: it keeps the full records unchanged and adds an attachment line for each photo, video or voice note, with a `data_url` holding the original file. Export fails visibly if a referenced attachment is missing.
 
-The checkpoint grid on `taptoprove.ee` mirrors the `Live` tab: the same week columns, checkpoint rows and grade colours, filled from this device's records. A save from the capture form fills the cell at once, and a second tab on the same device follows through the browser broadcast. A record's `checkpoint` comes from the place name (`Pesu` becomes `Wash`, `Filler head` stays `Filler head`), which is what fills the grid. `/sheet` shows the records of this device.
+The `Tabel` section on `taptoprove.ee` links the Google Sheet ledger at `https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371` in the nav, the hero button and the section button, and the link opens in a new tab. Only people the sheet is shared with can open it; there is no Excel download on the page. Every saved check goes to the `Live` tab, and a record keeps its `checkpoint` name because that is the column the sheet groups by. `/sheet` shows the records stored on this device.
 
+Dictation has two paths. Where the browser has a working Web Speech API (Chrome, Edge), words appear while you speak, and the same recording is sent to Whisper to correct the spelling. iPhone and iPad always use the microphone path: the `Räägi` button records a clip, sends it to `/api/transcribe` on the server, and writes the text into the note when you press the button again. The phone skips the speech service even where the browser exposes it, because the iPhone speech service refuses with a permission error after the microphone was already granted. The clip is plain `audio/webm` or `audio/mp4` depending on the browser, named `note.webm` or `note.m4a` to match, and a tap shorter than a word is ignored. This path needs a connection.
 
-Dictation has two paths. Where the browser has the Web Speech API (Chrome, Edge), words appear while you speak, and the same recording is sent to Whisper to correct the spelling. iPhone Safari has no speech API, so the `Räägi` button records a clip, sends it to `/api/transcribe` on the server, and writes the text into the note when you press the button again. The clip is plain `audio/webm` or `audio/mp4` depending on the browser, named `note.webm` or `note.m4a` to match, and a tap shorter than a word is ignored. This path needs a connection.
+The `/sheet` page reads the same IndexedDB store as the capture app and follows new records on that device through a browser broadcast. The shared Google Sheet is the cross device view, so the demo no longer depends on a local export script.
 
-The live sheet at `/sheet` reads the same IndexedDB store as the capture app and follows new records on that device through a browser broadcast. It is same device only, same browser profile only. Cross device sync needs a shared store such as Supabase. There is no server yet.
+The capture screen shows the chosen photo or video straight away, with its file name and size, and marks a photo the app cannot read as evidence. After saving, a small card keeps the thumbnail and says whether the record went in with the photo, with the video or without media. The writer stores usable attachments in Cloudflare KV and puts a `foto`, `video` or `hääl` hyperlink in the sheet row. Files over 8 MB are skipped, while the record itself still lands in the sheet.
 
-The JSONL export keeps inspection records unchanged and adds a separate
-`type: "attachment"` line for each photo, video or voice note. Each attachment
-line contains its record sequence, storage key and a `data_url` holding the
-original file. Export fails visibly if a referenced attachment is missing.
-
-The capture screen shows the chosen photo or video straight away, with its file
-name and size, and marks a photo the app cannot read as evidence. After saving,
-a small card keeps the thumbnail and says whether the record went in with the
-photo, with the video or without media. The live sheet has a Proof column with
-that thumbnail; pressing it opens the full photo, video or voice note from
-device storage.
-
-The ledger sync reads those attachment lines, writes each file next to the
-workbook under `media/`, uploads it to Drive and puts a hyperlink in the table.
-The row then shows `foto` or `video` as a clickable link instead of a hash.
 
 ## Deployment details
 

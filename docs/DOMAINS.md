@@ -4,16 +4,16 @@ Updated 2026-11-27. Two host names, one deploy, both can record.
 
 | Host | Used for | Example |
 | --- | --- | --- |
-| `https://taptoprove.ee` | Landing page with description, steps, the embedded workbook table and a capture form. "Proovi kontrolli" scrolls to that form. | `https://taptoprove.ee/` |
-| `https://nfc.taptoprove.ee` | Direct record entry only from an NFC card, plus the same workbook table. No landing copy. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
+| `https://taptoprove.ee` | Landing page with description, steps, a Google Sheet link to the ledger and a capture form. "Proovi kontrolli" scrolls to that form. | `https://taptoprove.ee/` |
+| `https://nfc.taptoprove.ee` | Direct record entry only from an NFC card. No landing copy and no table link. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
 
 Both names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS hides only the sections that do not belong: the landing host hides the live-records link, the NFC host hides landing copy.
 
-Each host loads one stylesheet. The NFC host loads `styles.css` only. The landing host loads `landing.css`, which imports `styles.css` as a cascade layer: the black, white and red landing design applies everywhere except the capture form and the checkpoint grid, which keep the `styles.css` look with the landing red. `landing.js` runs the in-page card tap demo and saves nothing.
+Each host loads one stylesheet. The NFC host loads `styles.css` only. The landing host loads `landing.css`, which imports `styles.css` as a cascade layer: the black, white and red landing design applies everywhere except the capture form and the sheet card, which keep the `styles.css` look with the landing red. `landing.js` runs the in-page card tap demo and saves nothing.
 
 ## View split and storage
 
-Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Speech has two paths: the Web Speech API where the browser has it, and on iPhone Safari, which has none, the same button records a clip and `/api/transcribe` turns it into text. Both hosts fill the checkpoint grid right after a save on that same device; a record's `checkpoint` comes from the place name so the grid fills too. Every save also posts to `/api/ledger`, which appends the check to the `Live` tab of the shared Google Sheet and links evidence from `/api/evidence/`.
+Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Speech has two paths: the Web Speech API where the browser has it, and on iPhone and iPad the same button always records a clip and `/api/transcribe` turns it into text, because the iPhone speech service refuses with a permission error after the microphone was granted. Anywhere else a refused speech service also switches to that recording path. The landing links the Google Sheet ledger in the nav, the hero button and the `Tabel` card; the NFC host shows no table link. A record still keeps its `checkpoint` name, which is the column the sheet groups by. Every save also posts to `/api/ledger`, which appends the check to the `Live` tab of the shared Google Sheet and links evidence from `/api/evidence/`.
 
 Records in IndexedDB are scoped to the origin where they are saved. Cards write into the nfc origin store; a check started on the landing host stores in the landing origin. The Google Sheet is shared across both origins and is the live view for the demo. There is no split device ID within one origin.
 

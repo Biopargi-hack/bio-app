@@ -33,7 +33,7 @@
       <a class="nav-brand" href="/">Tap to Prove</a>
       <div class="nav-links">
         <a href="#how" data-i18n="nav_how">Kuidas töötab</a>
-        <a href="#hygieen" data-i18n="nav_table">Tabel</a>
+        <a href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371#gid=221436371" target="_blank" rel="noopener" data-i18n="nav_table">Tabel</a>
         <a href="#try" data-i18n="nav_try">Proovi telefonis</a>
       </div>
       <div class="nav-meta">
@@ -51,7 +51,7 @@
         <p class="hero-note" data-i18n="hero_note">NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.</p>
         <div class="hero-actions">
           <a class="link-button primary" href="#capture" data-i18n="landing_start">Proovi kontrolli</a>
-          <a class="link-button ghost" href="#hygieen" data-i18n="landing_table">Vaata tabelit</a>
+          <a class="link-button ghost" href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371#gid=221436371" target="_blank" rel="noopener" data-i18n="landing_table">Vaata tabelit</a>
         </div>
         <p class="hero-proof" data-i18n="hero_proof">Pabervormi ega fotot pole vaja.</p>
       </div>
@@ -165,6 +165,10 @@
             <span id="assetStampName" data-i18n="untagged">Märgistamata koht</span>
           </div>
           <input id="asset" type="hidden" autocomplete="off" spellcheck="false">
+          <label class="field text-field">
+            <span data-i18n="worker">Teostaja</span>
+            <input id="worker" type="text" autocomplete="name" spellcheck="false" maxlength="60">
+          </label>
 
           <section class="grade-card" aria-labelledby="quick-title">
             <h3 id="quick-title" data-i18n="grade_prompt">Hinda seda kohta</h3>
@@ -185,7 +189,7 @@
           <label class="field text-field">
             <span data-i18n="note_label">Mis juhtus — kirjuta või räägi</span>
             <textarea id="transcript" rows="5" placeholder="Kirjuta siia või vajuta „Räägi“." data-i18n-placeholder="note_ph"></textarea>
-            <small class="field-hint" data-i18n="note_hint">Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.</small>
+            <small class="field-hint" data-i18n="note_hint">Kui lisad puuduva tähe, jääb see alles. Võrgus parandatakse ka kirjavead.</small>
           </label>
 
           <div class="field file-field">
@@ -226,16 +230,12 @@
         </div>
       </div>
     </section>
-    <section id="hygieen" class="sample-sheet panel" aria-labelledby="workbook-title">
+    <section id="hygieen" class="sample-sheet panel" aria-labelledby="sheet-title">
       <div class="section-head">
-        <h2 id="workbook-title" data-i18n="workbook_title">Elav Google Sheet</h2>
-        <a class="link-button ghost small" href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit" target="_blank" rel="noopener" data-i18n="open_google_sheet">Ava Google Sheet</a>
+        <h2 id="sheet-title" data-i18n="sheet_title">Tabel</h2>
+        <a class="link-button primary small" href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371#gid=221436371" target="_blank" rel="noopener" data-i18n="sheet_open">Ava Google Sheetsis</a>
       </div>
-      <p class="note" data-i18n="workbook_note">Iga salvestatud kontroll läheb kohe Google Sheetsi Live lehele. Fotod ja videod on seal lingina, kui need õnnestub üles laadida. Allolev tabel näitab selle seadme kirjeid.</p>
-      <div class="workbook">
-        <div class="workbook-scroll" id="wbHygieneScroll" tabindex="0" aria-label="Hügieen"></div>
-      </div>
-      <p id="workbookStatus" class="note" role="status"></p>
+      <p class="note" data-i18n="sheet_note">Kontrollid on Google Sheetsis. Tabel avaneb uues aknas ja seda näevad need, kellele see on jagatud.</p>
     </section>
 
     <section class="benefits" aria-labelledby="benefits-title">
