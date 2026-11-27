@@ -54,6 +54,21 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 **Consequence.** Blue accents are gone. Contrast stays at WCAG AA (8.11:1 for white on red, 13.62:1 for ink on paper); the offline shell and bilingual copy are unchanged.
 ---
 
+## 2026-11-27 — Keep the speech note field, hide the tier display
+
+**Decision.** The `transcript` textarea is visible and writable again on the
+capture screen. The Evidence tier output and its label are removed; the tier is
+still computed internally for the record.
+
+**Why.** A previous cleanup hid the field where speech is written, so spoken
+text had nowhere to appear. The tier output is not needed on the capture card.
+
+**Consequence.** Speech from ET/RU/EN lands in a visible, typable field. Tier
+computation stays unchanged in `tierFor()` and the record; no UI element reads
+it.
+
+---
+
 ## 2026-11-27 — Speech uses continuous listening with a silence timer
 
 **Decision.** Recognition runs with `continuous = true` and `interimResults = true`. A 2500 ms timer is reset by every recognition event and only then stops the microphone. All final results from the session are joined into one paragraph; duplicate result indices are ignored.
