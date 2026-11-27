@@ -12,11 +12,11 @@ Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid 
 
 Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti ja saab eeltäidetud vaate "Kõik on puhas ja korras". Üks nupp KINNITA PUHAS salvestab kontrolli kahe sekundiga. Kui pilti ei saa teha, kasutatakse nuppu "Pilti ei saa? Kasuta fikseeritud hinnangut". Kirje saab fikseeritud põhjuse ja tase C, aga andmed jäävad täielikuks ja jälgitavaks. Kui midagi on must, valitakse viga listist ja tehakse võimalusel pilt.
 
-Viis kaarti kirjutatakse rakenduse jaotises "Kirjuta 5 kaarti". Iga kaart saab oma nime ja kaardi ID, näiteks T1 4AF2. Kaart kannab URL-i `https://taptoprove.ee/?asset=...&tag=...&via=nfc` ja tekstikirjet. Puudutamine avab selle URL-i otse, ilma et rakendus peaks enne lahti olema. Kaardi ID salvestub igas kirjes koos allikaga `nfc`, `link` või `typed`. ID ei ole krüptograafiline allkiri. Päris allkirjastamine vajab NTAG424. Füüsilisel telefonil pole seda veel testitud.
+Viis kaarti kirjutatakse rakenduse jaotises "Kirjuta 5 kaarti". Iga kaart saab oma nime ja kaardi ID, näiteks T1 4AF2. Kaart kannab URL-i `https://nfc.arle.top/?asset=...&tag=...&via=nfc` ja tekstikirjet. Puudutamine avab selle URL-i otse, ilma et rakendus peaks enne lahti olema. Kaardi ID salvestub igas kirjes koos allikaga `nfc`, `link` või `typed`. ID ei ole krüptograafiline allkiri. Päris allkirjastamine vajab NTAG424. Füüsilisel telefonil pole seda veel testitud.
 
 ## Live site
 
-Production: https://taptoprove.ee
+Production: https://nfc.arle.top while taptoprove.ee DNS is pending.
 
 Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins. The app shell is network first: a reload fetches the newest files, and an offline device falls back to the cached shell.
 
@@ -24,7 +24,7 @@ Pull requests get their own preview URL printed in the Action log. Branch name b
 
 ## Näide ja NFC link
 
-Näide on lehel https://taptoprove.ee/showcase. NFC demo link on `https://taptoprove.ee/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1, pildi, hääle, video ja teksti ning automaatset üleminekut hindele 1 pärast nelja musta märkust. Andmed on ainult näite lehel.
+Näide on lehel https://nfc.arle.top/showcase. NFC demo link on `https://nfc.arle.top/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1, pildi, hääle, video ja teksti ning automaatset üleminekut hindele 1 pärast nelja musta märkust. Andmed on ainult näite lehel.
 
 ## Four contributors
 
@@ -109,7 +109,7 @@ There is no server yet. Everything stays on the device until a backend is connec
 
 ## Deployment details
 
-Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `taptoprove.ee`.
+Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `nfc.arle.top`, with `taptoprove.ee` ready for the DNS switch.
 
 Secrets are stored in the GitHub repo as `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, set from the machine's `~/.config/opencode/api-keys.env` without printing values. If a secret is ever rotated, update the repo secret too.
 
