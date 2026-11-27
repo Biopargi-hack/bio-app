@@ -55,18 +55,16 @@ const WORDS = {
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
     speak: 'Speak',
-    voice_lang: 'Speech language',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Tap ET, RU or EN, then speak. A long note is kept in full. Spelling is corrected when you are online.',
+    audio_hint: 'Press Speak, then talk. A long note is kept in full. Spelling is corrected when you are online.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
     audio_unsupported: 'This browser cannot record audio.',
     speech_unsupported: 'This browser cannot turn speech into text. Type the note instead.',
     speech_lang_unsupported: 'Speech recognition is not available in this browser. Type the note instead.',
-    speech_detected: 'Speech language detected',
-    speech_fallback: 'Your browser language is unavailable for speech. Listening in English.',
+    speech_fallback: 'Estonian is unavailable for speech here. Listening in English.',
     speech_stopped: 'Voice stopped',
     listening: 'Listening',
     polishing: 'Correcting spelling',
@@ -141,7 +139,7 @@ const WORDS = {
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     workbook_title: 'Workbook',
     hygiene_download: 'Download workbook',
-    workbook_note: 'The Hügieen and Kirjed sheets of the workbook, same columns and values as the Excel file. A save fills the row at once. Scroll sideways for more columns.',
+    workbook_note: 'The Hügieen sheet of the workbook, same columns and colours as the Excel file. A grade lands in its cell right after a save. Both sheets are in the downloadable file. Scroll sideways for more columns.',
     workbook_count: 'N records on this device',
     landing_table: 'View table',
     paper: 'Print the paper form',
@@ -153,7 +151,7 @@ const WORDS = {
     try_title: 'Try it on your phone.',
     try_body: 'Scan the code with your phone camera. It opens the same checkpoint that an NFC card tap opens.',
     try_cta: 'Open the checkpoint',
-    try_caption: 'Sample place Pesu, card TAP-DEMO-01',
+    try_caption: 'Sample place and card',
     demo_title: 'Try it here',
     demo_hint: 'Drag a card onto the phone, or press a card.',
     demo_idle: 'Hold the phone to a card',
@@ -212,18 +210,16 @@ const WORDS = {
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
     speak: 'Räägi',
-    voice_lang: 'Kõne keel',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta ET, RU või EN ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
+    audio_hint: 'Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
     speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst.',
     speech_lang_unsupported: 'Kõnetuvastus ei ole selles brauseris saadaval. Kirjuta tekst.',
-    speech_detected: 'Tuvastatud kõne keel',
-    speech_fallback: 'Brauseri keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
+    speech_fallback: 'Eesti keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan',
     polishing: 'Parandan kirjavigu',
@@ -252,7 +248,7 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     workbook_title: 'Tööraamat',
     hygiene_download: 'Laadi tööraamat alla',
-    workbook_note: 'Tööraamatu lehed Hügieen ja Kirjed, samad veerud ja väärtused mis Exceli failis. Salvestus täidab rea kohe. Keri tabelit külgsuunas.',
+    workbook_note: 'Tööraamatu leht Hügieen, samad veerud ja värvid mis Exceli failis. Hinne lisandub lahtrisse kohe pärast salvestamist. Mõlemad lehed on allalaaditavas failis. Keri tabelit külgsuunas.',
     workbook_count: 'Selles seadmes N kirjet',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
@@ -262,7 +258,7 @@ const WORDS = {
     try_title: 'Proovi telefonis.',
     try_body: 'Skaneeri kood telefoni kaameraga. Avaneb sama kontrollpunkt, mis avaneb NFC-kaardi puudutusel.',
     try_cta: 'Ava kontrollpunkt',
-    try_caption: 'Näidiskoht Pesu, kaart TAP-DEMO-01',
+    try_caption: 'Näidiskoht ja kaart',
     demo_title: 'Proovi siin',
     demo_hint: 'Lohista kaart telefonile või vajuta kaardile.',
     demo_idle: 'Hoia telefoni kaardi vastas',
@@ -341,30 +337,7 @@ const WORDS = {
   }
 };
 
-const SPEECH_LOCALES = { et: 'et-EE', ru: 'ru-RU', en: 'en-US' };
 const SPEECH_FALLBACK = 'en-US';
-const SPEECH_LABELS = { 'et-EE': 'ET', 'ru-RU': 'RU', 'en-US': 'EN' };
-
-// The Web Speech API needs a regional locale. A bare or unknown browser
-// language used to leave recognition with no usable locale at all.
-function speechLocale(code) {
-  const base = String(code || '').toLowerCase().split('-')[0];
-  return SPEECH_LOCALES[base] || SPEECH_FALLBACK;
-}
-
-function speechLabel(code) {
-  return SPEECH_LABELS[code] || String(code || '').slice(0, 2).toUpperCase();
-}
-
-function setSpeechLang(code) {
-  speechLang = code;
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    const active = button.dataset.lang === code;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-}
-
 
 // One recogniser accepts one language, so the first words choose it.
 function detectSpokenLang(text) {
@@ -376,7 +349,6 @@ function detectSpokenLang(text) {
 
 let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
 let speechLang = 'et-EE';
-speechLocale(navigator.language);
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
 // Chrome stops growing one speech hypothesis near a few hundred characters.
@@ -384,7 +356,6 @@ const SILENCE_MS = 2500;
 const SPEECH_CHUNK_CHARS = 160;
 const SPEECH_CHUNK_MS = 8000;
 let voiceHold = false;
-let voiceRestartLang = '';
 let speechBase = '';
 let utteranceBase = '';
 let userOwned = false;
@@ -411,7 +382,6 @@ let audioStarting = false;
 let gradeMode = false;
 let selectedGrade = 0;
 let lastSavedRecord = null;
-let freshSeq = 0;
 
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
@@ -429,7 +399,6 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  setSpeechLang(speechLang);
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
@@ -1062,7 +1031,6 @@ async function guardedWrite(noteId, work) {
 
 function resetCaptureInputs() {
   voiceHold = false;
-  voiceRestartLang = '';
   if (speechSession) {
     speechSession.stop();
     speechSession = null;
@@ -1083,12 +1051,9 @@ function resetCaptureInputs() {
 
 async function finishRecord(record, noteId, message) {
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
-  freshSeq = record.seq;
   resetCaptureInputs();
   showSavedRecord(record);
   await refreshCount();
-  const sheet = $('wbRecordsScroll');
-  if (sheet) sheet.scrollTop = sheet.scrollHeight;
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
 }
@@ -1141,16 +1106,10 @@ async function refreshCount() {
   renderWorkbook();
 }
 
-/* The embedded workbook mirrors app/taptoprove_ledger.xlsx: the Hügieen and
-   Kirjed sheets, with the same columns, cell values and order that
-   sync_ledger.py writes, filled from this device's records. */
-const WORKBOOK_COLUMNS = [
-  'seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier',
-  'reason', 'transcript', 'source', 'teostaja', 'evidence', 'media', 'media_2',
-  'media_3', 'media_4', 'media_5', 'media_6', 'audio', 'chain_ok', 'hash'
-];
+/* The embedded workbook mirrors app/taptoprove_ledger.xlsx: the Hügieen sheet
+   with the same columns, colours and values that sync_ledger.py writes,
+   filled from this device's records. */
 const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
-const WORKBOOK_LONG = new Set(['reason', 'transcript', 'evidence', 'hash']);
 const HYGIENE_ROWS = [
   ['Pesu / Wash', 'Wash'],
   ['Täitepea / Filler head', 'Filler head'],
@@ -1211,63 +1170,6 @@ function isoMonday(year, week) {
 function excelDate(date) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${pad(date.getUTCDate())}.${pad(date.getUTCMonth() + 1)}.${date.getUTCFullYear()}`;
-}
-
-function recordMediaSpecs(record) {
-  const items = Array.isArray(record.media_items) ? record.media_items : [];
-  if (items.length) {
-    return items
-      .filter((item) => item && typeof item === 'object')
-      .map((item, position) => ({ position, label: item.kind === 'video' ? 'video' : 'foto' }));
-  }
-  if (!record.media_hash) return [];
-  return [{ position: 0, label: record.media_kind === 'video' ? 'video' : 'foto' }];
-}
-
-/* The workbook writes one label per attachment, numbered when a record has several. */
-function mediaLabel(record, position) {
-  const specs = recordMediaSpecs(record);
-  const spec = specs[position];
-  if (!spec) return '';
-  return specs.length === 1 ? spec.label : `${spec.label} ${spec.position + 1}`;
-}
-
-function workbookValue(record, field) {
-  if (field === 'grade') return record.grade || WORKBOOK_GRADE[record.verdict] || '';
-  if (field === 'teostaja') return record.supervisor || record.device_id || '';
-  if (field === 'evidence') {
-    return [['photo', record.photo_hash], ['media', record.media_hash], ['audio', record.audio_hash]]
-      .filter(([, value]) => value)
-      .map(([label, value]) => `${label}:${value}`)
-      .join(' ');
-  }
-  if (field === 'audio') return record.audio_hash ? 'hääl' : '';
-  if (field === 'media' || field.startsWith('media_')) {
-    return mediaLabel(record, field === 'media' ? 0 : Number(field.split('_')[1]) - 1);
-  }
-  return record[field] ?? '';
-}
-
-/* TRUE when the stored hash recomputes and prev_hash links to the row above.
-   A 16 character digest is the pre SHA-256 format, so it is recomputed the way
-   sync_ledger.py checks it. Rows after a break stay FALSE, as in the workbook. */
-function workbookChain(records) {
-  const status = new Map();
-  let previous = '0'.repeat(64);
-  let broken = false;
-  for (const record of records) {
-    const { hash, ...body } = record;
-    const stored = String(hash || '');
-    let valid = !broken && stored.length > 0 && record.prev_hash === previous;
-    if (valid) {
-      const recomputed = stored.length === 16 ? legacyHash(body) : sha256Sync(body);
-      valid = recomputed === stored;
-    }
-    if (!valid) broken = true;
-    status.set(record.seq, valid);
-    previous = stored;
-  }
-  return status;
 }
 
 /* The Hügieen sheet: weeks in 5 week buckets, worst grade per checkpoint. */
@@ -1332,57 +1234,6 @@ function workbookColgroup(widths) {
   return group;
 }
 
-/* Kirjed: the record sheet, rows in the order the workbook writes them. */
-function renderRecordsSheet(records) {
-  const host = $('wbRecordsScroll');
-  if (!host) return;
-  const chain = workbookChain(records);
-  const values = records.map((record) => WORKBOOK_COLUMNS.map((field) => {
-    if (field === 'chain_ok') return chain.get(record.seq) ? 'TRUE' : 'FALSE';
-    return String(workbookValue(record, field));
-  }));
-
-  const table = document.createElement('table');
-  table.className = 'wb-sheet wb-kirjed';
-
-  const head = document.createElement('thead');
-  const letters = document.createElement('tr');
-  letters.className = 'wb-letters';
-  letters.append(workbookCell('th', '', 'wb-corner'));
-  WORKBOOK_COLUMNS.forEach((_, index) => letters.append(workbookCell('th', workbookLetter(index))));
-  const heading = document.createElement('tr');
-  heading.className = 'wb-header';
-  heading.append(workbookCell('th', '1', 'wb-rowhead'));
-  WORKBOOK_COLUMNS.forEach((field) => heading.append(workbookCell('th', field, 'wb-head')));
-  head.append(letters, heading);
-  table.append(head);
-
-  const body = document.createElement('tbody');
-  records.forEach((record, rowIndex) => {
-    const row = document.createElement('tr');
-    row.dataset.seq = String(record.seq);
-    if (record.seq === freshSeq) row.classList.add('fresh');
-    row.append(workbookCell('th', String(rowIndex + 2), 'wb-rowhead'));
-    WORKBOOK_COLUMNS.forEach((field, column) => {
-      const text = values[rowIndex][column];
-      const cell = workbookCell('td', text);
-      if (field === 'chain_ok') cell.className = text === 'TRUE' ? 'chain-ok' : 'chain-bad';
-      if (WORKBOOK_LONG.has(field)) {
-        // Excel caps a column at 42 characters, so long cells are clipped the same way.
-        const clip = document.createElement('span');
-        clip.className = 'wb-clip';
-        clip.textContent = text;
-        cell.replaceChildren(clip);
-        if (text.length > 30) cell.title = text;
-      }
-      row.append(cell);
-    });
-    body.append(row);
-  });
-  table.append(body);
-  host.replaceChildren(table);
-}
-
 /* Hügieen: header, dates, the eight checkpoints and the legend row. */
 function renderHygieneSheet(records) {
   const host = $('wbHygieneScroll');
@@ -1438,17 +1289,7 @@ function renderHygieneSheet(records) {
 
 function renderWorkbook() {
   renderHygieneSheet(allRecordsCache);
-  renderRecordsSheet(allRecordsCache);
   note('workbookStatus', t('workbook_count').replace('N', allRecordsCache.length));
-}
-
-/* The tab strip mirrors the workbook's sheet tabs. */
-function selectWorkbookSheet(id) {
-  const hygiene = id === 'wbTabHygiene';
-  $('wbTabHygiene').setAttribute('aria-selected', String(hygiene));
-  $('wbTabRecords').setAttribute('aria-selected', String(!hygiene));
-  $('wbHygieneScroll').hidden = !hygiene;
-  $('wbRecordsScroll').hidden = hygiene;
 }
 
 
@@ -1701,67 +1542,6 @@ function startSpeechSession(langCode, handlers) {
   return session;
 }
 
-// One mic press can span several recogniser sessions: the first words choose
-// the language, then the rest of the dictation runs in that language.
-function startAutoSpeechSession(handlers) {
-  const auto = { session: null, detected: null, finished: false, fallbackUsed: false, stop: null };
-
-  const begin = (code) => {
-    if (auto.finished) return;
-    const session = startSpeechSession(code, {
-      onInterim: (text) => {
-        if (auto.finished || auto.detected) return;
-        const guess = detectSpokenLang(text);
-        if (guess === code) return;
-        auto.detected = guess;
-        speechLang = guess;
-        session.cancel();
-        note('audioNote', `${t('speech_detected')}: ${speechLabel(guess)}`);
-        begin(guess);
-      },
-      onText: (text) => {
-        if (auto.finished) return;
-        auto.detected = auto.detected || detectSpokenLang(text);
-        speechLang = auto.detected;
-        if (handlers.onText) handlers.onText(text, auto.detected);
-      },
-      onUnsupported: (error) => {
-        if (auto.finished || auto.fallbackUsed) return false;
-        if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
-        auto.fallbackUsed = true;
-        auto.detected = null;
-        session.cancel();
-        speechLang = SPEECH_FALLBACK;
-        note('audioNote', t('speech_fallback'));
-        begin(SPEECH_FALLBACK);
-        return true;
-      },
-      onDone: () => {
-        if (auto.finished) return;
-        auto.finished = true;
-        if (handlers.onDone) handlers.onDone();
-      }
-    });
-    if (!session) {
-      auto.finished = true;
-      if (handlers.onDone) handlers.onDone();
-      return;
-    }
-    auto.session = session;
-  };
-
-  begin(speechLang);
-  auto.stop = () => {
-    if (auto.finished) return;
-    if (auto.session) auto.session.stop();
-    else {
-      auto.finished = true;
-      if (handlers.onDone) handlers.onDone();
-    }
-  };
-  return auto;
-}
-
 function resetVoiceUI() {
   speechSession = null;
   voiceHold = false;
@@ -1778,16 +1558,10 @@ function resetVoiceUI() {
 }
 
 function afterVoiceStop() {
-  const next = voiceRestartLang;
-  voiceRestartLang = '';
   const base = utteranceBase;
   const owned = userOwned;
   const token = polishToken;
   resetVoiceUI();
-  if (next) {
-    toggleVoice();
-    return;
-  }
   polishUtterance(base, owned, token);
 }
 
@@ -1826,7 +1600,6 @@ function beginHeldSpeech(langCode, attempt = 0) {
 function toggleVoice() {
   if (speechSession || voiceHold) {
     voiceHold = false;
-    voiceRestartLang = '';
     if (speechSession && !speechSession.finished) speechSession.stop();
     else resetVoiceUI();
     return;
@@ -1897,18 +1670,6 @@ function bind() {
   window.addEventListener('storage', (event) => {
     if (event.key === 'toend-records-event') refreshCount().catch(() => {});
   });
-  const tabs = [$('wbTabHygiene'), $('wbTabRecords')];
-  for (const tab of tabs) {
-    tab.addEventListener('click', () => selectWorkbookSheet(tab.id));
-    tab.addEventListener('keydown', (event) => {
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-      event.preventDefault();
-      const step = event.key === 'ArrowRight' ? 1 : tabs.length - 1;
-      const next = tabs[(tabs.indexOf(tab) + step) % tabs.length];
-      selectWorkbookSheet(next.id);
-      next.focus();
-    });
-  }
   $('asset').addEventListener('input', () => {
     currentTag = '';
     currentSource = 'typed';
@@ -1920,19 +1681,6 @@ function bind() {
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
-  });
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      setSpeechLang(button.dataset.lang);
-      if (!speechSession && !voiceHold) {
-        toggleVoice();
-        return;
-      }
-      voiceRestartLang = button.dataset.lang;
-      voiceHold = false;
-      if (speechSession && !speechSession.finished) speechSession.stop();
-      else afterVoiceStop();
-    });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('transcript').addEventListener('input', (event) => {
@@ -1999,7 +1747,6 @@ async function start() {
   gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
   applyLanguage();
   bind();
-  setSpeechLang('et-EE');
   updateTier();
   updateNetwork();
   if (asset && document.documentElement.dataset.mode === 'record') {

@@ -13,7 +13,7 @@ Each host loads one stylesheet. The NFC host loads `styles.css` only. The landin
 
 ## View split and storage
 
-Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Both hosts show the workbook: the `Hügieen` and `Kirjed` sheets from the Excel file, filled right after a save on that same device, and a record's `checkpoint` comes from the place name so the `Hügieen` grid fills too.
+Both hosts show the capture form, so speech-to-text and manual checks work on `taptoprove.ee` as well as on the NFC host. The NFC host skips the landing copy and opens the grade view directly when a card URL is used. Both hosts show the workbook's `Hügieen` sheet from the Excel file, filled right after a save on that same device; a record's `checkpoint` comes from the place name so the grid fills too.
 
 Records are scoped to the origin where they are saved. Cards write into the nfc origin store; a check started on the landing host stores in the landing origin. There is no shared ledger between origins and no split device ID within one origin.
 
