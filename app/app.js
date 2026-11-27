@@ -1,23 +1,14 @@
 const $ = (id) => document.getElementById(id);
-const CHECKPOINTS = [
-  { value: 'Wash', et: 'Pesu', en: 'Wash' },
-  { value: 'Filler head', et: 'Täitepea', en: 'Filler head' },
-  { value: 'Valve', et: 'Klapp', en: 'Valve' },
-  { value: 'Drain', et: 'Drenaaž', en: 'Drain' },
-  { value: 'Door', et: 'Uks', en: 'Door' },
-  { value: 'Hand wash sink', et: 'Kätepesu', en: 'Hand wash sink' },
-  { value: 'Crate washer', et: 'Kastipesu', en: 'Crate washer' },
-  { value: 'Syrup room wall', et: 'Siirupiruumi sein', en: 'Syrup room wall' }
-];
 
 const WORDS = {
   en: {
     subtitle: 'Proof for the production line',
     rail_caption: 'One tap, one record.',
     flow_title: 'How it works',
-    flow1: 'Pick a line or tap the sticker.',
-    flow2: 'Press Prove clean.',
-    flow3: 'The record saves on this device.',
+    flow1: 'Stick the card on the place you check.',
+    flow2: 'Tap the card with your phone.',
+    flow3: 'Pick grade 3, 2 or 1.',
+    flow4: 'The record saves straight away.',
     default_title: 'No photo?',
     default_copy: 'Use the fixed default. It records a fixed reason and stays traceable.',
     offline_title: 'Works offline',
@@ -30,16 +21,11 @@ const WORDS = {
     line_4: 'Line 4',
     line_5: 'Line 5',
     skip: 'Skip to capture',
-    hero_note: 'Tap the waterproof sticker, rate the spot 3, 2 or 1, and the check stays on the phone. No paper, no photo needed.',
-    intro_title: 'One tap. The record is there.',
-    flow_tap: 'Tap the NFC sticker',
-    flow_rate: 'Rate 3 clean, 2 dirty, 1 serious',
-    flow_save: 'Record appends with a hash',
-    checkpoints_note: 'Choose a checkpoint and the rating view opens with that place already set.',
-    checkpoint_source: 'Chosen checkpoint',
-    landing_start: 'Start a check',
-    landing_dashboard: 'Open records dashboard',
-    landing_count: 'records on this device',
+    hero_note: 'An NFC card and a phone app for recording production line checks. Tap the card, pick a grade and the record is there. No paper form or photo needed.',
+    intro_title: 'Hygiene checks in one tap.',
+    what_title: 'What it is',
+    what_body: 'Tap to Prove is an NFC card and phone app for hygiene checks on a production line. A waterproof card sits on each place to check. Tapping it opens the right place on the phone and the checker can save a grade at once.',
+    what_note: 'When a photo is not possible, a fixed grade keeps the record complete. It can still be reviewed later. The card replaces the paper form instead of adding another step.',
     capture_title: 'Check capture',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
@@ -120,9 +106,10 @@ const WORDS = {
     subtitle: 'Tõend tootmisliinile',
     rail_caption: 'Üks puudutus, üks kirje.',
     flow_title: 'Kuidas see töötab',
-    flow1: 'Vali liin või puuduta kleepsu.',
-    flow2: 'Vajuta KINNITA PUHAS.',
-    flow3: 'Kirje salvestub kohe seadmesse.',
+    flow1: 'Kleebi kaart kontrollitava koha külge.',
+    flow2: 'Puuduta kaarti telefoniga.',
+    flow3: 'Vali hinne 3, 2 või 1.',
+    flow4: 'Kirje salvestub kohe.',
     default_title: 'Pilti ei saa?',
     default_copy: 'Kasuta fikseeritud hinnangut. See salvestab fikseeritud põhjuse ja kirje jääb jälgitavaks.',
     offline_title: 'Töötab võrguta',
@@ -135,16 +122,11 @@ const WORDS = {
     line_4: 'Liin 4',
     line_5: 'Liin 5',
     skip: 'Liigu salvestamise juurde',
-    hero_note: 'Puuduta veekindlat kleepsu, hinda koht 3, 2 või 1 ja kontroll jääb telefoni. Pabervormi ega fotot pole vaja.',
-    intro_title: 'Üks puudutus. Kirje on olemas.',
-    flow_tap: 'Puuduta NFC kleepsu',
-    flow_rate: 'Hinda 3 korras, 2 must, 1 tõsine',
-    flow_save: 'Kirje lisandub räsiga',
-    checkpoints_note: 'Vali kontrollpunkt ja hindamisvaade avaneb kohe selle kohaga.',
-    checkpoint_source: 'Valitud kontrollpunkt',
-    landing_start: 'Alusta kontrolli',
-    landing_dashboard: 'Ava kirjete vaade',
-    landing_count: 'kirjet sellel seadmel',
+    hero_note: 'NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas. Pabervormi ega fotot pole vaja.',
+    intro_title: 'Hügieenikontroll ühe puudutusega.',
+    what_title: 'Mis see on',
+    what_body: 'Tap to Prove on NFC-kaartide ja telefonirakenduse lahendus tootmisliini hügieenikontrolliks. Iga kontrollitava koha küljes on veekindel kaart. Selle puudutamisel avaneb telefonis õige koht ja kontrollija saab hinnangu kohe salvestada.',
+    what_note: 'Kui pilti teha ei saa, kasutatakse fikseeritud hinnangut. Kirje jääb ikkagi täielikuks ja selle saab hiljem üle vaadata. Kaart asendab pabervormi, mitte ei lisa uut sammu.',
     capture_title: 'Kontrolli salvestamine',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
@@ -284,7 +266,6 @@ let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
 let currentSource = 'typed';
-let activeCheckpoint = null;
 let dbPromise = null;
 let saving = false;
 let audioToken = 0;
@@ -312,8 +293,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  if (activeCheckpoint && currentSource === 'checkpoint' && $('asset').value) $('assetStampName').textContent = activeCheckpoint[lang];
-  renderCheckpoints();
+  if ($('assetSource')) $('assetSource').textContent = sourceLabel();
 }
 
 function note(id, text, isError = false) {
@@ -778,35 +758,8 @@ function quickRecord(kind, grade = 0) {
 
 async function refreshCount() {
   allRecordsCache = await allRecords();
-  $('queueCount').textContent = `${allRecordsCache.length} queued`;
-  if ($('landingCount')) $('landingCount').textContent = String(allRecordsCache.length);
 }
 
-function renderCheckpoints() {
-  const list = $('checkpointList');
-  if (!list) return;
-  list.innerHTML = CHECKPOINTS.map((point, index) => {
-    const label = point[lang];
-    const other = point[lang === 'et' ? 'en' : 'et'];
-    return `<button type="button" class="checkpoint" data-checkpoint="${index}" aria-label="${label}">
-      <span class="cp-index">${String(index + 1).padStart(2, '0')}</span>
-      <span class="cp-label">${label}</span>
-      <span class="cp-alt">${other}</span>
-    </button>`;
-  }).join('');
-}
-
-function chooseCheckpoint(index) {
-  const point = CHECKPOINTS[Number(index)];
-  if (!point) return;
-  resetCaptureInputs();
-  activeCheckpoint = point;
-  setAsset(point.value, '', 'checkpoint');
-  $('assetStampName').textContent = point[lang];
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.getElementById('capture')?.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
-  $('grade3').focus({ preventScroll: true });
-}
 
 
 function setAsset(name, tagId = '', origin = 'typed') {
@@ -1051,15 +1004,10 @@ function bind() {
   $('asset').addEventListener('input', () => {
     currentTag = '';
     currentSource = 'typed';
-    activeCheckpoint = null;
     $('assetStampName').textContent = $('asset').value.trim() || t('untagged');
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
-  });
-  $('checkpointList')?.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-checkpoint]');
-    if (button) chooseCheckpoint(button.dataset.checkpoint);
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('photoBtn').addEventListener('click', () => {
