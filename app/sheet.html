@@ -4,12 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#a30029">
-  <meta name="description" content="Tõend live records: a same-device sheet that follows new checks.">
-  <title>Tõend live records</title>
+  <meta name="description" content="Tõendi leht, mis jälgib uusi kontrolle samas seadmes.">
+  <title>Tõend: elavad kirjed</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
   <style>
+    main { display: block; }
     .sheet-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
     .sheet-head h1 { margin: 0; font: 700 clamp(28px, 5vw, 46px)/.95 var(--display); text-transform: uppercase; letter-spacing: -.02em; }
     .sheet-head p { max-width: 52ch; margin: 10px 0 0; color: var(--muted); font: 400 14px/1.5 var(--mono); }
@@ -51,58 +52,55 @@
   </style>
 </head>
 <body>
-  <a class="skip" href="#sheet-table" data-i18n="skip">Jump to records</a>
+  <a class="skip" href="#sheet-table" data-i18n="skip">Hüppa kirjete juurde</a>
   <header class="topbar">
     <div class="identity">
-      <div class="wordmark">TÕEND<small data-i18n="subtitle">Proof for the production line</small></div>
+      <div class="wordmark">TÕEND<small data-i18n="subtitle">Tõend tootmisliinile</small></div>
     </div>
     <div class="topbar-meta">
-      <span class="tagpill" data-i18n="localOnly">This device</span>
-      <button class="switch" id="langBtn" type="button">EN</button>
+      <span class="tagpill" data-i18n="localOnly">See seade</span>
     </div>
   </header>
 
   <main>
     <div class="sheet-head">
       <div>
-        <h1 data-i18n="title">Live records</h1>
-        <p data-i18n="intro">This page follows new checks on this device. Open the capture app in another tab and append a record. The row appears here without a reload.</p>
+        <h1 data-i18n="title">Elavad kirjed</h1>
+        <p data-i18n="intro">See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.</p>
       </div>
       <div class="sheet-actions">
-        <a href="/" data-i18n="capture">Open capture</a>
-        <a href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit" target="_blank" rel="noopener" data-i18n="sheet_link">Google Sheet</a>
-        <button id="sheetJsonlBtn" type="button" data-i18n="jsonl">JSONL + files</button>
+        <a href="/" data-i18n="capture">Ava salvestus</a>
+        <a href="https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit" target="_blank" rel="noopener" data-i18n="sheet_link">Google Sheets</a>
+        <button id="sheetJsonlBtn" type="button" data-i18n="jsonl">JSONL + failid</button>
       </div>
     </div>
 
     <div class="sheet-status" role="status">
       <span class="live-dot" id="liveDot" aria-hidden="true"></span>
-      <span id="liveText" data-i18n="live">Live</span>
+      <span id="liveText" data-i18n="live">Otse</span>
       <span id="countText"></span>
       <span id="updatedText"></span>
       <span id="exportText"></span>
     </div>
 
     <div class="table-wrap" id="sheet-table">
-      <table aria-label="Live records">
+      <table aria-label="Elavad kirjed">
         <thead>
           <tr>
             <th data-i18n="seq">#</th>
-            <th data-i18n="time">Time</th>
-            <th data-i18n="asset">Asset</th>
-            <th data-i18n="checkpoint">Checkpoint</th>
-            <th data-i18n="verdict">Verdict</th>
-            <th data-i18n="grade">Grade</th>
-            <th data-i18n="proof">Proof</th>
-            <th data-i18n="tier">Tier</th>
-            <th data-i18n="tag">Tag</th>
-            <th data-i18n="note">Note</th>
-            <th data-i18n="hash">Hash</th>
+            <th data-i18n="time">Aeg</th>
+            <th data-i18n="asset">Seade</th>
+            <th data-i18n="checkpoint">Kontrollpunkt</th>
+            <th data-i18n="grade">Hinne</th>
+            <th data-i18n="proof">Tõend</th>
+            <th data-i18n="tag">Silt</th>
+            <th data-i18n="note">Märkus</th>
+            <th data-i18n="hash">Räsikood</th>
           </tr>
         </thead>
         <tbody id="recordsBody"></tbody>
       </table>
-      <div class="empty" id="emptyState" data-i18n="empty">No records yet. Open the capture app and append one.</div>
+      <div class="empty" id="emptyState" data-i18n="empty">Kirjeid veel pole. Ava salvestusleht ja lisa kirje.</div>
     </div>
 
     <dialog id="proofDialog" class="proof-dialog" aria-labelledby="proofTitle">
@@ -114,12 +112,12 @@
       <p id="proofMeta" class="proof-meta"></p>
     </dialog>
 
-    <p class="sheet-foot" data-i18n="foot">Same device only. Records live in this browser. Cross-device sync needs a shared store.</p>
+    <p class="sheet-foot" data-i18n="foot">Salvestatud kontrollid saadetakse Google Sheetsi kirjete lehele. Kirjed jäävad räsiahela jaoks ka sellesse brauserisse.</p>
   </main>
 
   <footer>
-    <span data-i18n="footer">Hack the Future of Food 2026. Tap to prove.</span>
-    <a href="/paper" data-i18n="onePager">One pager</a>
+    <span data-i18n="footer">Hack the Future of Food 2026. Tõenda ühe puudutusega.</span>
+    <a href="/paper" data-i18n="onePager">Üheleht</a>
   </footer>
 
   <script type="module">
@@ -128,45 +126,27 @@
     const CHANNEL = 'toend-records';
 
     const WORDS = {
-      en: {
-        skip: 'Jump to records', subtitle: 'Proof for the production line', localOnly: 'This device',
-        title: 'Live records', intro: 'This page follows new checks on this device. Open the capture app in another tab and append a record. The row appears here without a reload.',
-        capture: 'Open capture', sheet_link: 'Google Sheet', live: 'Live', seq: '#', time: 'Time', asset: 'Asset',
-        checkpoint: 'Checkpoint', verdict: 'Verdict', grade: 'Grade', proof: 'Proof', proof_close: 'Close', tier: 'Tier', tag: 'Tag', note: 'Note',
-        hash: 'Hash', empty: 'No records yet. Open the capture app and append one.',
-        foot: 'Saved checks are sent to the Live tab in Google Sheets. Records also stay in this browser for the hash chain.',
-        footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'One pager',
-        count: (n) => `${n} record${n === 1 ? '' : 's'}`, updated: (s) => `Updated ${s}`,
-        export_empty: 'No records to export yet.', refresh_failed: 'Live refresh failed.', jsonl: 'JSONL + files', jsonl_done: 'JSONL ready.', jsonl_failed: 'JSONL export failed.', attachment_missing: 'Attachment missing, nothing exported.',
-        saveNote: 'Live records'
-      },
-      et: {
-        skip: 'Hüppa kirjete juurde', subtitle: 'Tõend tootmisliinile', localOnly: 'See seade',
-        title: 'Elavad kirjed', intro: 'See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.',
-        capture: 'Ava salvestus', sheet_link: 'Google Sheet', live: 'Otseülekanne', seq: '#', time: 'Aeg', asset: 'Seade',
-        checkpoint: 'Kontrollpunkt', verdict: 'Otsus', grade: 'Hinne', proof: 'Tõend', proof_close: 'Sulge', tier: 'Tase', tag: 'Silt', note: 'Märkus',
-        hash: 'Räsikood', empty: 'Kirjeid veel pole. Ava salvestusleht ja lisa kirje.',
-        foot: 'Salvestatud kontrollid saadetakse Google Sheetsi Live lehele. Kirjed jäävad räsiahela jaoks ka sellesse brauserisse.',
-        footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'Üheleht',
-        count: (n) => `${n} kirjet`, updated: (s) => `Uuendatud ${s}`,
-        export_empty: 'Eksportimiseks pole kirjeid.', refresh_failed: 'Värskendamine ebaõnnestus.', jsonl: 'JSONL + failid', jsonl_done: 'JSONL on valmis.', jsonl_failed: 'JSONL eksport ebaõnnestus.', attachment_missing: 'Manus puudub, midagi ei eksporditud.',
-        saveNote: 'Elavad kirjed'
-      }
+      skip: 'Hüppa kirjete juurde', subtitle: 'Tõend tootmisliinile', localOnly: 'See seade',
+      title: 'Elavad kirjed', intro: 'See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.',
+      capture: 'Ava salvestus', sheet_link: 'Google Sheets', live: 'Otse', seq: '#', time: 'Aeg', asset: 'Seade',
+      checkpoint: 'Kontrollpunkt', grade: 'Hinne', proof: 'Tõend', proof_close: 'Sulge', tag: 'Silt', note: 'Märkus',
+      hash: 'Räsikood', empty: 'Kirjeid veel pole. Ava salvestusleht ja lisa kirje.',
+      foot: 'Salvestatud kontrollid saadetakse Google Sheetsi kirjete lehele. Kirjed jäävad räsiahela jaoks ka sellesse brauserisse.',
+      footer: 'Hack the Future of Food 2026. Tõenda ühe puudutusega.', onePager: 'Üheleht',
+      count: (n) => `${n} kirjet`, updated: (s) => `Uuendatud ${s}`,
+      export_empty: 'Eksportimiseks pole kirjeid.', refresh_failed: 'Värskendamine ebaõnnestus.', jsonl: 'JSONL + failid', jsonl_done: 'JSONL on valmis.', jsonl_failed: 'JSONL eksport ebaõnnestus.', attachment_missing: 'Manus puudub, midagi ei eksporditud.'
     };
 
-    let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
     let records = [];
     let lastSeq = 0;
     const channel = 'BroadcastChannel' in window ? new BroadcastChannel('toend-records') : null;
 
     function t(key, ...args) {
-      const value = WORDS[lang][key] ?? WORDS.en[key] ?? key;
+      const value = WORDS[key] ?? key;
       return typeof value === 'function' ? value(...args) : value;
     }
 
-    function applyLanguage() {
-      document.documentElement.lang = lang;
-      $('langBtn').textContent = lang === 'et' ? 'EN' : 'ET';
+    function applyCopy() {
       document.querySelectorAll('[data-i18n]').forEach((node) => {
         node.textContent = t(node.dataset.i18n);
       });
@@ -222,19 +202,16 @@
 
     function cell(row, value) {
       const td = document.createElement('td');
-      td.textContent = value === null || value === undefined || value === '' ? '—' : String(value);
+      td.textContent = value === null || value === undefined || value === '' ? 'puudub' : String(value);
       return td;
     }
 
     const proofWords = {
-      en: { proof: 'Proof', proof_photo: 'photo', proof_video: 'video', proof_audio: 'voice', proof_none: '—',
-        proof_missing: 'The attachment is not on this device.', proof_open: 'Open the proof', proof_close: 'Close',
-        proof_of: 'Record', loading: 'Loading the attachment...' },
-      et: { proof: 'Tõend', proof_photo: 'pilt', proof_video: 'video', proof_audio: 'hääl', proof_none: '—',
-        proof_missing: 'Manus ei ole selles seadmes.', proof_open: 'Ava tõend', proof_close: 'Sulge',
-        proof_of: 'Kirje', loading: 'Laadin manust...' }
+      proof: 'Tõend', proof_photo: 'pilt', proof_video: 'video', proof_audio: 'hääl', proof_none: 'puudub',
+      proof_missing: 'Manus ei ole selles seadmes.', proof_open: 'Ava tõend', proof_close: 'Sulge',
+      proof_of: 'Kirje', loading: 'Laadin manust...'
     };
-    const proofText = (key) => proofWords[lang]?.[key] ?? proofWords.en[key] ?? key;
+    const proofText = (key) => proofWords[key] ?? key;
 
     let proofKey = 0;
     let proofUrls = [];
@@ -368,15 +345,13 @@
         if (record.seq > previousSeq) row.className = 'fresh';
         row.append(
           cell(row, record.seq),
-          cell(row, record.created_at ? new Date(record.created_at).toLocaleString(lang === 'et' ? 'et-EE' : 'en-GB') : ''),
+          cell(row, record.created_at ? new Date(record.created_at).toLocaleString('et-EE') : ''),
           cell(row, record.asset),
           cell(row, record.checkpoint),
-          cell(row, record.verdict),
           cell(row, record.grade),
           proofCell(record),
-          cell(row, record.tier),
           cell(row, record.tag_sig),
-          cell(row, record.transcript || record.method),
+          cell(row, record.transcript),
           cell(row, record.hash ? record.hash.slice(0, 12) : '')
         );
         row.lastElementChild.classList.add('hash');
@@ -388,7 +363,7 @@
       $('liveDot').classList.remove('pulse');
       void $('liveDot').offsetWidth;
       $('liveDot').classList.add('pulse');
-      $('updatedText').textContent = t('updated', new Date().toLocaleTimeString(lang === 'et' ? 'et-EE' : 'en-GB'));
+      $('updatedText').textContent = t('updated', new Date().toLocaleTimeString('et-EE'));
     }
 
     async function refresh(announce = false) {
@@ -447,11 +422,6 @@
       }
     }
 
-    $('langBtn').addEventListener('click', () => {
-      lang = lang === 'et' ? 'en' : 'et';
-      localStorage.setItem('toend-lang', lang);
-      applyLanguage();
-    });
     $('sheetJsonlBtn').addEventListener('click', exportJsonl);
     $('proofClose').addEventListener('click', closeProof);
     $('proofDialog').addEventListener('close', closeProof);
@@ -465,7 +435,7 @@
     window.addEventListener('focus', () => refresh(true));
     setInterval(() => refresh(false), 2500);
 
-    applyLanguage();
+    applyCopy();
     refresh(false);
   </script>
 </body>
