@@ -127,10 +127,21 @@ if (indexSource.includes('href="taptoprove_ledger.xlsx"') && appSource.includes(
 } else {
   fail("app/index.html: the XLSX workbook download is missing");
 }
-if (indexSource.includes("hygieneGrid") || appSource.includes("hygieneGrid")) {
-  fail("app: the six week hygiene grid is still wired in");
+if (indexSource.includes('id="workbookTable"') && indexSource.includes('id="workbookBody"') && appSource.includes("function renderWorkbook()")) {
+  ok("the landing embeds the workbook records table");
 } else {
-  ok("no six week hygiene grid remains");
+  fail("app: the embedded workbook records table is missing");
+}
+const workbookColumns = ["'seq'", "'created_at'", "'teostaja'", "'evidence'", "'chain_ok'", "'hash'"];
+if (workbookColumns.every((column) => appSource.includes(column)) && appSource.includes("await refreshCount();") && appSource.includes("renderWorkbook();")) {
+  ok("workbook rows follow the saved records with the Excel columns");
+} else {
+  fail("app/app.js: workbook columns or the save refresh is missing");
+}
+if (appSource.includes("recordsChannel?.addEventListener") && appSource.includes("workbookChain(records)")) {
+  ok("the workbook table follows other tabs and verifies the hash chain");
+} else {
+  fail("app/app.js: workbook live update or chain check is missing");
 }
 const stylesSource = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
 
