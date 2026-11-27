@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Three-point picture, no visible C tier
+
+**Decision.** The right-side illustration now shows three grades (3 clean, 2 fault, 1 serious) instead of five stations. The visible "Evidence tier" field is hidden, and the fixed-default card no longer mentions tier C. The underlying tier value is still computed for records.
+
+**Why.** The owner asked for a three-point picture and for the C level to disappear from the capture view.
+
+**Consequence.** No record format or hash chain changed. ET and EN copy were updated together; the verify gate and offline checks still pass.
+
+---
+
 ## 2026-11-27 — Capture screen fills its right side with guidance
 
 **Decision.** The capture section is a two-column card on desktop: the form on the left, a guidance rail on the right with `app/check-flow.svg`, a three-step flow and short cards about the fixed default and offline capture. On narrow screens the rail stacks below the form. All copy is in ET and EN through `data-i18n`, and the new illustration is in the service worker precache (v6).

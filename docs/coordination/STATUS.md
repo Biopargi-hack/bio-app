@@ -7,7 +7,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | bug sweep and flow fixes | feat/flow_bugs | none |
 | @linnudtonisted | OpenCode | review | Continuous speech with 2.5s silence timer | PR #41 (`fix/speech-pause`) | device test |
-| @Pepukarv | OpenCode | review | capture right rail: flow illustration and info cards | feat/info_rail | none |
+| @Pepukarv | OpenCode | review | three-point illustration; C tier hidden | feat/three_points | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 
 ## Demo-critical path
