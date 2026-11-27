@@ -117,6 +117,12 @@ if (indexSource.includes('id="hygieneGrid"') && indexSource.includes('href="tapt
 } else {
   fail("app/index.html: hygiene workbook grid or XLSX download is missing");
 }
+const stylesSource = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
+if (appSource.includes("visibleHygieneWeeks()") && !stylesSource.includes("min-width: 2480px")) {
+ ok("hygiene grid stays compact with a six week window");
+} else {
+ fail("app: hygiene grid still uses the full year width");
+}
 
 const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
 if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetExcelBtn"')) {

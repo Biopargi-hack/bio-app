@@ -738,10 +738,10 @@ input::selection, textarea::selection { background: var(--accent-tint); color: v
 }
 .sample-label { margin: 8px 0 0; font: 400 12px/1.5 var(--mono); color: var(--muted); }
 .sheet-scroll { overflow-x: auto; padding-top: 12px; border-top: 1px solid var(--line); }
-#hygieneTable { width: 100%; min-width: 2480px; border-collapse: collapse; font: 500 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
-#hygieneTable th, #hygieneTable td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+#hygieneTable { width: 100%; min-width: 620px; border-collapse: collapse; font: 500 12px/1.25 var(--mono); font-variant-numeric: tabular-nums; }
+#hygieneTable th, #hygieneTable td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
 #hygieneTable th { font: 600 11px/1 var(--mono); color: var(--muted); text-transform: uppercase; }
-#hygieneTable .cp-col { position: sticky; left: 0; z-index: 1; min-width: 220px; text-align: left; background: var(--paper); }
+#hygieneTable .cp-col { position: sticky; left: 0; z-index: 1; min-width: 170px; max-width: 190px; text-align: left; white-space: normal; background: var(--paper); }
 #hygieneTable thead th { position: sticky; top: 0; background: var(--paper); }
 #hygieneTable .date-cell { color: var(--muted); font-size: 10px; }
 #hygieneTable .good { color: var(--mint); font-weight: 700; }

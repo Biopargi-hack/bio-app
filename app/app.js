@@ -124,9 +124,9 @@ const WORDS = {
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     hygiene_title: 'Hygiene log',
-    hygiene_note: 'The real workbook grid. Weeks N1 to N53, eight checkpoints, grades 3 clean, 2 needs review, 1 not clean.',
+    hygiene_note: 'Last six weeks.',
     hygiene_download: 'Download workbook',
-    hygiene_live: 'Cells fill from records saved on this device. Scroll the table sideways. The workbook file stays the master copy.',
+    hygiene_live: 'Grades: 3 clean, 2 needs review, 1 not clean. Cells fill from records on this device. The full year is in the workbook.',
     hygiene_checkpoint: 'Checkpoint',
     hygiene_date: 'Date',
     hygiene_unavailable: 'Hygiene grid data is unavailable.',
@@ -230,9 +230,9 @@ const WORDS = {
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
     hygiene_title: 'Hügieenipäevik',
-    hygiene_note: 'Päris tööraamatu vaade. Nädalad N1 kuni N53, kaheksa kontrollpunkti ja hinded 3 korras, 2 vajab ülevaatamist, 1 ei ole korras.',
+    hygiene_note: 'Viimased kuus nädalat.',
     hygiene_download: 'Laadi tööraamat alla',
-    hygiene_live: 'Lahtrid täituvad selle seadme kirjetest. Kerige tabelit paremale. Tööraamatu fail jääb peamiseks allikaks.',
+    hygiene_live: 'Hinded: 3 korras, 2 vajab ülevaatamist, 1 ei ole korras. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
     hygiene_checkpoint: 'Kontrollpunkt',
     hygiene_date: 'Kuupäev',
     hygiene_unavailable: 'Hügieenitabeli andmed pole saadaval.',
@@ -865,12 +865,20 @@ function gradeFromRecord(record) {
   return null;
 }
 
+function visibleHygieneWeeks() {
+  const weeks = hygieneData.weeks;
+  const current = `N${isoWeek(new Date())}`;
+  let end = weeks.indexOf(current);
+  if (end < 0) end = weeks.length - 1;
+  return weeks.slice(Math.max(0, end - 5), end + 1);
+}
+
 function renderHygieneGrid() {
   const host = $('hygieneGrid');
   if (!host || !hygieneData) return;
-  const weeks = hygieneData.weeks;
+  const weeks = visibleHygieneWeeks();
   const head = `<tr><th class="cp-col">${t('hygiene_checkpoint')}</th>${weeks.map((week) => `<th>${week}</th>`).join('')}</tr>`;
-  const dates = `<tr><td class="cp-col">${t('hygiene_date')}</td>${weeks.map((week) => `<td class="date-cell">${hygieneData.dates?.[week] || ''}</td>`).join('')}</tr>`;
+  const dates = `<tr><td class="cp-col">${t('hygiene_date')}</td>${weeks.map((week) => `<td class="date-cell">${(hygieneData.dates?.[week] || '').slice(0, 5)}</td>`).join('')}</tr>`;
   const rows = hygieneData.rows.map((label) => {
     const key = label.split('/')[0].trim();
     const cells = weeks.map((week) => {
