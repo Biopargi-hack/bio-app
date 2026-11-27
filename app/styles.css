@@ -284,3 +284,51 @@ footer { padding: 20px clamp(16px, 4vw, 40px); border-top: 1px solid var(--ink);
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* =====================================================================
+   More colorful — richer accents, kept WCAG AA. Additive on top of main.
+   ===================================================================== */
+
+:root {
+  /* richer accent palette */
+  --accent-gold: #B5730C;
+  --accent-gold-bright: #E8A33D;
+  --accent-teal: #0B7C84;
+  --accent-teal-bright: #0E9CA8;
+  --accent-violet: #6D4AD6;
+  --accent-green: #1F9D55;
+  --accent-orange: #E86A2E;
+  /* aliases so shared accent rules read cleanly */
+  --brand: var(--accent);
+  --brand-bright: #E40039;
+  --mint: #0B7A59;
+  --mint-wash: #E7F4EE;
+  --line-strong: #C7CDD1;
+  --red: #C23A2B;
+  --red-wash: #FCECEA;
+}
+
+/* hero soft color wash */
+.hero { background: radial-gradient(1100px 360px at 88% -20%, rgba(31, 94, 255, .10), transparent 60%), radial-gradient(700px 320px at 0% 120%, rgba(14, 156, 168, .10), transparent 60%), linear-gradient(180deg, var(--paper), var(--wash)); }
+.hero-kicker { color: var(--accent-teal); }
+
+/* numbered steps: colorful markers */
+.steps li:nth-child(1) b { color: var(--brand); }
+.steps li:nth-child(2) b { color: var(--accent-teal); }
+.steps li:nth-child(3) b { color: var(--red); }
+.steps li:nth-child(4) b { color: var(--accent-gold); }
+.steps li:nth-child(5) b { color: var(--accent-violet); }
+
+/* card accents */
+.station { border-top: 4px solid var(--brand); }
+.chain { border-top: 4px solid var(--accent-teal); }
+.station .section-head h2 { color: var(--brand); }
+.chain .section-head h2 { color: var(--accent-teal); }
+
+/* colorful pills + sample accent */
+.chain-status { border-left-color: var(--accent-teal); }
+.badge.good, .tagpill.good { color: var(--accent-green); border-color: var(--accent-green); background: var(--mint-wash); }
+.sample { border-top-color: var(--accent-violet); }
+.sample-label { color: var(--accent-violet); }
+.paper-link { color: var(--accent-teal); }
+.wordmark small { color: var(--accent-teal); }
