@@ -142,6 +142,20 @@ function plain(value) {
   return /^[=+\-@]/.test(text) ? `'${text}` : text;
 }
 
+const DISPLAY_VERDICT = {
+  clean: 'puhas',
+  'not clean': 'ei ole puhas',
+  serious: 'tõsine',
+  'cannot sign': 'ei saa allkirjastada'
+};
+const DISPLAY_METHOD = { Rated: 'Hinnatud', Declared: 'Deklareeritud', Visual: 'Visuaalne' };
+const DISPLAY_SOURCE = { link: 'Veebilink', nfc: 'NFC', qr: 'QR-kood' };
+const DISPLAY_LANGUAGE = { 'en-US': 'EN', 'et-EE': 'ET', 'ru-RU': 'RU' };
+function localized(value, map) {
+  const text = plain(value);
+  return map[text] || text;
+}
+
 function hyperlink(url, label) {
   const safeLabel = String(label || 'tõend').replace(/"/g, '""').replace(/[\r\n\t]+/g, ' ');
   return `=HYPERLINK("${url}","${safeLabel}")`;
@@ -208,17 +222,17 @@ async function onRequestPost({ request, env }) {
       plain(record.asset),
       plain(record.checkpoint),
       gradeFor(record),
-      plain(record.verdict),
+      localized(record.verdict, DISPLAY_VERDICT),
       plain(record.reason),
       plain(record.transcript),
-      plain(record.method),
+      localized(record.method, DISPLAY_METHOD),
       plain(record.device_id),
       plain(record.tag_sig),
       evidence,
       plain(record.hash),
       new Date().toISOString(),
-      plain(record.source),
-      plain(record.language || record.speech_lang)
+      localized(record.source, DISPLAY_SOURCE),
+      localized(record.language || record.speech_lang, DISPLAY_LANGUAGE)
     ];
     await appendRow(token, env.SHEET_ID, row);
     return Response.json({ ok: true, seq: record.seq, files: links.length });
