@@ -62,3 +62,5 @@ Format:
 - **2026-11-27 14:38**, Removed the in app NFC reader, card writer and five card kit. Cards are written with a separate tool. Showcase copy is shorter in Estonian and English and names Supabase as the next storage step. Gate reports 19 passed, browser checked at 1280 and 390 with no errors. Owner will use admin merge because the demo needs this live now.
 
 - **2026-11-27 14:52** — Added start_task.mjs and open_pr.mjs so teammates branch from origin/main and open PRs with the four required sections. open_pr.mjs stages only explicit paths. Runbook and PR template updated.
+
+- **2026-11-27 14:54** — PR 32 was admin merged during the hackathon after all checks passed. The workflow helpers are now on main.
