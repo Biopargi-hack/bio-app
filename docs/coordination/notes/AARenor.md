@@ -146,3 +146,5 @@ Format:
 - **2026-11-27 22:02** — Brändilingid nii NFC kui ka landing vaates viivad nüüd https://taptoprove.ee/ lehele. Kirje saatmise olek ja Google Sheetsi ühendus olid juba mainis olemas.
 - **2026-11-28 00:40**: Kirjete lehel eemaldati Otsuse ja Tase veerg ning märkuse varuväli Meetod. Leht on nüüd ainult eestikeelne, keelelülitit ja inglise tekste pole. Sheetsi kirjutaja tõlgib Otsuse, Meetodi, Allika ja Keele eestikeelsetesse väärtustesse. Uus rida ei näita enam inglise sõnu. Service worker tembeldati uuesti.
 - **2026-11-28 00:45**: Kontrollitud. `node scripts/verify.mjs` 57 passed, 0 failed. Peaksel 1280 ja 390 on üheksa eestikeelset veergu, keelelülitit pole, inglise sõnu pole, horisontaalset ülevoolu pole ega konsoolivigu. Märkus näitab sisestatud teksti, mitte Meetodi varuvälja.
+
+- **2026-11-27 22:18** — Kirje saatmisel kirjutab Worker kohe Live, Kirjed ja Hügieen vahekaardile. Tõendite lingid ja äpi hash lähevad Kirjed ritta muutmata, ahel märgitakse kontrollimata, mitte võltsitud. Vanalt kaheminutiliselt ümbersigneerivalt taimerilt loobuti.
