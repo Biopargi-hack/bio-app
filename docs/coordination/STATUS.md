@@ -6,7 +6,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | Removed the six week hygiene grid from the landing page; workbook download stays | `fix/remove_six_weeks` | review |
-| @linnudtonisted | OpenCode | review | Normalize cache hash across Windows and CI | `fix/cache_hash` | none |
+| @linnudtonisted | OpenCode | review | QA: show capture and voice on taptoprove.ee | `fix/show_capture_landing` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove speech language selector | `fix/remove-speech-selector` | device speech test |
 

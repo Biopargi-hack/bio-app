@@ -212,13 +212,13 @@ if (indexHead.includes("dataset.mode") && indexHead.includes("/^nfc\\./")) {
 } else {
   fail("app/index.html: hostname mode script is missing");
 }
-if (stylesForMode.includes('html[data-mode="landing"] #capture') && stylesForMode.includes('html[data-mode="record"] .hero')) {
-  ok("CSS hides the wrong view on each host");
+if (stylesForMode.includes('html[data-mode="landing"] #sheetLink') && stylesForMode.includes('html[data-mode="record"] .hero')) {
+  ok("CSS keeps capture available and hides the wrong view on each host");
 } else {
   fail("app/styles.css: host view rules are missing");
 }
-if (indexSource.includes('href="https://nfc.taptoprove.ee/"') && indexSource.includes('href="#hygieen"')) {
- ok("landing CTA goes to the NFC host and the table link is present");
+if (indexSource.includes('href="#capture"') && indexSource.includes('href="#hygieen"')) {
+ ok("landing CTA goes to capture and the table link is present");
 } else {
   fail("app/index.html: landing CTA or table link is wrong");
 }
