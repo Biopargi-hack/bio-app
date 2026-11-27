@@ -257,16 +257,15 @@
         <h2 id="workbook-title" data-i18n="workbook_title">Tööraamat</h2>
         <a class="link-button ghost small" href="taptoprove_ledger.xlsx" download data-i18n="hygiene_download">Laadi tööraamat alla</a>
       </div>
-      <p class="note" data-i18n="workbook_note">Tööraamatu leht Kirjed, 22 veergu. Rida ilmub siia kohe pärast kontrolli salvestamist. Keri tabelit külgsuunas.</p>
-      <div class="sheet-scroll" id="workbookScroll">
-        <table id="workbookTable" aria-labelledby="workbook-title">
-          <thead>
-            <tr id="workbookHead"></tr>
-          </thead>
-          <tbody id="workbookBody"></tbody>
-        </table>
+      <p class="note" data-i18n="workbook_note">Tööraamatu lehed Hügieen ja Kirjed, samad veerud ja väärtused mis Exceli failis. Salvestus täidab rea kohe. Keri tabelit külgsuunas.</p>
+      <div class="workbook">
+        <div class="workbook-tabs" role="tablist" aria-label="Tööraamat">
+          <button class="workbook-tab" type="button" role="tab" id="wbTabHygiene" aria-controls="wbHygieneScroll" aria-selected="false">Hügieen</button>
+          <button class="workbook-tab" type="button" role="tab" id="wbTabRecords" aria-controls="wbRecordsScroll" aria-selected="true">Kirjed</button>
+        </div>
+        <div class="workbook-scroll" id="wbHygieneScroll" role="tabpanel" aria-labelledby="wbTabHygiene" tabindex="0" hidden></div>
+        <div class="workbook-scroll" id="wbRecordsScroll" role="tabpanel" aria-labelledby="wbTabRecords" tabindex="0"></div>
       </div>
-      <p id="workbookEmpty" class="note" hidden></p>
       <p id="workbookStatus" class="note" role="status"></p>
     </section>
 
