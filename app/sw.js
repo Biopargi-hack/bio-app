@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-53f826b7a227';
+const CACHE = 'tap-to-prove-67b800c49328';
 const ASSETS = [
   './',
   './index.html',
