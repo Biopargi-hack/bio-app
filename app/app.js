@@ -62,6 +62,30 @@ const WORDS = {
     quick_fault_reason: 'Fault chosen from the NFC quick list',
     quick_done: 'Quick record',
     record_added: 'Record',
+    record_one: 'record',
+    record_many: 'records',
+    chain_intact: 'chain intact, append only.',
+    chain_break_prev: 'Break at record',
+    chain_prev_detail: 'previous hash does not match.',
+    chain_break_hash: 'fields no longer match the stored hash.',
+    tamper_demo: 'Demo: record N was edited in a copy. The chain breaks at N. Stored records are untouched.',
+    nfc_unsupported: 'This browser cannot read NFC. Type the asset name or open a QR link with ?asset=...',
+    nfc_armed: 'NFC reader armed. Tap a sticker.',
+    nfc_tap_again: 'Reader armed. Tap a sticker.',
+    nfc_tag_read: 'Tag read',
+    nfc_tagged_asset: 'tagged asset',
+    nfc_tag: 'NFC tag',
+    nfc_permission: 'NFC needs permission and HTTPS',
+    nfc_write_no_reader: 'Write needs a working NFC reader first.',
+    nfc_write_no_asset: 'Type the asset name before writing the tag.',
+    nfc_write_done: 'Wrote to the tag.',
+    nfc_write_failed: 'Tag write failed',
+    q_unsigned: 'Unsigned clean checks',
+    q_tierc: 'Tier C without signature',
+    q_today: 'Everything today',
+    empty_records: 'Nothing here yet. Tap a tag and append a check.',
+    answer_note: 'matching records. Answered in',
+    ms_from_device: 'ms from this device.',
     footer: 'Built for Hack the Future of Food 2026. Tap the sticker, confirm, keep the record.'
   },
   et: {
@@ -119,6 +143,30 @@ const WORDS = {
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
     record_added: 'Kirje',
+    record_one: 'kirje',
+    record_many: 'kirjet',
+    chain_intact: 'ahel terve, ainult lisamine.',
+    chain_break_prev: 'Murdekoht kirjes',
+    chain_break_hash: 'väljad ei ühti salvestatud räsiga.',
+    chain_prev_detail: 'eelmine räs ei ühti.',
+    tamper_demo: 'Demo: kirje N muudeti koopias. Ahel murdub kohas N. Salvestatud kirjed on puutumata.',
+    nfc_unsupported: 'See brauser ei saa NFC silti lugeda. Kirjuta masina nimi või ava QR link parametriga ?asset=...',
+    nfc_armed: 'NFC lugeja on valmis. Puuduta kleepsu.',
+    nfc_tap_again: 'Lugeja on valmis. Puuduta kleepsu.',
+    nfc_tag_read: 'Silt loetud',
+    nfc_tagged_asset: 'märgistatud koht',
+    nfc_tag: 'NFC silt',
+    nfc_permission: 'NFC vajab luba ja HTTPS ühendust',
+    nfc_write_no_reader: 'Silti saab kirjutada ainult töötava NFC lugejaga.',
+    nfc_write_no_asset: 'Kirjuta enne sildile kirjutamist masina nimi.',
+    nfc_write_done: 'Kirjutasime sildile.',
+    nfc_write_failed: 'Sildi kirjutamine ebaõnnestus',
+    q_unsigned: 'Allkirjastamata puhtad kontrollid',
+    q_tierc: 'C tase ilma allkirjata',
+    q_today: 'Kõik tänased',
+    empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
+    answer_note: 'vastavat kirjet. Vastus leiti',
+    ms_from_device: 'ms jooksul seadmest.',
     footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta kleepsu, kinnita puhtus, hoia kirje alles.'
   }
 };
@@ -212,14 +260,14 @@ function checkChain(records) {
     const { hash, ...body } = record;
     const expectedPrev = i === 0 ? '0'.repeat(64) : records[i - 1].hash;
     if (record.prev_hash !== expectedPrev) {
-      return { valid: false, breakSeq: record.seq, message: `Break at record ${record.seq}: previous hash does not match.` };
+      return { valid: false, breakSeq: record.seq, message: `${WORDS[lang].chain_break_prev} ${record.seq}: ${WORDS[lang].chain_prev_detail}` };
     }
     const recomputed = sha256Local(body);
     if (recomputed !== hash) {
-      return { valid: false, breakSeq: record.seq, message: `Break at record ${record.seq}: fields no longer match the stored hash.` };
+      return { valid: false, breakSeq: record.seq, message: `${WORDS[lang].chain_break_prev} ${record.seq}: ${WORDS[lang].chain_break_hash}` };
     }
   }
-  return { valid: true, breakSeq: null, message: `${records.length} ${records.length === 1 ? 'record' : 'records'}, chain intact, append only.` };
+  return { valid: true, breakSeq: null, message: `${records.length} ${records.length === 1 ? WORDS[lang].record_one : WORDS[lang].record_many}, ${WORDS[lang].chain_intact}` };
 }
 
 // Hash check must be synchronous for the demo view, so use a small non-crypto
@@ -445,7 +493,7 @@ function renderRecords(records) {
   const query = $('filter').value.trim().toLowerCase();
   const shown = records.filter((r) => !query || `${r.asset} ${r.checkpoint} ${r.transcript}`.toLowerCase().includes(query));
   if (!shown.length) {
-    host.innerHTML = '<div class="empty-row">Nothing here yet. Tap a tag and append a check.</div>';
+    host.innerHTML = `<div class="empty-row">${WORDS[lang].empty_records}</div>`;
     return;
   }
   host.innerHTML = shown.map((r) => {
@@ -486,7 +534,7 @@ function runQuestion(kind) {
   if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C' && !r.supervisor);
   if (kind === 'today') found = allRecordsCache.filter((r) => r.created_at.slice(0, 10) === today);
   const elapsed = (performance.now() - started).toFixed(1);
-  note('answerNote', `${found.length} matching record(s). Answered in ${elapsed} ms from this device.`);
+  note('answerNote', `${found.length} ${WORDS[lang].answer_note} ${elapsed} ${WORDS[lang].ms_from_device}`);
   $('filter').value = '';
   renderRecords(found);
 }
@@ -508,14 +556,14 @@ function showTamper() {
   }
   demoBreak = allRecordsCache[0].seq;
   const box = $('chainStatus');
-  box.textContent = `Demo: record ${demoBreak} was edited in a copy. The chain breaks at ${demoBreak}. Stored records are untouched.`;
+  box.textContent = WORDS[lang].tamper_demo.replaceAll('N', demoBreak);
   box.classList.add('broken');
   renderRecords(allRecordsCache);
 }
 
 async function initNfc() {
   if (!('NDEFReader' in window)) {
-    note('nfcNote', 'This browser cannot read NFC. Type the asset name or open a QR link with ?asset=...');
+    note('nfcNote', WORDS[lang].nfc_unsupported);
     return;
   }
   const reader = new NDEFReader();
@@ -523,32 +571,32 @@ async function initNfc() {
     await reader.scan();
     reader.onreading = (event) => {
       const text = event.message.records.find((r) => r.recordType === 'text');
-      const value = text ? new TextDecoder().decode(text.data) : 'tagged asset';
-      setAsset(value, 'NFC tag');
-      note('nfcNote', `Tag read: ${value}`);
+      const value = text ? new TextDecoder().decode(text.data) : WORDS[lang].nfc_tagged_asset;
+      setAsset(value, WORDS[lang].nfc_tag);
+      note('nfcNote', `${WORDS[lang].nfc_tag_read}: ${value}`);
     };
     ndefReader = reader;
-    note('nfcNote', 'NFC reader armed. Tap a sticker.');
+    note('nfcNote', WORDS[lang].nfc_armed);
   } catch (error) {
-    note('nfcNote', `NFC needs permission and HTTPS: ${error.message}`, true);
+    note('nfcNote', `${WORDS[lang].nfc_permission}: ${error.message}`, true);
   }
 }
 
 async function writeTag() {
   if (!ndefReader) {
-    note('nfcNote', 'Write needs a working NFC reader first.', true);
+    note('nfcNote', WORDS[lang].nfc_write_no_reader, true);
     return;
   }
   const name = $('asset').value.trim();
   if (!name) {
-    note('nfcNote', 'Type the asset name before writing the tag.', true);
+    note('nfcNote', WORDS[lang].nfc_write_no_asset, true);
     return;
   }
   try {
     await ndefReader.write({ records: [{ recordType: 'text', data: name }] });
-    note('nfcNote', `Wrote "${name}" to the tag.`);
+    note('nfcNote', `${WORDS[lang].nfc_write_done} ${name}`);
   } catch (error) {
-    note('nfcNote', `Tag write failed: ${error.message}`, true);
+    note('nfcNote', `${WORDS[lang].nfc_write_failed}: ${error.message}`, true);
   }
 }
 
@@ -653,7 +701,7 @@ function bind() {
   });
   $('scanBtn').addEventListener('click', () => {
     if (!ndefReader) initNfc();
-    else note('nfcNote', 'Reader armed. Tap a sticker.');
+    else note('nfcNote', WORDS[lang].nfc_tap_again);
   });
   $('writeBtn').addEventListener('click', writeTag);
   $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
