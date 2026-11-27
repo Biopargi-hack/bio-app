@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Illustration palette becomes the site design system
+
+**Decision.** `app/illustration.svg` sets the visual language: A. Le Coq red `#A30029` for primary actions, mint `#0B7A59` for clean states, a `#F3F6F7` soft wash and rounded cards. Colours live as tokens in `app/styles.css`; the showcase and paper form use the same tokens instead of local hex values.
+
+**Why.** The site and the hero illustration told two different visual stories. One token set keeps the product consistent and makes the next UI change a token edit instead of a hunt through inline styles.
+
+**Consequence.** Blue accents are gone. Contrast stays at WCAG AA (8.11:1 for white on red, 13.62:1 for ink on paper); the offline shell and bilingual copy are unchanged.
+
+---
+
 ## 2026-11-27 — Language buttons start listening; no signature field
 
 **Decision.** Tapping ET / RU / EN both selects the language and immediately
