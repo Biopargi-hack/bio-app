@@ -711,7 +711,7 @@ function quickRecord(kind, grade = 0) {
   return guardedWrite('quickNote', async () => {
     const asset = $('asset').value.trim();
     if (!asset) {
-      note('quickNote', lang === 'et' ? 'Puuduta kleepsu või kirjuta masina nimi.' : 'Tap the sticker or type the machine name.', true);
+      note('quickNote', lang === 'et' ? 'Vali liin või puuduta kleepsu.' : 'Select a line or tap the sticker.', true);
       return;
     }
     const isGrade = kind === 'grade';
