@@ -161,9 +161,7 @@
         <div class="panel-head"><h2 id="ruleTitle">Reegel</h2></div>
         <p class="rule" id="ruleOne">Hinne 3 tähendab: kõik on puhas ja korras.</p>
         <p class="rule" id="ruleTwo">Hinne 2 tähendab: koht on must või lekib. Sinna jääb pilt, hääl, video või tekst.</p>
-        <p class="rule" id="ruleThree">Neli korda hinne 2 ja koht läheb automaatselt hindele <b>1</b>. Siis lülitub sisse helirežiim ja videorežiim.</p>
         <div class="rule-state" id="ruleState">Praegu on kõik kohad märkimata, seega korras.</div>
-        <button class="ghost" type="button" id="simulateBtn">Lisa 4 musta märkust</button>
       </section>
     </div>
 
@@ -229,7 +227,6 @@
       line: LINES[Math.floor(i / 25)],
       name: `${LINES[Math.floor(i / 25)]}, koht ${String(i % 25 + 1).padStart(2, '0')}`,
       grade: 3,
-      dirty: 0,
       media: null,
       note: '',
       updated: ''
@@ -247,9 +244,7 @@
         ruleTitle: 'Reegel',
         ruleOne: 'Hinne 3 tähendab: kõik on puhas ja korras.',
         ruleTwo: 'Hinne 2 tähendab: koht on must või lekib. Sinna jääb pilt, hääl, video või tekst.',
-        ruleThree: 'Neli korda hinne 2 ja koht läheb automaatselt hindele 1. Siis lülitub sisse helirežiim ja videorežiim.',
         ruleState: 'Praegu on kõik kohad märkimata, seega korras.',
-        simulate: 'Lisa 4 musta märkust',
         dbTitle: 'Andmed ühes kohas', dbNote: 'Näite andmed on ainult sellel lehel',
         editorTitle: 'Muutja', editorText: 'Lisab märkuse, pildi, hääle, video ja teksti. Vahetab hinde. Näeb kõiki kohti.',
         viewerTitle: 'Vaataja', viewerText: 'Näeb kõiki kohti, hinded ja tõendid. Ei saa andmeid muuta.',
@@ -262,7 +257,6 @@
         dirty: 'must', serious: 'tõsine', clean: 'korras', none: 'märkusi pole',
         viewerOnly: 'Vaataja õigus, muutmist ei võimaldata.', saved: 'Salvestatud', photo: 'pilt', voice: 'hääl 00:04', video: 'video 00:12', text: 'tekst',
         copied: 'Link on kopeeritud.', copyFailed: 'Kopeerimine ei õnnestunud, vali tekst käsitsi.',
-        escalated: 'Hinne 1. Helirežiim ja videorežiim on sisse lülitatud.'
       },
       en: {
         topSubtitle: 'Example and NFC link', backLink: 'Back to app', nfcNav: 'NFC link',
@@ -275,9 +269,7 @@
         ruleTitle: 'Rule',
         ruleOne: 'Grade 3 means everything is clean and in order.',
         ruleTwo: 'Grade 2 means the spot is dirty or leaking. A photo, voice note, video or text stays with it.',
-        ruleThree: 'Four grade 2 marks move the spot to grade 1. Audio mode and video mode switch on.',
         ruleState: 'All spots are unmarked, so all are clean.',
-        simulate: 'Add 4 dirty marks',
         dbTitle: 'All data in one place', dbNote: 'Example data lives only on this page',
         editorTitle: 'Editor', editorText: 'Adds a note, photo, voice note, video and text. Changes the grade. Sees every spot.',
         viewerTitle: 'Viewer', viewerText: 'Sees every spot, grade and proof. Cannot change data.',
@@ -290,7 +282,6 @@
         dirty: 'dirty', serious: 'serious', clean: 'clean', none: 'no notes',
         viewerOnly: 'Viewer role, editing is disabled.', saved: 'Saved', photo: 'photo', voice: 'voice 00:04', video: 'video 00:12', text: 'text',
         copied: 'Link copied.', copyFailed: 'Copy failed, select the text manually.',
-        escalated: 'Grade 1. Audio mode and video mode are on.'
       }
     };
 
@@ -307,7 +298,7 @@
         topSubtitle: 'topSubtitle', backLink: 'backLink', nfcNav: 'nfcNav', heroKicker: 'heroKicker', heroLead: 'heroLead',
         boardNav: 'boardNav', nfcHeroNav: 'nfcHeroNav', boardTitle: 'boardTitle', roleLabel: 'roleLabel', langLabel: 'langLabel',
         boardHint: 'boardHint', selectedTitle: 'selectedTitle', ruleTitle: 'ruleTitle', ruleOne: 'ruleOne', ruleTwo: 'ruleTwo',
-        ruleThree: 'ruleThree', simulateBtn: 'simulate', dbTitle: 'dbTitle', dbNote: 'dbNote', editorTitle: 'editorTitle',
+        dbTitle: 'dbTitle', dbNote: 'dbNote', editorTitle: 'editorTitle',
         editorText: 'editorText', viewerTitle: 'viewerTitle', viewerText: 'viewerText', thPlace: 'thPlace', thLine: 'thLine',
         thGrade: 'thGrade', thProof: 'thProof', thNote: 'thNote', emptyRows: 'emptyRows', nfcTitle: 'nfcTitle',
         stickerNote: 'stickerNote', nfcLead: 'nfcLead', footerNote: 'footerNote', footerLink: 'footerLink'
@@ -350,9 +341,7 @@
       const dirty = CHECKPOINTS.filter((cp) => cp.grade !== 3);
       $('ruleState').textContent = dirty.length === 0
         ? t('ruleState')
-        : CHECKPOINTS.filter((cp) => cp.grade === 1).length > 0
-          ? t('escalated')
-          : `${dirty.length} ${lang === 'et' ? 'kohta vajab tähelepanu' : 'spots need attention'}.`;
+        : `${dirty.length} ${lang === 'et' ? 'kohta vajab tähelepanu' : 'spots need attention'}.`;
       renderRows(dirty);
     }
 
@@ -369,7 +358,7 @@
 
     function renderState() {
       const editable = role === 'muutja';
-      document.querySelectorAll('.grade, .media-btn, #simulateBtn').forEach((el) => { el.disabled = !editable; });
+      document.querySelectorAll('.grade, .media-btn').forEach((el) => { el.disabled = !editable; });
       $('viewerHint').hidden = editable;
       $('editState').textContent = editable ? '' : t('viewerOnly');
     }
@@ -379,9 +368,6 @@
       const cp = CHECKPOINTS[selectedId - 1];
       cp.grade = value;
       cp.updated = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      if (value === 2) cp.dirty += 1;
-      if (cp.dirty >= 4) cp.grade = 1;
-      if (value === 1) cp.dirty = Math.max(cp.dirty, 4);
       cp.note = cp.note || (lang === 'et' ? 'must koht, vaata tõendit' : 'dirty spot, see proof');
       $('editState').textContent = `${t('saved')} ${cp.updated}`;
       select(cp.id);
@@ -414,17 +400,6 @@
     document.querySelectorAll('.grade').forEach((btn) => btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade))));
     document.querySelectorAll('.media-btn').forEach((btn) => btn.addEventListener('click', () => toggleMedia(btn.dataset.media)));
 
-    $('simulateBtn').addEventListener('click', () => {
-      if (role !== 'muutja') return;
-      const cp = CHECKPOINTS[selectedId - 1];
-      cp.dirty = 4;
-      cp.grade = 1;
-      cp.note = lang === 'et' ? 'neli musta märkust, automatiseeritud üleminek' : 'four dirty marks, automatic escalation';
-      cp.media = t('video');
-      cp.updated = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      $('editState').textContent = t('escalated');
-      select(cp.id);
-    });
 
     $('nfcUrl').textContent = NFC_URL;
     $('copyBtn').addEventListener('click', async () => {
