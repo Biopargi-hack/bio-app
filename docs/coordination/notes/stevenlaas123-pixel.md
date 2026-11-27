@@ -21,3 +21,4 @@ Format:
 - **2026-11-27** — Removed slide-like boxes from the landing and recording views, retaining the separate hosts. At the user's request, publishing via an admin merge bypassing review; the owner previously bypassed review twice to ship faster.
 - **2026-11-27** — Reverted the unboxed layout at the user's request, keeping the separate landing and NFC views. Publishing via admin merge without review as requested; the owner previously bypassed review twice to ship faster.
 - **2026-11-27** — Removed the speech-language selector from the NFC capture view; speech starts with the browser language and retains its existing fallback. Publishing via admin merge without review as requested; the owner previously bypassed review twice to ship faster. Physical speech recognition not tested.
+- **2026-11-27** — Removed the line selector from the NFC view; the landing page keeps its manual selector. Physical NFC and offline capture not tested.
