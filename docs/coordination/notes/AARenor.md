@@ -59,3 +59,4 @@ Format:
 - **2026-11-27 14:32** — Reviewed PR 26 for Pepukarv. Checks were green; corrected the SVG title and image alt so they no longer claim a cryptographic signature, which the runbook says is false.
 
 - **2026-11-27 14:43** — PR 26 was admin merged during the hackathon after all checks passed and the illustration copy was corrected. Live deploy verified.
+- **2026-11-27 14:38**, Removed the in app NFC reader, card writer and five card kit. Cards are written with a separate tool. Showcase copy is shorter in Estonian and English and names Supabase as the next storage step. Gate reports 19 passed, browser checked at 1280 and 390 with no errors. Owner will use admin merge because the demo needs this live now.
