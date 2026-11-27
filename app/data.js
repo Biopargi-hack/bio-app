@@ -21,15 +21,15 @@ export function imageHashBits(bits) {
 const PREFERRED_HEADERS = [
   "seq", "created_at", "device_id", "asset", "checkpoint", "method", "verdict",
   "reason", "grade", "tier", "tag_sig", "source", "transcript", "instrument",
-  "language", "speech_lang",
-  "default_assessment",
 ];
+
+const EXCLUDED_HEADERS = new Set(["language", "speech_lang", "default_assessment", "local_seq", "quick", "supervisor"]);
 
 export function recordHeaders(records) {
   const present = new Set();
   for (const record of records ?? []) {
     for (const key of Object.keys(record)) {
-      if (key !== "hash" && !key.endsWith("_hash") && !/^(media|photo|audio)_/.test(key)) present.add(key);
+      if (!EXCLUDED_HEADERS.has(key) && key !== "hash" && !key.endsWith("_hash") && !/^(media|photo|audio)_/.test(key)) present.add(key);
     }
   }
   const ordered = PREFERRED_HEADERS.filter((key) => present.has(key));

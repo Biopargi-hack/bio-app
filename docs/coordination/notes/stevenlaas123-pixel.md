@@ -25,3 +25,4 @@ Format:
 - **2026-11-27** — Publishing the NFC selector removal via admin merge without review at the user's request; the owner previously bypassed review twice to ship faster.
 - **2026-11-27** — Simplified Excel CSV by omitting hashes, media_items and photo thumbnails; stored records and JSONL exports remain unchanged.
 - **2026-11-27** — Publishing the CSV simplification via admin merge without review at the user's request; the owner previously bypassed review twice to ship faster.
+- **2026-11-27** — Removed six requested fields from Excel CSV only; original records remain intact. Publishing via admin merge without review at the user's request; the owner previously bypassed review twice to ship faster.
