@@ -1,4 +1,14 @@
 const $ = (id) => document.getElementById(id);
+const CHECKPOINTS = [
+  { value: 'Wash', et: 'Pesu', en: 'Wash' },
+  { value: 'Filler head', et: 'Täitepea', en: 'Filler head' },
+  { value: 'Valve', et: 'Klapp', en: 'Valve' },
+  { value: 'Drain', et: 'Drenaaž', en: 'Drain' },
+  { value: 'Door', et: 'Uks', en: 'Door' },
+  { value: 'Hand wash sink', et: 'Kätepesu', en: 'Hand wash sink' },
+  { value: 'Crate washer', et: 'Kastipesu', en: 'Crate washer' },
+  { value: 'Syrup room wall', et: 'Siirupiruumi sein', en: 'Syrup room wall' }
+];
 
 const WORDS = {
   en: {
@@ -20,15 +30,14 @@ const WORDS = {
     line_4: 'Line 4',
     line_5: 'Line 5',
     skip: 'Skip to capture',
-    hero_alt: 'Worker taps a waterproof red NFC card on a clean machine; the phone shows a proof card that can only be appended to.',
-    intro_kicker: 'Live demo, records stay on this device',
-    hero_note: 'Tap the card. Say what you did. No photo needed. The record writes itself.',
-    intro_title: 'Hygiene checks documented in two seconds.',
-    intro_body: 'A. Le Coq hygiene checks still end in a paper form. A waterproof NFC card on each place opens the check on the phone. Tap, say what you did, and the record writes itself. When no photo is possible, a fixed default assessment keeps the data complete.',
-    beat1: 'Tap the card',
-    beat2: 'Clean button, done in 2 seconds',
-    beat3: 'Fault button and a fault from the list',
-    beat4: 'No photo? Use the fixed default',
+    hero_note: 'Tap the waterproof sticker, rate the spot 3, 2 or 1, and the check stays on the phone. No paper, no photo needed.',
+    intro_title: 'One tap. The record is there.',
+    flow_tap: 'Tap the NFC sticker',
+    flow_rate: 'Rate 3 clean, 2 dirty, 1 serious',
+    flow_save: 'Record appends with a hash',
+    checkpoints_title: 'Eight places. One habit.',
+    checkpoints_note: 'Choose a checkpoint and the rating view opens with that place already set.',
+    checkpoint_source: 'Chosen checkpoint',
     landing_start: 'Start a check',
     landing_dashboard: 'Open records dashboard',
     landing_count: 'records on this device',
@@ -123,15 +132,14 @@ const WORDS = {
     line_4: 'Liin 4',
     line_5: 'Liin 5',
     skip: 'Liigu salvestamise juurde',
-    hero_alt: 'Töötaja puudutab puhastatud masinal vesikindlat punast NFC-kaarti; telefonis tekib muudatusi näitav, ainult lisatav puhas tõendikaart.',
-    intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
-    hero_note: 'Puuduta kaarti. Ütle, mis tegid. Pilti pole vaja. Kirje kirjutab end ise.',
-    intro_title: 'Hügieenikontroll dokumenteeritakse kahe sekundiga.',
-    intro_body: 'A. Le Coq hügieenikontroll lõppeb praegu pabervormiga. Iga kontrollitava koha NFC kaart avab kontrolli telefonis. Puuduta, ütle, mis tegid, ja kirje kirjutab end ise. Kui pilti ei saa, hoiab fikseeritud hinnang andmed tervena.',
-    beat1: 'Puuduta kaarti',
-    beat2: 'Puhas nupp, valmis 2 sekundiga',
-    beat3: 'Probleeminupp ja viga listist',
-    beat4: 'Pilti ei saa? Kasuta fikseeritud hinnangut',
+    hero_note: 'Puuduta veekindlat kleepsu, hinda koht 3, 2 või 1 ja kontroll jääb telefoni. Pabervormi ega fotot pole vaja.',
+    intro_title: 'Üks puudutus. Kirje on olemas.',
+    flow_tap: 'Puuduta NFC kleepsu',
+    flow_rate: 'Hinda 3 korras, 2 must, 1 tõsine',
+    flow_save: 'Kirje lisandub räsiga',
+    checkpoints_title: 'Kaheksa kohta. Üks rutiin.',
+    checkpoints_note: 'Vali kontrollpunkt ja hindamisvaade avaneb kohe selle kohaga.',
+    checkpoint_source: 'Valitud kontrollpunkt',
     landing_start: 'Alusta kontrolli',
     landing_dashboard: 'Ava kirjete vaade',
     landing_count: 'kirjet sellel seadmel',
@@ -249,6 +257,7 @@ let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
 let currentSource = 'typed';
+let activeCheckpoint = null;
 let dbPromise = null;
 let saving = false;
 let audioToken = 0;
@@ -277,6 +286,8 @@ function applyLanguage() {
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
+  if (activeCheckpoint && currentSource === 'checkpoint' && $('asset').value) $('assetStampName').textContent = activeCheckpoint[lang];
+  renderCheckpoints();
 }
 
 function note(id, text, isError = false) {
@@ -672,14 +683,12 @@ async function guardedWrite(noteId, work) {
   }
 }
 
-async function finishRecord(record, noteId, message) {
+function resetCaptureInputs() {
   if (speechSession) {
     speechSession.stop();
     speechSession = null;
     recognition = null;
   }
-  notifyRecords(record);
-  note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
   setGrade(0);
   spokenLangs = new Set();
@@ -689,6 +698,10 @@ async function finishRecord(record, noteId, message) {
   note('photoNote', t('photo_hint'));
   note('audioNote', t('audio_hint'));
   updateTier();
+}
+
+async function finishRecord(record, noteId, message) {
+  resetCaptureInputs();
   await refreshCount();
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
@@ -744,9 +757,36 @@ async function refreshCount() {
   if ($('landingCount')) $('landingCount').textContent = String(allRecordsCache.length);
 }
 
+function renderCheckpoints() {
+  const list = $('checkpointList');
+  if (!list) return;
+  list.innerHTML = CHECKPOINTS.map((point, index) => {
+    const label = point[lang];
+    const other = point[lang === 'et' ? 'en' : 'et'];
+    return `<button type="button" class="checkpoint" data-checkpoint="${index}" aria-label="${label}">
+      <span class="cp-index">${String(index + 1).padStart(2, '0')}</span>
+      <span class="cp-label">${label}</span>
+      <span class="cp-alt">${other}</span>
+    </button>`;
+  }).join('');
+}
+
+function chooseCheckpoint(index) {
+  const point = CHECKPOINTS[Number(index)];
+  if (!point) return;
+  resetCaptureInputs();
+  activeCheckpoint = point;
+  setAsset(point.value, '', 'checkpoint');
+  $('assetStampName').textContent = point[lang];
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('capture')?.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+  $('grade3').focus({ preventScroll: true });
+}
+
 function sourceLabel() {
   if (currentSource === 'nfc') return currentTag ? `${WORDS[lang].nfc_tag} ${currentTag}` : WORDS[lang].nfc_tag;
   if (currentSource === 'link') return currentTag ? `${WORDS[lang].qr_link} ${currentTag}` : WORDS[lang].qr_link;
+  if (currentSource === 'checkpoint') return WORDS[lang].checkpoint_source;
   return WORDS[lang].no_tag;
 }
 
@@ -917,11 +957,16 @@ function bind() {
   $('asset').addEventListener('input', () => {
     currentTag = '';
     currentSource = 'typed';
+    activeCheckpoint = null;
     $('assetStampName').textContent = $('asset').value.trim() || t('untagged');
     $('assetSource').textContent = sourceLabel();
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
+  });
+  $('checkpointList')?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-checkpoint]');
+    if (button) chooseCheckpoint(button.dataset.checkpoint);
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('photo').addEventListener('change', async (event) => {
