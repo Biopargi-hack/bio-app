@@ -90,6 +90,7 @@ const WORDS = {
     q_unsigned: 'Unsigned clean checks',
     q_tierc: 'Tier C without signature',
     q_today: 'Everything today',
+    q_defaults: 'Fixed defaults',
     empty_records: 'Nothing here yet. Tap a tag and append a check.',
     answer_note: 'matching records. Answered in',
     ms_from_device: 'ms from this device.',
@@ -158,7 +159,7 @@ const WORDS = {
     fault_floor: 'mustus põrandal',
     fault_nophoto: 'foto ei ole võimalik',
     fault_save: 'Salvesta viga',
-    quick_reason: 'Tagged kohas kuulutatud puhas',
+    quick_reason: 'Märgistatud kohas kinnitatud puhas',
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
     record_added: 'Kirje',
@@ -183,6 +184,7 @@ const WORDS = {
     q_unsigned: 'Allkirjastamata puhtad kontrollid',
     q_tierc: 'C tase ilma allkirjata',
     q_today: 'Kõik tänased',
+    q_defaults: 'Fikseeritud hinnangud',
     empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
     answer_note: 'vastavat kirjet. Vastus leiti',
     ms_from_device: 'ms jooksul seadmest.',
@@ -540,10 +542,12 @@ function renderRecords(records) {
     const reuse = r.photo_reuse_of ? `<br>reused photo from record ${r.photo_reuse_of}` : '';
     const origin = r.source || 'typed';
     const card = r.tag_sig ? ` · ${origin} ${escapeHtml(r.tag_sig)}` : '';
+    const defaultMark = r.default_assessment ? ` · <em class="default-flag">${WORDS[lang].default_done}</em>` : '';
+    const reason = r.reason ? ` · ${escapeHtml(r.reason)}` : '';
     return `<div class="record-row">
       <span class="seq">#${r.seq}</span>
       <span class="main"><strong>${escapeHtml(r.asset)} · ${escapeHtml(r.checkpoint)}</strong>
-      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
+      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${defaultMark}${reason} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
       <span class="hash ${broken ? 'broken' : ''}">${r.hash.slice(0, 8)}<br>${broken ? 'BROKEN' : 'ok'}</span>
     </div>`;
   }).join('');
@@ -573,6 +577,7 @@ function runQuestion(kind) {
   if (kind === 'unsigned') found = allRecordsCache.filter((r) => r.verdict === 'clean' && r.tier === 'C' && !r.supervisor);
   if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C' && !r.supervisor);
   if (kind === 'today') found = allRecordsCache.filter((r) => r.created_at.slice(0, 10) === today);
+  if (kind === 'defaults') found = allRecordsCache.filter((r) => r.default_assessment);
   const elapsed = (performance.now() - started).toFixed(1);
   note('answerNote', `${found.length} ${WORDS[lang].answer_note} ${elapsed} ${WORDS[lang].ms_from_device}`);
   $('filter').value = '';
@@ -788,14 +793,14 @@ function drawCip() {
   const height = 150;
   const points = (values, max) => values.map((v, i) => `${(i / (values.length - 1) * (width - 30) + 20).toFixed(1)},${(height - 14 - v / max * (height - 30)).toFixed(1)}`).join(' ');
   $('cipChart').innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="One plausible CIP curve">
-    <line x1="20" y1="${height - 14}" x2="${width - 10}" y2="${height - 14}" stroke="#53676d" stroke-width="1"/>
-    <line x1="20" y1="20" x2="20" y2="${height - 14}" stroke="#53676d" stroke-width="1"/>
-    <polyline points="${points(temps, 90)}" fill="none" stroke="#c23a2b" stroke-width="2.5"/>
-    <polyline points="${points(conductivity, 32)}" fill="none" stroke="#0b7a59" stroke-width="2"/>
-    <text x="24" y="16" font-size="11" font-family="ui-monospace" fill="#53676d">temperature C / conductivity</text>
-    <text x="20" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#53676d">pre rinse</text>
-    <text x="180" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#53676d">caustic hold</text>
-    <text x="380" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#53676d">sanitise</text>
+    <line x1="20" y1="${height - 14}" x2="${width - 10}" y2="${height - 14}" stroke="#666666" stroke-width="1"/>
+    <line x1="20" y1="20" x2="20" y2="${height - 14}" stroke="#666666" stroke-width="1"/>
+    <polyline points="${points(temps, 90)}" fill="none" stroke="#0a0a0a" stroke-width="2.5"/>
+    <polyline points="${points(conductivity, 32)}" fill="none" stroke="#1f5eff" stroke-width="2"/>
+    <text x="24" y="16" font-size="11" font-family="ui-monospace" fill="#666666">temperature C / conductivity</text>
+    <text x="20" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666666">pre rinse</text>
+    <text x="180" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666666">caustic hold</text>
+    <text x="380" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666666">sanitise</text>
   </svg>`;
 }
 

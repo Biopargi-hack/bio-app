@@ -64,6 +64,13 @@ if (appSource.includes("quickRecord('default')") && appSource.includes('default_
   fail("app/app.js: fixed default assessment is missing from records");
 }
 
+// The default assessment must be visible in the audit row and filter.
+if (appSource.includes("kind === 'defaults'") && appSource.includes('class="default-flag"')) {
+  ok("fixed default is visible in the audit view");
+} else {
+  fail("app/app.js: fixed default is not visible in the audit view");
+}
+
 // Manifest: valid JSON and every icon actually exists.
 let manifest = null;
 try {
