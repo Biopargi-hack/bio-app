@@ -182,8 +182,16 @@
           </section>
 
           <div class="voice-controls">
+            <div class="field">
+              <span data-i18n="voice_lang">Speech language</span>
+              <div class="lang-buttons" role="group" aria-label="Speech language">
+                <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
+                <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
+                <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
+              </div>
+            </div>
             <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Räägi</button>
-            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.</p>
+            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vali ET, RU või EN ja vajuta Räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.</p>
           </div>
 
           <label class="field text-field">
