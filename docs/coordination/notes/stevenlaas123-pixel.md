@@ -23,3 +23,5 @@ Format:
 - **2026-11-27** — Removed the speech-language selector from the NFC capture view; speech starts with the browser language and retains its existing fallback. Publishing via admin merge without review as requested; the owner previously bypassed review twice to ship faster. Physical speech recognition not tested.
 - **2026-11-27** — Removed the line selector from the NFC view; the landing page keeps its manual selector. Physical NFC and offline capture not tested.
 - **2026-11-27** — Publishing the NFC selector removal via admin merge without review at the user's request; the owner previously bypassed review twice to ship faster.
+- **2026-11-27** — Simplified Excel CSV by omitting hashes, media_items and photo thumbnails; stored records and JSONL exports remain unchanged.
+- **2026-11-27** — Publishing the CSV simplification via admin merge without review at the user's request; the owner previously bypassed review twice to ship faster.
