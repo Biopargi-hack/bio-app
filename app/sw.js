@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-04ae645ab5ca';
+const CACHE = 'tap-to-prove-226d05007b20';
 const ASSETS = [
   './',
   './index.html',
@@ -18,7 +18,6 @@ const ASSETS = [
   './showcase',
   './sheet',
   './sample_cip.csv',
-  './hygieen.json',
   './taptoprove_ledger.xlsx',
   './fonts/barlow_condensed_600_latin.woff2',
   './fonts/barlow_condensed_600_latin_ext.woff2',
