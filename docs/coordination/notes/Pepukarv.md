@@ -61,3 +61,5 @@ Format:
 - **2026-11-27 19:16** — Finished #96: visual polish (fixed stray hero div, large evidence buttons with icons, clearer save button, selected grade 1/2/3 states, compact place picker) and functionality fixes (manual line selector so a check saves without NFC, chosen media name in the evidence note, and restored the 'record saved' status in finishRecord). Service worker cache hash updated to b2f1bdb11a16. verify 45/45; headless Chrome 390+1280: 13/13, saves with and without NFC, bilingual, no errors or overflow. Per the owner's standing 'just do it' instruction this is shipped with an admin squash merge; I authored it and obtained no separate approval, stated here and in the PR comment.
 
 - **2026-11-27 19:19** — Rebase note for #96: current main had moved through the capture-first and one-view-per-host work. Rebased cleanly; final service worker cache hash 0955b72cb4f4. verify 50/50 and headless Chrome 13/13 in ?view=record mode at 390px and 1280px.
+
+- **2026-11-27 19:21** — Second merge with current main for #90: kept that agent's ET/RU/EN voice row and copy. Final sw cache hash 898a938f8e6f; verify 50/50 and browser 13/13 in ?view=record mode.
