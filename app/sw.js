@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-v1';
+const CACHE = 'tap-to-prove-white-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -9,7 +9,19 @@ const ASSETS = [
   './icon_192.png',
   './icon_512.png',
   './paper.html',
-  './sample_cip.csv'
+  './sample_cip.csv',
+  './fonts/barlow_condensed_600_latin.woff2',
+  './fonts/barlow_condensed_600_latin_ext.woff2',
+  './fonts/barlow_condensed_700_latin.woff2',
+  './fonts/barlow_condensed_700_latin_ext.woff2',
+  './fonts/barlow_condensed_800_latin.woff2',
+  './fonts/barlow_condensed_800_latin_ext.woff2',
+  './fonts/ibm_plex_mono_400_latin.woff2',
+  './fonts/ibm_plex_mono_400_latin_ext.woff2',
+  './fonts/ibm_plex_mono_500_latin.woff2',
+  './fonts/ibm_plex_mono_500_latin_ext.woff2',
+  './fonts/ibm_plex_mono_600_latin.woff2',
+  './fonts/ibm_plex_mono_600_latin_ext.woff2'
 ];
 
 self.addEventListener('install', (event) => {
