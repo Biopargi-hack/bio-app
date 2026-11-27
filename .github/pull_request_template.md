@@ -1,3 +1,5 @@
+Do not use `gh pr create --fill`. Use `node scripts/open_pr.mjs` so this template is filled correctly.
+
 ## What changed
 
 <!-- One paragraph. What behaviour changed, and why. Link the issue. -->
