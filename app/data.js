@@ -21,19 +21,19 @@ export function imageHashBits(bits) {
 const PREFERRED_HEADERS = [
   "seq", "created_at", "device_id", "asset", "checkpoint", "method", "verdict",
   "reason", "grade", "tier", "tag_sig", "source", "transcript", "instrument",
-  "language", "speech_lang", "prev_hash", "hash", "photo_hash", "photo_usable",
-  "photo_reuse_of", "media_hash", "media_mime", "media_size", "media_duration",
-  "audio_hash", "audio_mime", "audio_size", "audio_duration",
-  "default_assessment", "media_missing",
+  "language", "speech_lang",
+  "default_assessment",
 ];
 
 export function recordHeaders(records) {
   const present = new Set();
   for (const record of records ?? []) {
-    for (const key of Object.keys(record)) present.add(key);
+    for (const key of Object.keys(record)) {
+      if (key !== "hash" && !key.endsWith("_hash") && !/^(media|photo|audio)_/.test(key)) present.add(key);
+    }
   }
   const ordered = PREFERRED_HEADERS.filter((key) => present.has(key));
-  const rest = [...present].filter((key) => !ordered.includes(key) && key !== "photo_thumb").sort();
+  const rest = [...present].filter((key) => !ordered.includes(key)).sort();
   return [...ordered, ...rest];
 }
 
