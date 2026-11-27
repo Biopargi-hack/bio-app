@@ -556,6 +556,55 @@ body.grade-mode .pad-actions { display: none; }
 #gradeDone:not([hidden]) ~ #quickNote { display: none; }
 body.grade-mode #faultField,
 body.grade-mode #faultSaveBtn { display: none; }
+body.grade-mode .section-head { display: none; }
+body.grade-mode .station {
+  border-radius: calc(var(--card-radius) + 8px);
+  padding: 30px 24px;
+  text-align: center;
+}
+body.grade-mode .readout {
+  border: 1px solid var(--line);
+  border-bottom: 4px solid var(--accent);
+  border-radius: calc(var(--control-radius) + 10px);
+  padding: 22px 18px;
+  text-align: center;
+}
+body.grade-mode .readout span { font-size: 44px; font-weight: 800; text-wrap: balance; }
+body.grade-mode .proof-pad {
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent);
+  border-radius: calc(var(--card-radius) + 4px);
+  padding: 28px 20px;
+  text-align: center;
+}
+body.grade-mode .pad-title { font-weight: 600; }
+body.grade-mode .pad-prompt { font-size: 38px; font-weight: 800; text-transform: uppercase; text-wrap: balance; }
+body.grade-mode .grade-row { gap: 12px; margin-top: 20px; }
+body.grade-mode .grade-btn {
+  min-height: 64px;
+  border-radius: calc(var(--control-radius) + 8px);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+body.grade-mode .grade-btn[data-grade="3"] { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+body.grade-mode .grade-btn[data-grade="3"]:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+body.grade-mode .grade-btn[data-grade="2"] { background: var(--paper); border-color: var(--accent); color: var(--accent); }
+body.grade-mode .grade-btn[data-grade="1"] { background: var(--accent-dark); border-color: var(--accent-dark); color: var(--paper); }
+body.grade-mode .grade-btn:focus-visible { outline-color: var(--ink); }
+body.grade-mode #gradeCommentField { margin-top: 20px; text-align: center; }
+body.grade-mode #gradeCommentField > span { font-weight: 600; }
+body.grade-mode #gradeComment { min-height: 88px; border-radius: calc(var(--control-radius) + 4px); font-size: 20px; font-weight: 700; }
+body.grade-mode #gradeSaveBtn { min-height: 52px; border-radius: calc(var(--control-radius) + 8px); font-size: 18px; font-weight: 800; }
+body.grade-mode .grade-done {
+  justify-content: center;
+  text-align: center;
+  border: 1px solid var(--mint);
+  border-radius: calc(var(--control-radius) + 8px);
+  padding: 20px;
+}
+body.grade-mode .grade-done strong { font-size: 20px; font-weight: 800; }
+body.grade-mode .grade-done small { font-size: 13px; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }

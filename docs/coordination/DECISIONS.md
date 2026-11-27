@@ -5,6 +5,17 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 NFC view becomes rounder and bolder
+
+**Decision.** The grade view hides the section heading, centres the asset and prompt, and uses larger rounded cards and grade buttons. Grade 3 is filled red, grade 2 is outlined red and grade 1 is filled dark red. Existing tokens drive every radius and colour.
+
+**Why.** The owner asked for a cleaner, rounder, bolder UI with more centred text.
+
+**Consequence.** No record fields or flow changed. The comment stays the only extra input and all dropdowns stay hidden in grade mode.
+
+---
+
+
 ## 2026-11-27: Grade 3 closes the tag, lower grades need a comment
 
 **Decision.** A grade 3 tap saves once and closes the grade flow for that tag. Grades 2 and 1 open one comment field and only save after text is entered. The grade view has no performer field and no dropdown.

@@ -76,3 +76,5 @@ Format:
 - **2026-11-27 16:28** — After an NFC tap the page hides the demo hero, guidance rail, long form and footer. Grade buttons sit directly under the tag readout. A saved grade now shows a clear closed card with record number, hides the old note, and keeps its text correct after language toggle. Verified with verify 20 passed and browser checks at 390px and 1280px.
 
 - **2026-11-27 16:54** — The grade view now needs only a comment for grades 2 and 1. Removed the performer field and its copy, kept all dropdowns hidden in grade mode, and updated the decision and status records.
+
+- **2026-11-27 17:04** — Polished the NFC grade view: hid the section heading, centred the asset and prompt, enlarged and rounded the cards and grade buttons, strengthened type, and filled grade 3 red. Used existing tokens only. Verify 20 passed and browser checks at 390px and 1280px passed.

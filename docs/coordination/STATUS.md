@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | grade lock, comment only, focused NFC view | PR #50 (`feat/grade_lock_comment`) | none |
+| @AARenor | omp | review | comment only, rounder bolder NFC view | PR #50 (`feat/grade_lock_comment`) | none |
 | @linnudtonisted | OpenCode | review | Continuous speech with 2.5s silence timer | PR #41 (`fix/speech-pause`) | device test |
 | @Pepukarv | OpenCode | review | three-point illustration; C tier hidden | feat/three_points | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
