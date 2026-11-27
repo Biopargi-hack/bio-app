@@ -54,9 +54,10 @@ const WORDS = {
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
     speak: 'Speak',
+    voice_lang: 'Speech language',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Press Speak. The mic closes after about 3 seconds of quiet.',
+    audio_hint: 'Tap ET, RU or EN, then speak. The mic closes after about 3 seconds of quiet.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
@@ -71,7 +72,7 @@ const WORDS = {
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak. Each recording adds a new line.',
-    note_hint: 'Speech recognition uses your browser language and may need an internet connection.',
+    note_hint: 'Pick ET, RU or EN above. The recognised text is written here; speech may need an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     take_photo: 'Take photo',
@@ -192,9 +193,10 @@ const WORDS = {
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
     speak: 'Räägi',
+    voice_lang: 'Kõne keel',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta „Räägi“. Mikrofon sulgub umbes 3 sekundi vaikuse järel.',
+    audio_hint: 'Vajuta ET, RU või EN ja räägi. Mikrofon sulgub umbes 3 sekundi vaikuse järel.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -209,7 +211,7 @@ const WORDS = {
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi“. Iga salvestus lisab uue rea.',
-    note_hint: 'Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.',
+    note_hint: 'Vali ülal ET, RU või EN. Äratuntud tekst ilmub siia; kõnetuvastus võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     take_photo: 'Tee foto',
@@ -320,6 +322,15 @@ function speechLabel(code) {
   return SPEECH_LABELS[code] || String(code || '').slice(0, 2).toUpperCase();
 }
 
+function setSpeechLang(code) {
+  speechLang = code;
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    const active = button.dataset.lang === code;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
 
 // One recogniser accepts one language, so the first words choose it.
 function detectSpokenLang(text) {
@@ -370,6 +381,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
+  setSpeechLang(speechLang);
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
@@ -1340,6 +1352,13 @@ function bind() {
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
+  });
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      setSpeechLang(button.dataset.lang);
+      if (speechSession) speechSession.stop();
+      toggleVoice();
+    });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('photoBtn').addEventListener('click', () => {
