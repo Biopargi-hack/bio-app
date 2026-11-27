@@ -76,3 +76,5 @@ Format:
 - **2026-11-27 16:52** — Started NFC machine links task from current origin/main.
 
 - **2026-11-27 16:58** — Added the eight hygiene sheet checkpoints as plain NFC example links in showcase.html under the NFC link section. No select was added. Links use the existing nfc.arle.top pattern and cover Pesu, Täitepea, Klapp, Drenaaž, Uks, Kätepesu, Kastipesu and Siirupituba. Verify passed and desktop plus mobile browser checks showed 8 links with no errors or overflow. This PR was admin merged during the hackathon after checks passed.
+
+- **2026-11-27 17:10** — Changed all showcase NFC example URLs from nfc.arle.top to taptoprove.ee and labelled the demo tags as demo only, since TAP-DEMO-01 to 09 have no physical stickers. Verify passed and desktop plus mobile checks showed 8 taptoprove.ee links with no errors. Live taptoprove.ee still answers with the Zone parking page because DNS still points to ns.zone.eu, though the Cloudflare zone is active. This PR was admin merged during the hackathon after checks passed.
