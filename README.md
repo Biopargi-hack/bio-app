@@ -10,6 +10,8 @@ Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid 
 
 Lahendus on NFC kleepsud. See on nagu viipemakse pangakaardiga, ainult et raha maksmise asemel kinnitad masina puhtuse. Igale tähtsale masinale kleebitakse veekindel NFC kleeps. Töötaja paneb telefoni korraks vastu kleepsu. Ekraanile hüppab eeltäidetud tekst "Kõik on puhas ja korras" ja töötaja vajutab ühte suurt rohelist nuppu KINNITA. Kogu tegevus võtab 2 sekundit. Kui midagi on must, vajutab töötaja punast nuppu, valib listist vea, näiteks "vaht maas", ja teeb võimalusel pildi.
 
+Viis kaarti kirjutatakse rakenduse jaotises "Kirjuta 5 silti". Iga kaart saab oma nime ja allkirja, näiteks T1 4AF2. Silt kannab URL-i `https://nfc.arle.top/?asset=...&tag=...` ja tekstikirjet. Puudutamine avab selle URL-i otse, ilma et rakendus peaks enne lahti olema. Sama saab lugeda ka iPhone'i taustalugeja. Füüsilisel telefonil pole seda veel testitud.
+
 ## Live site
 
 Production: https://nfc.arle.top
@@ -87,7 +89,7 @@ handoffs use the issue template. PR comments are the async conversation.
 
 ## Demo in five beats
 
-1. Give a judge an NFC sticker. They put it on any object, tap it with an Android phone in Chrome, and the asset name appears on the stamp. If NFC is unavailable, use the asset field or a QR link. iPhone browsers cannot write NFC.
+1. Give a judge an NFC sticker. Tap it and the URL opens the app with the asset and signature prefilled. If NFC is unavailable, use the asset field or a QR link. iPhone browsers cannot write NFC through Web NFC.
 2. They press **Hold to speak** and say a check. The transcript fills the structured field. If the browser has no speech recognition, they type it.
 3. They take a deliberately bad photo of a shiny surface. The photo check refuses it and the tier stays C until a usable photo or instrument reading exists.
 4. They ask an audit question from the console, then press **Show tamper break**. The edited copy breaks at the exact record. Stored records are untouched.
@@ -119,4 +121,4 @@ cd app
 python3 -m http.server 8765
 ```
 
-Open `http://localhost:8765`. Web NFC needs HTTPS and Android Chrome, so the live site is the real test for tag reading.
+Open `http://localhost:8765`. Web NFC needs HTTPS and Android Chrome, so the live site is the real test for tag reading. URL tags and iPhone background reading are not device tested yet.
