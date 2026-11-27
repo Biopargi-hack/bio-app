@@ -84,10 +84,6 @@ const WORDS = {
     record_video: 'Filmi video',
     instrument: 'Instrument reading',
     save: 'Append record',
-    excel: 'Excel CSV',
-    excel_empty: 'No records yet. Append one first.',
-    excel_done: 'Excel CSV ready. Rows:',
-    excel_failed: 'Excel export failed.',
     sheet: 'Live records',
     quick_title: 'Document the check',
     quick_prompt: 'Everything is clean and in order',
@@ -144,7 +140,11 @@ const WORDS = {
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     sheet_title: 'Table',
     sheet_open: 'Open in Google Sheets',
-    sheet_note: 'The checks live in Google Sheets. The table opens in a new tab and only people it is shared with can see it.',
+    sheet_note: 'Checks go straight to Google Sheets when online. A failed send retries when the connection returns. The table opens in a new tab.',
+    sync_idle: 'Saved on this device',
+    sync_pending: 'Sending to Google Sheets',
+    sync_done: 'Sent to Google Sheets',
+    sync_failed: 'Waiting to send, check connection',
     landing_table: 'View table',
     paper: 'Print the paper form',
     grade_short: 'grade',
@@ -245,10 +245,6 @@ const WORDS = {
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     save: 'Lisa kirje',
-    excel: 'Excel CSV',
-    excel_empty: 'Kirjeid veel pole. Lisa esmalt üks kirje.',
-    excel_done: 'Excel CSV on valmis. Ridu:',
-    excel_failed: 'Exceli eksport ebaõnnestus.',
     sheet: 'Elavad kirjed',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
@@ -257,7 +253,11 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     sheet_title: 'Tabel',
     sheet_open: 'Ava Google Sheetsis',
-    sheet_note: 'Kontrollid on Google Sheetsis. Tabel avaneb uues aknas ja seda näevad need, kellele see on jagatud.',
+    sheet_note: 'Kontrollid lähevad võrgus olles kohe Google Sheetsi. Ebaõnnestunud saatmine proovib uuesti, kui ühendus naaseb. Tabel avaneb uues aknas.',
+    sync_idle: 'Salvestatud selles seadmes',
+    sync_pending: 'Saadan Google Sheetsi',
+    sync_done: 'Saadetud Google Sheetsi',
+    sync_failed: 'Ootab saatmist, kontrolli ühendust',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
     grade2_word: 'must',
@@ -656,10 +656,121 @@ async function appendRecord(payload, mediaFiles = [], audioBlob) {
       });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
     };
-    tx.oncomplete = () => resolve(record);
+    tx.oncomplete = () => {
+      resolve(record);
+      void pushRecord(record, mediaFiles, audioBlob);
+    };
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error('Record write aborted'));
   });
+}
+
+const SYNC_QUEUE_KEY = 'toend-sync-queue';
+
+function queuedSeqs() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || '[]');
+    return Array.isArray(value) ? value.filter((seq) => Number.isInteger(seq)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function queueSeq(seq) {
+  const queue = queuedSeqs();
+  if (!queue.includes(seq)) queue.push(seq);
+  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
+}
+
+function unqueueSeq(seq) {
+  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queuedSeqs().filter((item) => item !== seq)));
+}
+
+function setSyncStatus(state) {
+  const el = $('syncStatus');
+  if (!el) return;
+  el.textContent = t(state);
+  el.dataset.state = state;
+}
+
+async function mediaBlob(key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction('media', 'readonly').objectStore('media').get(key);
+    request.onsuccess = () => resolve(request.result?.blob || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function syncMedia(record, mediaFiles, audioBlob) {
+  const items = [];
+  for (let position = 0; position < mediaFiles.length; position += 1) {
+    const file = mediaFiles[position];
+    if (!file) continue;
+    const meta = record.media_items?.[position] || {};
+    items.push({
+      name: meta.name || file.name || 'photo',
+      mime: meta.mime || file.type || 'application/octet-stream',
+      kind: meta.kind || 'photo',
+      dataUrl: await mediaDataUrl(file)
+    });
+  }
+  if (audioBlob) {
+    items.push({
+      name: 'haal',
+      mime: record.audio_mime || audioBlob.type || 'audio/webm',
+      kind: 'audio',
+      dataUrl: await mediaDataUrl(audioBlob)
+    });
+  }
+  return items;
+}
+
+async function pushRecord(record, mediaFiles = [], audioBlob = null) {
+  queueSeq(record.seq);
+  setSyncStatus('sync_pending');
+  try {
+    const media = await syncMedia(record, mediaFiles, audioBlob);
+    const response = await fetch('/api/ledger', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ record, media })
+    });
+    if (!response.ok) throw new Error(`sync ${response.status}`);
+    unqueueSeq(record.seq);
+    setSyncStatus('sync_done');
+    return true;
+  } catch (error) {
+    console.warn('Sheets sync failed', error);
+    setSyncStatus('sync_failed');
+    return false;
+  }
+}
+
+async function flushQueue() {
+  const queue = queuedSeqs();
+  if (!queue.length) return;
+  const records = await allRecords();
+  for (const seq of queue) {
+    const record = records.find((item) => item.seq === seq);
+    if (!record) {
+      unqueueSeq(seq);
+      continue;
+    }
+    const specs = Array.isArray(record.media_items) && record.media_items.length
+      ? record.media_items.map((_, position) => `${seq}:media${position ? `:${position}` : ''}`)
+      : record.media_hash ? [`${seq}:media`] : [];
+    const mediaFiles = [];
+    for (const key of specs) {
+      const blob = await mediaBlob(key);
+      if (!blob) continue;
+      const position = specs.indexOf(key);
+      const meta = record.media_items?.[position] || {};
+      mediaFiles.push(new File([blob], meta.name || `media-${key}`, { type: meta.mime || blob.type }));
+    }
+    const audioBlob = await mediaBlob(`${seq}:audio`);
+    await pushRecord(record, mediaFiles, audioBlob);
+  }
 }
 
 async function bitmapFor(file) {
@@ -1700,7 +1811,7 @@ function bind() {
   });
   $('saveBtn').addEventListener('click', saveFromForm);
   $('mediaClearBtn')?.addEventListener('click', () => clearMedia());
-  window.addEventListener('online', updateNetwork);
+  window.addEventListener('online', () => { updateNetwork(); void flushQueue(); });
   window.addEventListener('offline', updateNetwork);
 }
 
@@ -1722,6 +1833,7 @@ async function start() {
   }
   navigator.storage?.persist?.().catch(() => {});
   await refreshCount();
+  void flushQueue();
   await registerServiceWorker();
 }
 

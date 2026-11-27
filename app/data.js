@@ -1,13 +1,6 @@
 // Pure helpers shared by the capture app, the live sheet and the offline gate.
 // No DOM or browser API here, so they can be tested with plain Node.
 
-const FORMULA_PREFIX = /^[=+\-@\t\r]/;
-
-export function csvCell(value) {
-  const text = value === null || value === undefined ? "" : String(value);
-  const safe = FORMULA_PREFIX.test(text) ? `'${text}` : text;
-  return `"${safe.replaceAll('"', '""')}"`;
-}
 
 export function imageHashBits(bits) {
   if (typeof bits !== "string" || bits.length === 0 || /[^01]/.test(bits)) {
@@ -18,24 +11,6 @@ export function imageHashBits(bits) {
   return chunks.map((chunk) => Number.parseInt(chunk, 2).toString(16)).join("").padStart(16, "0");
 }
 
-const PREFERRED_HEADERS = [
-  "seq", "created_at", "device_id", "asset", "checkpoint", "method", "verdict",
-  "reason", "grade", "tier", "tag_sig", "source", "transcript", "instrument",
-];
-
-const EXCLUDED_HEADERS = new Set(["language", "speech_lang", "default_assessment", "local_seq", "quick", "supervisor"]);
-
-export function recordHeaders(records) {
-  const present = new Set();
-  for (const record of records ?? []) {
-    for (const key of Object.keys(record)) {
-      if (!EXCLUDED_HEADERS.has(key) && key !== "hash" && !key.endsWith("_hash") && !/^(media|photo|audio)_/.test(key)) present.add(key);
-    }
-  }
-  const ordered = PREFERRED_HEADERS.filter((key) => present.has(key));
-  const rest = [...present].filter((key) => !ordered.includes(key)).sort();
-  return [...ordered, ...rest];
-}
 
 function zonedDate(iso, timeZone) {
   const parts = new Intl.DateTimeFormat("en-CA", {
