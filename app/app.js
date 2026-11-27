@@ -55,7 +55,7 @@ const WORDS = {
     speak: 'Speak',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Press Speak and talk. The app detects your language from the first words.',
+    audio_hint: 'Tap ET, RU or EN, then speak. The mic closes after about 3 seconds of quiet.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
@@ -70,11 +70,11 @@ const WORDS = {
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak. Each recording adds a new line.',
-    note_hint: 'Press Speak and talk. Estonian, Russian and English are detected from the first words; recognition may need an internet connection.',
+    note_hint: 'Pick ET, RU or EN above. The recognised text is written here; speech may need an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     take_photo: 'Take photo',
-    record_video: 'Record video',
+    record_video: 'Filmi video',
     instrument: 'Instrument reading',
     save: 'Append record',
     excel: 'Excel CSV',
@@ -130,7 +130,7 @@ const WORDS = {
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
     hygiene_note: 'Last six weeks.',
     hygiene_download: 'Download workbook',
-    hygiene_live: 'Grades: 3 clean, 2 needs review, 1 not clean. Cells fill from records on this device. The full year is in the workbook.',
+    hygiene_live: 'Grades: 3 clean, 2 dirty, 1 serious. Cells fill from records on this device. The full year is in the workbook.',
     hygiene_checkpoint: 'Checkpoint',
     hygiene_date: 'Date',
     hygiene_unavailable: 'Hygiene grid data is unavailable.',
@@ -188,7 +188,7 @@ const WORDS = {
     speak: 'Räägi',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta „Räägi“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.',
+    audio_hint: 'Vajuta ET, RU või EN ja räägi. Mikrofon sulgub umbes 3 sekundi vaikuse järel.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -203,7 +203,7 @@ const WORDS = {
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi“. Iga salvestus lisab uue rea.',
-    note_hint: 'Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.',
+    note_hint: 'Vali ülal ET, RU või EN. Äratuntud tekst ilmub siia; kõnetuvastus võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     take_photo: 'Tee foto',
@@ -224,7 +224,7 @@ const WORDS = {
     tamper: 'Näita ahela murdu',
     hygiene_note: 'Viimased kuus nädalat.',
     hygiene_download: 'Laadi tööraamat alla',
-    hygiene_live: 'Hinded: 3 korras, 2 vajab ülevaatamist, 1 ei ole korras. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
+    hygiene_live: 'Hinded: 3 korras, 2 must, 1 tõsine. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
     hygiene_checkpoint: 'Kontrollpunkt',
     hygiene_date: 'Kuupäev',
     hygiene_unavailable: 'Hügieenitabeli andmed pole saadaval.',
@@ -310,6 +310,15 @@ function speechLabel(code) {
   return SPEECH_LABELS[code] || String(code || '').slice(0, 2).toUpperCase();
 }
 
+function setSpeechLang(code) {
+  speechLang = code;
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    const active = button.dataset.lang === code;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
 // One recogniser accepts one language, so the first words choose it.
 function detectSpokenLang(text) {
   const value = String(text || '');
@@ -359,6 +368,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
+  setSpeechLang(speechLang);
   renderHygieneGrid();
   renderMediaPreview();
   showMediaNote();
@@ -1025,6 +1035,7 @@ function gradeFromRecord(record) {
   if (record.verdict === 'clean') return 3;
   if (record.verdict === 'not clean') return 2;
   if (record.verdict === 'serious') return 1;
+  if (record.verdict === 'cannot sign') return 2;
   return null;
 }
 
@@ -1183,7 +1194,10 @@ function startSpeechSession(langCode, handlers) {
   recognition.onerror = (event) => {
     if (session.finished) return;
     const retried = handlers.onUnsupported?.(event.error) ?? false;
-    if (retried) return;
+    if (retried) {
+      stopRecognition();
+      return;
+    }
     finish();
     speechErrorNote(event.error);
   };
@@ -1263,6 +1277,11 @@ function startAutoSpeechSession(handlers) {
 }
 
 function toggleVoice() {
+  const resetVoiceUI = () => {
+    speechSession = null;
+    $('voiceBtn').classList.remove('listening');
+    $('voiceBtn').textContent = t('speak');
+  };
   if (speechSession) {
     speechSession.stop();
     return;
@@ -1271,15 +1290,24 @@ function toggleVoice() {
     note('audioNote', t('speech_unsupported'), true);
     return;
   }
-  speechSession = startAutoSpeechSession({
+  const langCode = speechLang;
+  speechSession = startSpeechSession(langCode, {
     onText: (text) => appendSpoken(text),
-    onDone: () => {
-      speechSession = null;
-      $('voiceBtn').classList.remove('listening');
-      $('voiceBtn').textContent = t('speak');
-    }
+    onUnsupported: (error) => {
+      if (langCode === SPEECH_FALLBACK) return false;
+      if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
+      setSpeechLang(SPEECH_FALLBACK);
+      note('audioNote', t('speech_fallback'));
+      speechSession = startSpeechSession(SPEECH_FALLBACK, {
+        onText: (text) => appendSpoken(text),
+        onDone: resetVoiceUI
+      });
+      if (!speechSession) resetVoiceUI();
+      return true;
+    },
+    onDone: resetVoiceUI
   });
-  if (speechSession.finished) return;
+  if (!speechSession) return;
   $('voiceBtn').classList.add('listening');
   $('voiceBtn').textContent = t('listening');
   note('audioNote', t('listening'));
@@ -1335,6 +1363,17 @@ function bind() {
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
+  });
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      setSpeechLang(button.dataset.lang);
+      if (speechSession) speechSession.stop();
+      if (audioRecorder) {
+        note('audioNote', t('audio_stop_first'), true);
+        return;
+      }
+      toggleVoice();
+    });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('photoBtn').addEventListener('click', () => {

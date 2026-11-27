@@ -5,10 +5,10 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | doing | Photo and video preview, Proof column, table media links | `feat/media_preview_link` | device tap test |
-| @linnudtonisted | OpenCode | review | Speech-to-text: detect language from first words | `fix/speech-to-text`, issue #44 | device test |
+| @AARenor | omp | review | Photo and video preview, Proof column, table media links | PR #105 | device tap test |
+| @linnudtonisted | OpenCode | review | ET/RU/EN voice buttons; Filmi video copy | `fix/voice_language_detect` | device test |
 | @Pepukarv | OpenCode | review | Remove 'Kaheksa kohta. Üks rutiin.' heading from landing | #70, fix/remove_checkpoints_title | none |
-| @stevenlaas123-pixel | omp | review | Redesign capture-first interface | `feat/interface-redesign-current`, issue #92 | device test |
+| @stevenlaas123-pixel | omp | review | Restore prior layout | `fix/restore-previous-layout` | device test |
 
 ## Demo-critical path
 

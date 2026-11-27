@@ -216,8 +216,8 @@ if (stylesForMode.includes('html[data-mode="landing"] #capture') && stylesForMod
 } else {
   fail("app/styles.css: host view rules are missing");
 }
-if (indexSource.includes('href="https://nfc.taptoprove.ee/"') && !indexSource.includes('href="#hygieen"')) {
-  ok("landing CTA goes to the NFC host and the table link is gone");
+if (indexSource.includes('href="https://nfc.taptoprove.ee/"') && indexSource.includes('href="#hygieen"')) {
+ ok("landing CTA goes to the NFC host and the table link is present");
 } else {
   fail("app/index.html: landing CTA or table link is wrong");
 }

@@ -41,6 +41,7 @@
         <h1 id="intro-title" data-i18n="intro_title">Hügieenikontroll ühe puudutusega.</h1>
         <p class="hero-note" data-i18n="hero_note">NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.</p>
         <a class="link-button primary" href="https://nfc.taptoprove.ee/" data-i18n="landing_start">Proovi kontrolli</a>
+        <a class="link-button ghost" href="#hygieen" data-i18n="landing_table">Vaata tabelit</a>
         <p class="hero-proof" data-i18n="hero_proof">Pabervormi ega fotot pole vaja.</p>
     </section>
 
@@ -68,8 +69,16 @@
           </section>
 
           <div class="voice-controls">
+            <div class="field">
+              <span data-i18n="voice_lang">Speech language</span>
+              <div class="lang-buttons" role="group" aria-label="Speech language">
+                <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
+                <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
+                <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
+              </div>
+            </div>
             <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Räägi</button>
-            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta „Räägi“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.</p>
+            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta ET, RU või EN ning räägi. Mikrofon sulgub umbes 3 sekundi vaikuse järel.</p>
           </div>
 
           <label class="field text-field">
@@ -141,7 +150,7 @@
       <div class="sheet-scroll">
         <div id="hygieneGrid"></div>
       </div>
-      <p class="note" data-i18n="hygiene_live">Hinded: 3 korras, 2 vajab ülevaatamist, 1 ei ole korras. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.</p>
+      <p class="note" data-i18n="hygiene_live">Hinded: 3 korras, 2 must, 1 tõsine. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.</p>
       <p id="hygieneUnmapped" class="note"></p>
     </section>
 

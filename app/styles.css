@@ -749,6 +749,42 @@ input::selection, textarea::selection { background: var(--accent-tint); color: v
   .sample-sheet .section-head { display: block; }
   .sample-sheet .link-button { margin-top: 12px; }
 }
+@media (max-width: 560px) {
+  .sheet-scroll { overflow: visible; border-top: 0; padding-top: 0; }
+  #hygieneTable { min-width: 0; border-collapse: separate; border-spacing: 0 8px; }
+  #hygieneTable thead { display: none; }
+  #hygieneTable tbody { display: block; }
+  #hygieneTable tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+  }
+  #hygieneTable tbody th {
+    grid-column: 1 / -1;
+    position: static;
+    min-width: 0;
+    max-width: none;
+    padding: 0 0 4px;
+    border: 0;
+    font-size: 12px;
+  }
+  #hygieneTable tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 11px;
+  }
+  #hygieneTable tbody td::before { content: attr(data-week) " "; color: var(--muted); font-size: 10px; }
+  #hygieneTable tbody td:empty::after { content: "·"; color: var(--muted); }
+}
 
 
 /* A compact work surface: capture first, supporting information below. */
@@ -858,6 +894,11 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   main { grid-template-columns: 1fr; }
   .sample-sheet, .explainer, .how, .benefits { grid-column: auto; }
 }
+@media (max-width: 720px) {
+  .topbar { position: static; }
+  .nav-shell { padding-left: 14px; gap: 8px; }
+  .nav-cta { padding: 0 12px; }
+}
 @media (max-width: 560px) {
   .nav-shell { min-height: 64px; gap: 8px; }
   .nav-brand { font-size: 19px; }
@@ -871,16 +912,14 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   .hero-quiet { margin-left: 10px; }
 }
 
-/* One host, one view. Landing describes, NFC host records. Neither shows a table. */
+/* Both hosts show the hygiene table; only the NFC host records. */
 html[data-mode="landing"] #capture,
-html[data-mode="landing"] #hygieen,
 html[data-mode="landing"] #sheetLink,
 html[data-mode="landing"] a[href="#capture"] { display: none !important; }
 
 html[data-mode="record"] .hero,
 html[data-mode="record"] #explainer,
 html[data-mode="record"] #how,
-html[data-mode="record"] #hygieen,
 html[data-mode="record"] .benefits,
 html[data-mode="record"] .nav-links,
 html[data-mode="record"] .nav-cta,
