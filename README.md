@@ -12,6 +12,8 @@ Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid 
 
 Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti ja saab eeltäidetud vaate "Kõik on puhas ja korras". Kiirnupud 3, 2 ja 1 salvestavad hinnangu mõne sekundiga. Kui pilti ei saa, kasutatakse nuppu "Pilti ei saa? Kasuta fikseeritud hinnangut". Kirje saab fikseeritud põhjuse ja tase C, aga andmed jäävad täielikuks ja jälgitavaks. Kui midagi on must, valitakse viga listist ja tehakse võimalusel pilt.
 
+Kui sama kontrollkoha neli järjestikust hinnangut on 2, salvestatakse neljas hindena 1. Esialgne valik ja automaatse muutmise põhjus jäävad kirjesse; arvestus põhineb sama seadme kirjetel ning järgmine hinnang alustab uut jada.
+
 Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://taptoprove.ee/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
 
 ## Live site
