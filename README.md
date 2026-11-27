@@ -20,7 +20,7 @@ Pull requests get their own preview URL printed in the Action log. Branch name b
 
 ## Four contributors
 
-The org default repository permission is **write**, so every accepted org member can push to `main`. Three invitations were sent from the org on 27 November. A friend must accept their GitHub invitation once before they can push. Nothing else is required from them.
+The repository is public and `main` is protected: every change lands through a pull request with one approval from `@Biopargi-hack/crew` and green `verify` + `pr-notes` checks. Squash merge only; force pushes are blocked. Admins can bypass in a demo emergency and must note it afterwards.
 
 Suggested split, from the selected idea:
 
@@ -36,11 +36,16 @@ To contribute:
 ```bash
 git clone https://github.com/Biopargi-hack/bio-app.git
 cd bio-app
+git switch -c feat/your-change
 # edit files in app/
-git add -A
-git commit -m "what changed"
-git push origin main
+node scripts/verify.mjs
+git add -A && git commit -m "feat(app): what changed"
+git push -u origin feat/your-change
+gh pr create --fill
 ```
+
+Then update your row in `docs/coordination/STATUS.md`, append a note with
+`node scripts/note.mjs "..."`, and squash-merge once checks are green.
 
 Watch the deploy in the Actions tab, then reload the live site once. A warm phone or laptop picks up the new files on that reload. Add `?asset=filler%20head` to the URL to open a QR linked asset.
 
@@ -54,9 +59,31 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Synthetic CIP month, labelled on screen |
 | `app/paper.html` | Printable paper form for the timed comparison |
+| `scripts/verify.mjs` | Dependency-free gate: syntax, links, manifest, precache, secrets |
+| `scripts/note.mjs` | Append a session note to your coordination file |
+| `docs/coordination/` | Status board, per-person notes, decisions, agent brief |
+| `AGENTS.md` | Operating rules for humans and AI agents |
 | `.github/workflows/deploy.yml` | Deploy on every push and pull request |
+| `.github/workflows/ci.yml` | `verify` and `pr-notes` checks on every pull request |
 
 No npm dependencies, no build command. Plain files go straight to Pages.
+
+## Checks
+
+`node scripts/verify.mjs` runs locally and in CI. It checks that JavaScript
+parses, the manifest is valid and its icons exist, every local link resolves,
+the service worker only precaches real files, and no secret is committed.
+
+`pr-notes` fails a pull request whose description is missing any of the four
+template sections: what changed, verification, not tested, handoff.
+
+## Working together
+
+Four people, four agents. Start with `AGENTS.md`, the live board in
+`docs/coordination/STATUS.md`, and the copy-paste prompt in
+`docs/coordination/AGENT-BRIEF.md`. Notes are one file per handle, so agents
+never edit the same lines. Decisions go in `docs/coordination/DECISIONS.md`, and
+handoffs use the issue template. PR comments are the async conversation.
 
 ## Demo in five beats
 

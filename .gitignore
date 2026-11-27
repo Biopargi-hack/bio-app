@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+
+# local environment and secrets
+.env
+.env.local
+.env.*.local
+
+# tooling
+node_modules/
+.wrangler/
+.playwright/
+
+# editors
+.idea/
+.vscode/
