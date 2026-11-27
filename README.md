@@ -97,10 +97,10 @@ handoffs use the issue template. PR comments are the async conversation.
 ## Demo in five beats
 
 1. Give a judge an NFC sticker written with your own NFC tool. Tap it and the URL opens with the asset and card ID prefilled and grade buttons 3, 2 and 1 ready. If NFC is unavailable, use the asset field or a QR link. iPhone background reading is not device tested.
-2. They press grade 3, 2 or 1. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
+2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
 4. Use the line dropdown or tap a sticker, then append one record. Show the queued count on the device.
-5. Open the live sheet in a second tab from the footer link. Press a grade in the capture tab and watch the new row appear in the sheet without a reload. Press Excel CSV in the sheet to download current records, then print the paper form and time five checks against the app.
+5. Open the live sheet in a second tab from the footer link. Press a grade in the capture tab, then press Append record. The new row appears in the sheet without a reload. Press Excel CSV in the sheet to download current records, then print the paper form and time five checks against the app.
 
 ## What is real and what is sample
 
