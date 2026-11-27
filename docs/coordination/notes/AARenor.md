@@ -64,3 +64,5 @@ Format:
 - **2026-11-27 14:52** — Added start_task.mjs and open_pr.mjs so teammates branch from origin/main and open PRs with the four required sections. open_pr.mjs stages only explicit paths. Runbook and PR template updated.
 
 - **2026-11-27 14:54** — PR 32 was admin merged during the hackathon after all checks passed. The workflow helpers are now on main.
+
+- **2026-11-27 15:10** — AGENTS.md and AGENT-BRIEF.md now bind agents to start_task.mjs and open_pr.mjs with explicit paths. open_pr.mjs fetches origin and refuses branches behind origin/main, so a merged branch cannot be reused. The repo already deletes head branches on merge. This PR was admin merged during the hackathon after all checks passed.

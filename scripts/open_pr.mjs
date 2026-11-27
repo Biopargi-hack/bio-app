@@ -92,6 +92,16 @@ if (dryRun) {
 const branch = text("git", ["branch", "--show-current"]);
 if (!branch || branch === "main") fail("Work in a task branch, not main. Use scripts/start_task.mjs.");
 
+out("git", ["fetch", "origin"]);
+try {
+  execFileSync("git", ["merge-base", "--is-ancestor", "origin/main", "HEAD"], {
+    cwd: root,
+    stdio: "pipe",
+  });
+} catch {
+  fail("This branch is behind origin/main. Do not reuse a merged branch. Start a fresh one with node scripts/start_task.mjs.");
+}
+
 const staged = text("git", ["diff", "--cached", "--name-only"]);
 if (staged) fail("The index has staged files. Unstage them first so only the listed paths are committed.");
 
