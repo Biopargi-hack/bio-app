@@ -7,7 +7,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | demo | challenge 3 copy and fixed no photo default | feat/challenge_three | none |
 | @linnudtonisted | OpenCode | review | ET/RU/EN buttons start capture; no signature field | `fix/voice-buttons-supervisor` | device test |
-| @Pepukarv | OpenCode | idle | illustration style shipped via PR 34 (admin merge) | — | — |
+| @Pepukarv | OpenCode | review | Dribbble-inspired full UX pass; headless checked | feat/dribbble_ux | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 
 ## Demo-critical path
