@@ -42,11 +42,15 @@ const WORDS = {
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
     audio_unsupported: 'This browser cannot record audio.',
+    speech_unsupported: 'This browser cannot turn speech into text. Type the note or record a voice clip.',
+    speech_lang_unsupported: 'Speech recognition does not support this language here. Try another language or type the note.',
+    speech_stopped: 'Voice stopped',
+    listening: 'Listening... tap to stop',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
-    note_hint: 'Pick ET, RU or EN, then speak. The app writes the text in the language it hears.',
+    note_hint: 'Tap ET, RU or EN to speak. The app writes the text in the language it hears.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
@@ -55,7 +59,6 @@ const WORDS = {
     audio_badge: 'Voice note',
     instrument: 'Instrument reading',
     tier: 'Evidence tier',
-    supervisor: 'Supervisor signature',
     save: 'Append record',
     ledger_title: 'Traceable dataset',
     chain_empty: 'No records yet. The first one starts the chain.',
@@ -159,11 +162,15 @@ const WORDS = {
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
+    speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst või salvesta häälmärkus.',
+    speech_lang_unsupported: 'Kõnetuvastus ei toeta siin seda keelt. Proovi teist keelt või kirjuta tekst.',
+    speech_stopped: 'Kõnetuvastus peatus',
+    listening: 'Kuulan… vajuta peatamiseks',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
-    note_hint: 'Vali ET, RU või EN ja räägi. Rakendus kirjutab teksti selles keeles, mida ta kuuleb.',
+    note_hint: 'Vajuta ET, RU või EN ja räägi. Rakendus kirjutab teksti selles keeles, mida ta kuuleb.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     evidence: 'Foto või video tõend',
@@ -172,7 +179,6 @@ const WORDS = {
     audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     tier: 'Tõendi tase',
-    supervisor: 'Vastutaja allkiri',
     save: 'Lisa kirje',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
@@ -618,17 +624,7 @@ async function saveRecord() {
   const tier = tierFor();
   const verdict = $('verdict').value;
   const reason = tier === 'C' ? t('default_reason') : '';
-  const supervisor = $('supervisor').value.trim();
   const instrument = $('instrument').value.trim();
-
-  if (verdict === 'cannot sign' && supervisor) {
-    note('saveNote', 'Cannot sign: remove the supervisor signature.', true);
-    return;
-  }
-  if (tier === 'C' && verdict !== 'cannot sign' && !supervisor) {
-    note('saveNote', 'Tier C needs a supervisor signature.', true);
-    return;
-  }
 
   const previous = photoState ? reusedPhoto(photoState.hash) : null;
   const effectiveTier = previous ? 'C' : tier;
@@ -642,7 +638,7 @@ async function saveRecord() {
     transcript,
     tier: effectiveTier,
     reason,
-    supervisor: verdict === 'cannot sign' ? '' : supervisor,
+    supervisor: '',
     instrument,
     photo_hash: photoState?.hash || '',
     photo_thumb: photoState?.thumb || '',
@@ -661,7 +657,6 @@ async function finishRecord(record, noteId, message) {
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
   spokenLangs = new Set();
-  $('supervisor').value = '';
   $('instrument').value = '';
   $('photo').value = '';
   photoState = null;
@@ -791,8 +786,8 @@ function runQuestion(kind) {
   const started = performance.now();
   const today = new Date().toISOString().slice(0, 10);
   let found = [];
-  if (kind === 'unsigned') found = allRecordsCache.filter((r) => r.verdict === 'clean' && r.tier === 'C' && !r.supervisor);
-  if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C' && !r.supervisor);
+  if (kind === 'unsigned') found = allRecordsCache.filter((r) => r.verdict === 'clean' && r.tier === 'C');
+  if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C');
   if (kind === 'today') found = allRecordsCache.filter((r) => r.created_at.slice(0, 10) === today);
   if (kind === 'defaults') found = allRecordsCache.filter((r) => r.default_assessment);
   if (kind === 'media') found = allRecordsCache.filter((r) => r.media_hash || r.audio_hash);
@@ -982,7 +977,7 @@ function speechRecognition() {
 function toggleVoice() {
   const Recognition = speechRecognition();
   if (!Recognition) {
-    note('audioNote', t('audio_unsupported'), true);
+    note('audioNote', t('speech_unsupported'), true);
     return;
   }
   if (recognition) {
@@ -1006,7 +1001,13 @@ function toggleVoice() {
     appendSpoken(text, langCode);
   };
   recognition.onerror = (event) => {
-    note('audioNote', `Voice stopped: ${event.error}`, true);
+    if (event.error === 'language-not-supported' || event.error === 'language-unavailable') {
+      note('audioNote', t('speech_lang_unsupported'), true);
+    } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      note('audioNote', t('audio_denied'), true);
+    } else {
+      note('audioNote', `${t('speech_stopped')}: ${event.error}`, true);
+    }
     recognition = null;
     $('voiceBtn').classList.remove('listening');
     $('voiceBtn').textContent = t('speak');
@@ -1018,7 +1019,7 @@ function toggleVoice() {
   };
   recognition.start();
   $('voiceBtn').classList.add('listening');
-  $('voiceBtn').textContent = t('audio_recording');
+  $('voiceBtn').textContent = t('listening');
 }
 
 async function toggleAudio() {
@@ -1185,7 +1186,11 @@ function bind() {
         audioRecognition.stop();
         audioRecognition = null;
       }
-      note('audioNote', `${t('voice_lang')}: ${button.textContent}`);
+      if (audioRecorder) {
+        note('audioNote', t('audio_stop_first'), true);
+        return;
+      }
+      toggleVoice();
     });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);

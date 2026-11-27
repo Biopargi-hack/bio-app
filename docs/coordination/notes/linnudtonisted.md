@@ -21,3 +21,5 @@ Format:
 - **2026-11-27 13:41** — Fix #14 after rebase onto main #17/#18/#20: precache real ./showcase.html and bump cache to v4 so offline shell installs; kept grade marks alongside media/speech marks.
 
 - **2026-11-27 14:04** — Issue #22: replaced voice-language dropdown with ET/RU/EN buttons (ET default); transcript-based language detection stored in speech_lang; removed reason field and use fixed default for tier C. verify 19/19; Playwright tested RU/EN/ET speech, reason absent, tier C save, offline, 390px/desktop. Real speech recognition not device-tested.
+
+- **2026-11-27 14:17** — Issue #24: ET/RU/EN buttons now start speech recognition directly; clear bilingual messages for unsupported browser/language/permission; removed supervisor signature field and its tier C validation. verify 19/19; Playwright tested all three buttons, main speak button, tier C save without signature, offline, 390px/desktop and unsupported-browser path. Real speech not device-tested.
