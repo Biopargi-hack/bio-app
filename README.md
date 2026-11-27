@@ -8,7 +8,7 @@ The idea: a sticker goes on every checked place, not only the wash. Tap it, say 
 
 Production: https://toend.arle.top
 
-Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins.
+Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins. The app shell is network first: a reload fetches the newest files, and an offline device falls back to the cached shell.
 
 Pull requests get their own preview URL printed in the Action log. Branch name becomes `preview-pr-N`, so four people can work at once without waiting for each other.
 
@@ -36,7 +36,7 @@ git commit -m "what changed"
 git push origin main
 ```
 
-Watch the deploy in the Actions tab, then reload the live site. Add `?asset=filler%20head` to the URL to open a QR linked asset.
+Watch the deploy in the Actions tab, then reload the live site once. A warm phone or laptop picks up the new files on that reload. Add `?asset=filler%20head` to the URL to open a QR linked asset.
 
 ## Files
 
