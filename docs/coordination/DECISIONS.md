@@ -5,6 +5,23 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Language buttons start listening; no signature field
+
+**Decision.** Tapping ET / RU / EN both selects the language and immediately
+starts speech recognition. The separate speak button repeats in the selected
+language. The supervisor signature field and its tier C validation are removed;
+tier C saves with the fixed default reason.
+
+**Why.** The worker treated the language buttons as the voice mode and spoke
+without pressing a second button. A signature field added typing to a flow that
+must stay fast and offline.
+
+**Consequence.** Unsupported browsers or unsupported languages show a clear
+bilingual message; the worker can type or record a clip instead. Audit filters
+no longer rely on `supervisor`.
+
+---
+
 ## 2026-11-27 — Speech language is explicit, detected from the text
 
 **Decision.** The single language dropdown is replaced by ET / RU / EN buttons;

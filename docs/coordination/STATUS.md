@@ -6,7 +6,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | demo | challenge 3 copy and fixed no photo default | feat/challenge_three | none |
-| @linnudtonisted | OpenCode | review | ET/RU/EN speech buttons + detection, no reason field | `fix/speech-language-auto` | device test |
+| @linnudtonisted | OpenCode | review | ET/RU/EN buttons start capture; no signature field | `fix/voice-buttons-supervisor` | device test |
 | @Pepukarv | _fill in_ | idle | _pick a task_ | — | — |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 
