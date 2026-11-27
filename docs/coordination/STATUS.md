@@ -8,7 +8,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | @AARenor | omp | review | Photo and video preview, Proof column, table media links | PR #105 | device tap test |
 | @linnudtonisted | OpenCode | review | Normalize cache hash across Windows and CI | `fix/cache_hash` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
-| @stevenlaas123-pixel | omp | review | Restore prior layout | `fix/restore-previous-layout` | device test |
+| @stevenlaas123-pixel | omp | review | Remove speech language selector | `fix/remove-speech-selector` | device speech test |
 
 ## Demo-critical path
 
