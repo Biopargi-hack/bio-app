@@ -38,5 +38,5 @@ jobs:
           else
             BRANCH="main"
           fi
-          npx --yes wrangler@4.151.0 pages deploy app \
+          npx --yes wrangler@4.151.0 pages deploy \
             --project-name=toend --branch="$BRANCH"

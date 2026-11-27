@@ -87,12 +87,12 @@ async function serviceToken(sa) {
   return tokenCache.value;
 }
 
-async function readSeqs(token, sheetId) {
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Live!A2:A1000')}`;
+async function readKeys(token, sheetId) {
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Live!A2:J1000')}`;
   const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error(`sheet read ${response.status}: ${await response.text()}`);
   const data = await response.json();
-  return new Set((data.values || []).map((row) => String(row[0] ?? '')));
+  return new Set((data.values || []).map((row) => `${String(row[9] ?? '')}|${String(row[0] ?? '')}`));
 }
 
 async function appendRow(token, sheetId, row) {
@@ -187,8 +187,9 @@ async function onRequestPost({ request, env }) {
   try {
     const sa = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT);
     const token = await serviceToken(sa);
-    const seen = await readSeqs(token, env.SHEET_ID);
-    if (seen.has(String(record.seq))) {
+    const seen = await readKeys(token, env.SHEET_ID);
+    const key = `${String(record.device_id || '')}|${String(record.seq)}`;
+    if (seen.has(key)) {
       return Response.json({ ok: true, duplicate: true, seq: record.seq });
     }
     const links = [];
