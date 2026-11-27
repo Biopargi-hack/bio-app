@@ -184,3 +184,25 @@ only reliable handoff.
 
 **Consequences.** Every session starts by reading `STATUS.md` and ends with a
 note. PRs that skip the template fail CI.
+
+---
+
+## 2026-11-27 — Minimal capture form (issue #54)
+
+**Decision.** The capture screen keeps only the line selector, a visible 1-3
+rating, the write/speak note field, photo/video evidence, append and Excel CSV
+export. The hero, demo steps, guidance rail, proof pad, fault picker,
+checkpoint/method/verdict/instrument fields are removed. Saving a 3 with no
+usable media still writes the fixed default assessment. Rating is now selected
+before append instead of saving instantly on tap.
+
+**Why.** Explicit owner request to remove everything unnecessary from the site.
+The removed fields were not needed to rate a spot, describe it and attach proof.
+The line selector stays because the owner asked for it and the verify gate
+requires it.
+
+**Consequences.** Open PRs #50 (grade flow after NFC tap) and #47 (speech language
+detection) touch the same files; this branch is their integration point and the
+merge order needs care. The original audit/tamper demo beat is still out of scope,
+as in the earlier minimal-app decision. NFC, camera and microphone are unchanged
+and still not device-tested.

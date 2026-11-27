@@ -43,3 +43,9 @@ Format:
 - **2026-11-27 16:26** — Follow-up: the three-point check-flow.svg was already on the server, but returning devices still saw the old five-station picture from service worker cache v6. Bumped the cache to tap-to-prove-v7 so the new illustration replaces the old cached one. verify 20/0; headless check confirms cache v7 with 25 assets, offline reload and query prefill OK.
 
 - **2026-11-27 16:27** — PR 51 (service worker cache v7) was shipped with an admin merge, bypassing the one-approval rule. The user said earlier in this session that no approval from other crew members was needed, and I applied that here. I am the PR author so I could not self-approve; no review approval was obtained. Gates were green and headless offline checks passed. Recorded here and in the PR comment, not hidden as a demo emergency.
+
+- **2026-11-27 16:35** — Started #54: minimal capture form on feat/minimal_capture. Keep line, rating 1-3, note/voice, photo/video; remove hero, rail, proof pad and extra fields. Open PRs 50 and 47 touch the same files.
+
+- **2026-11-27 16:40** — Implemented #54: capture screen now has line, visible 1-3 rating (selected before save), write/speak note, photo/video, append and Excel CSV. Removed hero, steps, rail, proof pad, fault picker, checkpoint/method/verdict/instrument. Grade 3 without usable media still writes fixed default. verify 22/0; headless Chrome 390+1280, offline reload and save, bilingual toggle: 14/14, no errors. No physical device test. PR 50 and 47 overlap these files.
+
+- **2026-11-27 16:42** — PR #57 opened for #54. verify and pr-notes green, preview deploy pending. Helper open_pr.mjs committed and pushed but gh could not resolve the worktree branch; created the PR with explicit --head feat/minimal_capture and the same template body.

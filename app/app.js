@@ -1,12 +1,5 @@
 const $ = (id) => document.getElementById(id);
 
-const CHECKPOINTS = [
-  'Wash', 'Filler head', 'Valve', 'Drain', 'Door',
-  'Hand wash sink', 'Crate washer', 'Syrup room wall'
-];
-const METHODS = ['Visual', 'ATP swab', 'Temperature', 'CIP cycle', 'Declared'];
-
-
 const WORDS = {
   en: {
     subtitle: 'Proof for the production line',
@@ -95,6 +88,7 @@ const WORDS = {
     quick_done: 'Quick record',
     grade_prompt: 'Rate this spot',
     grade_note: 'Pick 3 clean, 2 dirty, or 1 serious.',
+    grade_required: 'Pick a rating first.',
     grade_reason: 'Grade N recorded from the tagged place',
     grade_done: 'Grade N saved',
     grade3_label: '3 clean',
@@ -204,6 +198,7 @@ const WORDS = {
     quick_done: 'Kiirkirje',
     grade_prompt: 'Hinna see koht',
     grade_note: 'Vali 3 korras, 2 must või 1 tõsine.',
+    grade_required: 'Vali esmalt hinne.',
     grade_reason: 'Hinne N märgitud kleepsu kohas',
     grade_done: 'Hinne N salvestatud',
     grade_short: 'hinne',
@@ -255,6 +250,8 @@ let photoFailed = false;
 let audioStarting = false;
 
 let gradeMode = false;
+let selectedGrade = 0;
+
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
   for (const el of document.querySelectorAll('[data-i18n]')) {
@@ -273,7 +270,6 @@ function applyLanguage() {
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
-  if (gradeMode && $('quickPrompt')) $('quickPrompt').textContent = WORDS[lang].grade_prompt;
 }
 
 function note(id, text, isError = false) {
@@ -300,15 +296,6 @@ function detectSpokenLang(text) {
   if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
   if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|must|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin)\b/i.test(value)) return 'et-EE';
   return 'en-US';
-}
-
-function populateSelects() {
-  const cp = $('checkpoint');
-  for (const name of CHECKPOINTS) cp.add(new Option(name, name));
-  cp.value = CHECKPOINTS[0];
-  const method = $('method');
-  for (const name of METHODS) method.add(new Option(name, name));
-  method.value = METHODS[0];
 }
 
 function deviceId() {
@@ -644,17 +631,11 @@ async function analyseVideo(file) {
 }
 
 function tierFor() {
-  const verdict = $('verdict').value;
-  if (verdict === 'cannot sign') return 'C';
-  const method = $('method').value;
-  const instrument = $('instrument').value.trim();
-  if (instrument && ['ATP swab', 'Temperature', 'CIP cycle'].includes(method)) return 'A';
-  if (photoState?.usable && method === 'Visual') return 'B';
-  return 'C';
+  return photoState?.usable ? 'B' : 'C';
 }
 
 function hasEvidence() {
-  return Boolean(photoState?.usable || $('instrument').value.trim());
+  return Boolean(photoState?.usable);
 }
 
 function updateTier() {
@@ -712,46 +693,7 @@ async function guardedWrite(noteId, work) {
   }
 }
 
-function saveRecord() {
-  return guardedWrite('saveNote', async () => {
-    const asset = $('asset').value.trim();
-    const transcript = $('transcript').value.trim();
-    if (!asset || !transcript) {
-      note('saveNote', 'Asset and what happened are required.', true);
-      return;
-    }
-    if (audioBusy('saveNote')) return;
-
-    const tier = tierFor();
-    const verdict = $('verdict').value;
-    const instrument = $('instrument').value.trim();
-    const previous = reusedPhoto(photoState);
-    const record = await appendRecord({
-      asset,
-      tag_sig: currentTag,
-      source: currentSource,
-      checkpoint: $('checkpoint').value,
-      method: $('method').value,
-      verdict,
-      transcript,
-      tier,
-      reason: '',
-      supervisor: '',
-      instrument,
-      photo_hash: photoState?.hash || '',
-      photo_thumb: photoState?.thumb || '',
-      photo_usable: photoState?.usable || false,
-      photo_reuse_of: previous?.seq || null,
-      language: speechLang,
-      default_assessment: false,
-      ...mediaPayload()
-    }, photoState?.file, audioState?.blob);
-    await finishRecord(record, 'saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
-  });
-}
-
 async function finishRecord(record, noteId, message) {
-  setFaultPanel(false);
   if (speechSession) {
     speechSession.stop();
     speechSession = null;
@@ -764,8 +706,8 @@ async function finishRecord(record, noteId, message) {
   }
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
+  setGrade(0);
   spokenLangs = new Set();
-  $('instrument').value = '';
   $('photo').value = '';
   photoState = null;
   audioState = null;
@@ -791,27 +733,24 @@ function quickRecord(kind, grade = 0) {
     const isDefault = kind === 'default';
     const noEvidence = !hasEvidence();
     const defaultAssessment = (isDefault || (isGrade && grade === 3)) && noEvidence;
-    const isClean = kind === 'clean' || isDefault || (isGrade && grade === 3);
     const tier = isGrade ? 'C' : noEvidence ? 'C' : tierFor();
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
-    const faultLabel = $('faultType').selectedOptions[0]?.textContent.trim() || WORDS[lang].fault_foam;
-    const transcript = $('transcript').value.trim() || (isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : faultLabel);
-    const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : isClean ? 'clean' : 'not clean';
-    const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason;
+    const typed = $('transcript').value.trim();
+    const transcript = isGrade ? (typed || gradeReason) : typed || WORDS[lang].default_reason;
+    const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : 'clean';
+    const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : WORDS[lang].quick_reason;
     const previous = reusedPhoto(photoState);
     const record = await appendRecord({
       asset,
       tag_sig: currentTag,
       source: currentSource,
-      checkpoint: $('checkpoint').value,
-      method: isGrade ? 'Rated' : noEvidence ? (isClean ? 'Declared' : 'Visual') : $('method').value,
+      method: isGrade ? 'Rated' : isDefault ? 'Declared' : 'Visual',
       verdict,
-      grade: isGrade ? grade : null,
+      grade: isGrade ? grade : isDefault ? 3 : null,
       transcript,
       tier,
       reason,
       supervisor: '',
-      instrument: $('instrument').value.trim(),
       photo_hash: photoState?.hash || '',
       photo_thumb: photoState?.thumb || '',
       photo_usable: photoState?.usable || false,
@@ -1068,12 +1007,23 @@ async function registerServiceWorker() {
   }
 }
 
-function setFaultPanel(open) {
-  $('faultField').hidden = !open;
-  $('faultSaveBtn').hidden = !open;
-  $('cleanBtn').hidden = open || gradeMode;
-  $('defaultBtn').hidden = open || gradeMode;
-  if (open) $('faultType').selectedIndex = 0;
+function setGrade(value) {
+  selectedGrade = value;
+  document.querySelectorAll('.grade-btn').forEach((button) => {
+    const active = Number(button.dataset.grade) === value;
+    button.classList.toggle('selected', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  if (value) note('quickNote', '');
+}
+
+function saveFromForm() {
+  if (!selectedGrade) {
+    note('quickNote', t('grade_required'), true);
+    return;
+  }
+  if (selectedGrade === 3 && !hasEvidence()) return quickRecord('default');
+  return quickRecord('grade', selectedGrade);
 }
 
 function bind() {
@@ -1089,16 +1039,9 @@ function bind() {
     $('assetStampName').textContent = $('asset').value.trim() || t('untagged');
     $('assetSource').textContent = sourceLabel();
   });
-  $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
-  $('defaultBtn').addEventListener('click', () => quickRecord('default'));
   document.querySelectorAll('.grade-btn').forEach((btn) => {
-    btn.addEventListener('click', () => quickRecord('grade', Number(btn.dataset.grade)));
+    btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
   });
-  $('faultBtn').addEventListener('click', () => {
-    setFaultPanel(true);
-    $('faultType').focus();
-  });
-  $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
   document.querySelectorAll('.lang-btn').forEach((button) => {
     button.addEventListener('click', () => {
       setSpeechLang(button.dataset.lang);
@@ -1138,8 +1081,7 @@ function bind() {
       if (token === photoToken) { photoPending = false; updateTier(); }
     }
   });
-  for (const id of ['instrument', 'method', 'verdict']) $(id).addEventListener('change', updateTier);
-  $('saveBtn').addEventListener('click', saveRecord);
+  $('saveBtn').addEventListener('click', saveFromForm);
   $('excelBtn').addEventListener('click', exportExcel);
   $('line').addEventListener('change', () => {
     const value = $('line').value;
@@ -1155,24 +1097,15 @@ async function start() {
   const tag = params.get('tag');
   const via = params.get('via');
   gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
-  populateSelects();
   applyLanguage();
   bind();
   setSpeechLang(speechLang);
   updateTier();
   updateNetwork();
-  if (gradeMode) {
-    $('gradeRow').hidden = false;
-    $('cleanBtn').hidden = true;
-    $('defaultBtn').hidden = true;
-    $('faultBtn').hidden = false;
-    note('quickNote', WORDS[lang].grade_note);
-  }
   if (asset) {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : 'link');
-    document.querySelector('.proof-pad')?.scrollIntoView({ block: 'center' });
-    if (gradeMode) $('grade3').focus({ preventScroll: true });
-    else $('cleanBtn').focus({ preventScroll: true });
+    document.getElementById('capture')?.scrollIntoView({ block: 'start' });
+    $('grade3').focus({ preventScroll: true });
   }
   await refreshCount();
   await registerServiceWorker();
