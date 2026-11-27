@@ -29,6 +29,9 @@ const WORDS = {
     beat2: 'Clean button, done in 2 seconds',
     beat3: 'Fault button and a fault from the list',
     beat4: 'No photo? Use the fixed default',
+    landing_start: 'Start a check',
+    landing_dashboard: 'Open records dashboard',
+    landing_count: 'records on this device',
     capture_title: 'Check capture',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
@@ -129,6 +132,9 @@ const WORDS = {
     beat2: 'Puhas nupp, valmis 2 sekundiga',
     beat3: 'Probleeminupp ja viga listist',
     beat4: 'Pilti ei saa? Kasuta fikseeritud hinnangut',
+    landing_start: 'Alusta kontrolli',
+    landing_dashboard: 'Ava kirjete vaade',
+    landing_count: 'kirjet sellel seadmel',
     capture_title: 'Kontrolli salvestamine',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
@@ -735,6 +741,7 @@ function quickRecord(kind, grade = 0) {
 async function refreshCount() {
   allRecordsCache = await allRecords();
   $('queueCount').textContent = `${allRecordsCache.length} queued`;
+  if ($('landingCount')) $('landingCount').textContent = String(allRecordsCache.length);
 }
 
 function sourceLabel() {

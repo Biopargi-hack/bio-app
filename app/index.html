@@ -25,6 +25,32 @@
   </header>
 
   <main>
+    <section class="hero" aria-labelledby="intro-title">
+      <div>
+        <p class="hero-kicker" data-i18n="intro_kicker">Live demo, records stay on this device</p>
+        <h1 id="intro-title" data-i18n="intro_title">Hygiene checks documented in two seconds.</h1>
+        <p class="hero-note" data-i18n="hero_note">Tap the card. Say what you did. No photo needed. The record writes itself.</p>
+        <p class="intro-body" data-i18n="intro_body">A. Le Coq hygiene checks still end in a paper form.</p>
+        <div class="landing-actions">
+          <a class="link-button primary" href="#capture" data-i18n="landing_start">Start a check</a>
+          <a class="link-button ghost" href="/sheet" data-i18n="landing_dashboard">Open records dashboard</a>
+        </div>
+        <div class="dashboard-card">
+          <strong id="landingCount">0</strong>
+          <span data-i18n="landing_count">records on this device</span>
+        </div>
+      </div>
+      <div class="hero-art">
+        <img src="check-flow.svg" alt="Worker taps a waterproof NFC card on a clean machine" data-i18n-alt="hero_alt">
+      </div>
+      <ol class="steps">
+        <li><b>1</b><span data-i18n="beat1">Tap the card</span></li>
+        <li><b>2</b><span data-i18n="beat2">Clean button, done in 2 seconds</span></li>
+        <li><b>3</b><span data-i18n="beat3">Fault button and a fault from the list</span></li>
+        <li><b>4</b><span data-i18n="beat4">No photo? Use the fixed default</span></li>
+      </ol>
+    </section>
+
     <section id="capture" class="station" aria-labelledby="capture-title">
       <div class="section-head">
         <h2 id="capture-title" data-i18n="capture_title">Check capture</h2>
