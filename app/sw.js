@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-white-v2';
+const CACHE = 'tap-to-prove-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const ASSETS = [
   './app.js',
   './manifest.webmanifest',
   './icon.svg',
+  './illustration.svg',
   './icon_192.png',
   './icon_512.png',
   './paper.html',
@@ -68,3 +69,4 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+

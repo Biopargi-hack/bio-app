@@ -26,3 +26,4 @@ The three-minute story only works if these hold. Anything here beats polish.
   before claiming them.
 - `main` deploys to production. Broken merges are visible to judges.
 - The hash chain is the differentiator; never weaken verification for a demo.
+

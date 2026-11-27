@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" width="400" height="320" role="img" aria-labelledby="ill-title ill-desc">
+  <title id="ill-title">Tap a waterproof NFC card on a cleaned machine; the phone writes a signed, append-only proof record.</title>
+  <desc id="ill-desc">For A. Le Coq production: on a cleaned machine a red NFC card is tapped with a phone; a small proof card shows a clean check, a verdict and an append-only hash. No paper form, no photo required.</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1018201A"/>
+    </filter>
+    <filter id="shadow-sm" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#10182026"/>
+    </filter>
+  </defs>
+
+  <!-- soft backdrop -->
+  <rect x="8" y="8" width="384" height="304" rx="28" fill="#F3F6F7"/>
+
+  <!-- ============ machine on the production line ============ -->
+  <g filter="url(#shadow-sm)">
+    <rect x="28" y="96" width="120" height="150" rx="16" fill="#585858"/>
+    <rect x="28" y="96" width="120" height="150" rx="16" fill="#2D2E2E" opacity="0.14"/>
+    <rect x="44" y="112" width="88" height="14" rx="7" fill="#2D2E2E" opacity="0.55"/>
+    <!-- cleaned surface panel -->
+    <rect x="44" y="136" width="88" height="58" rx="10" fill="#FFFFFF" opacity="0.92"/>
+    <path d="M58 165l12 12 24-26" fill="none" stroke="#0B7A59" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- nozzle -->
+    <rect x="78" y="246" width="36" height="22" rx="6" fill="#A30029"/>
+    <rect x="86" y="268" width="20" height="10" rx="3" fill="#7A001F"/>
+  </g>
+
+  <!-- ============ NFC card (waterproof, tapped) ============ -->
+  <g filter="url(#shadow-sm)" transform="translate(56 196) rotate(-6)">
+    <rect x="0" y="0" width="52" height="52" rx="10" fill="#A30029"/>
+    <rect x="0" y="0" width="52" height="52" rx="10" fill="#FFFFFF" opacity="0.06"/>
+    <g stroke="#FFFFFF" stroke-width="2.4" fill="none" stroke-linecap="round">
+      <path d="M30 16a10 10 0 0 1 0 20"/>
+      <path d="M36 11a17 17 0 0 1 0 30"/>
+      <path d="M42 6a24 24 0 0 1 0 40"/>
+    </g>
+    <text x="10" y="33" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">NFC</text>
+  </g>
+
+  <!-- tap pulse rings -->
+  <g fill="none" stroke="#A30029" stroke-width="2" opacity="0.55">
+    <circle cx="82" cy="222" r="34"/>
+    <circle cx="82" cy="222" r="48" opacity="0.45"/>
+  </g>
+
+  <!-- ============ phone ============ -->
+  <g filter="url(#shadow)">
+    <rect x="176" y="34" width="120" height="244" rx="26" fill="#2D2E2E"/>
+    <rect x="184" y="44" width="104" height="224" rx="18" fill="#FFFFFF"/>
+    <!-- notch -->
+    <rect x="214" y="44" width="44" height="10" rx="5" fill="#2D2E2E"/>
+    <!-- app header -->
+    <rect x="184" y="54" width="104" height="22" fill="#A30029"/>
+    <text x="194" y="69" font-family="system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.5" fill="#FFFFFF">TAP TO PROVE</text>
+    <!-- status: tapped -->
+    <circle cx="236" cy="90" r="3" fill="#0B7A59"/>
+    <text x="244" y="93" font-family="system-ui, sans-serif" font-size="8" fill="#53676D">NFC read</text>
+    <!-- big primary action -->
+    <rect x="192" y="102" width="88" height="40" rx="20" fill="#A30029"/>
+    <path d="M210 122l8 8 16-18" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="234" y="126" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#FFFFFF">CLEAN</text>
+    <!-- evidence tier -->
+    <rect x="192" y="150" width="40" height="16" rx="8" fill="#E7F4EE"/>
+    <text x="202" y="161" font-family="ui-monospace, monospace" font-size="9" font-weight="700" fill="#0B7A59">A</text>
+    <text x="240" y="161" font-family="ui-monospace, monospace" font-size="8" fill="#53676D">tier</text>
+    <!-- append-only hash lines -->
+    <rect x="192" y="176" width="88" height="6" rx="3" fill="#C7CDD1"/>
+    <rect x="192" y="188" width="64" height="6" rx="3" fill="#C7CDD1"/>
+    <rect x="192" y="200" width="76" height="6" rx="3" fill="#E3E8EA"/>
+    <!-- append-only chain dot -->
+    <circle cx="196" cy="222" r="3" fill="#A30029"/>
+    <rect x="204" y="219" width="56" height="6" rx="3" fill="#E3E8EA"/>
+    <!-- home bar -->
+    <rect x="216" y="252" width="48" height="5" rx="2.5" fill="#C7CDD1"/>
+  </g>
+
+  <!-- ============ floating proof confirmation ============ -->
+  <g filter="url(#shadow)" transform="translate(306 118)">
+    <rect x="0" y="0" width="82" height="112" rx="16" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="82" height="22" rx="16" fill="#A30029"/>
+    <rect x="0" y="11" width="82" height="11" fill="#A30029"/>
+    <!-- check badge -->
+    <circle cx="41" cy="48" r="16" fill="#E7F4EE"/>
+    <path d="M33 48l6 6 12-14" fill="none" stroke="#0B7A59" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="41" y="82" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="800" fill="#2D2E2E">PUHAS</text>
+    <text x="41" y="94" text-anchor="middle" font-family="system-ui, sans-serif" font-size="7.5" fill="#53676D">append-only</text>
+    <!-- hash -->
+    <rect x="12" y="100" width="58" height="4" rx="2" fill="#C7CDD1"/>
+  </g>
+
+  <!-- accent dot -->
+  <circle cx="380" cy="100" r="4" fill="#E40039" opacity="0.8"/>
+</svg>
