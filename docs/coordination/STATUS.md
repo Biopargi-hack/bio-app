@@ -6,7 +6,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | review | bug sweep and flow fixes | feat/flow_bugs | none |
-| @linnudtonisted | OpenCode | review | Continuous speech with 2.5s silence timer | PR #41 (`fix/speech-pause`) | device test |
+| @linnudtonisted | OpenCode | review | Auto-detect ET/RU/EN from first spoken words, no selector | #44 (`fix/speech-autodetect`) | device test |
 | @Pepukarv | OpenCode | review | capture right rail: flow illustration and info cards | feat/info_rail | none |
 | @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
 

@@ -42,7 +42,7 @@ const WORDS = {
     asset: 'Asset',
     checkpoint: 'Checkpoint',
     method: 'Method',
-    voice_lang: 'Speech language',
+    speech_detected: 'Speech language detected',
     verdict: 'Verdict',
     clean: 'Clean',
     not_clean: 'Not clean',
@@ -56,14 +56,14 @@ const WORDS = {
     spoken_saved: 'Spoken text added',
     audio_unsupported: 'This browser cannot record audio.',
     speech_unsupported: 'This browser cannot turn speech into text. Type the note or record a voice clip.',
-    speech_lang_unsupported: 'Speech recognition does not support this language here. Try another language or type the note.',
+    speech_lang_unsupported: 'Speech recognition is not available for this language here. Type the note or record a voice clip.',
     speech_stopped: 'Voice stopped',
     listening: 'Listening... pause 2-3s to stop',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
-    note_hint: 'Tap ET, RU or EN to speak. The app writes the text in the language it hears.',
+    note_hint: 'Press Speak and talk. The app detects Estonian, Russian or English from your first words and writes the text in that language.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
@@ -135,7 +135,7 @@ const WORDS = {
     asset: 'Koht',
     checkpoint: 'Kontrollpunkt',
     method: 'Meetod',
-    voice_lang: 'Kõne keel',
+    speech_detected: 'Tuvastatud kõne keel',
     verdict: 'Otsus',
     clean: 'Puhas',
     not_clean: 'Ei ole puhas',
@@ -149,14 +149,14 @@ const WORDS = {
     spoken_saved: 'Räägitud tekst lisatud',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
     speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst või salvesta häälmärkus.',
-    speech_lang_unsupported: 'Kõnetuvastus ei toeta siin seda keelt. Proovi teist keelt või kirjuta tekst.',
+    speech_lang_unsupported: 'Kõnetuvastus ei ole siin selle keele jaoks saadaval. Kirjuta tekst või salvesta häälmärkus.',
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan… 2–3 s vaikust ja mikrofon sulgub',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
-    note_hint: 'Vajuta ET, RU või EN ja räägi. Rakendus kirjutab teksti selles keeles, mida ta kuuleb.',
+    note_hint: 'Vajuta „Räägi ja kirjuta“ ning räägi. Rakendus tuvastab esimestest sõnadest eesti, vene või inglise keele ja kirjutab teksti selles keeles.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     evidence: 'Foto või video tõend',
@@ -227,8 +227,6 @@ let lang = 'et';
 let speechLang = 'et-EE';
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
-let recognition = null;
-let audioRecognition = null;
 let speechSession = null;
 let audioSpeechSession = null;
 let photoState = null;
@@ -272,20 +270,20 @@ function t(key) {
   return WORDS[lang][key] || key;
 }
 
-function setSpeechLang(code) {
-  speechLang = code;
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    const active = button.dataset.lang === code;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
+const SPEECH_LABELS = { 'et-EE': 'ET', 'ru-RU': 'RU', 'en-US': 'EN' };
+
+function speechLabel(code) {
+  return SPEECH_LABELS[code] || String(code || '').slice(0, 2).toUpperCase();
 }
 
+// The recogniser only accepts one language per session, so the first words
+// decide which language the rest of the session is transcribed in.
 function detectSpokenLang(text) {
   const value = String(text || '');
   if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
-  if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|must|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin)\b/i.test(value)) return 'et-EE';
-  return 'en-US';
+  const etMarks = /[õÕäÄöÖüÜšŠžŽ]/.test(value);
+  const etWords = /\b(puhas|mustus|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin|puhastatud|kontroll|seade|viga)\b/i.test(value);
+  return etMarks || etWords ? 'et-EE' : 'en-US';
 }
 
 function populateSelects() {
@@ -714,12 +712,10 @@ async function finishRecord(record, noteId, message) {
   if (speechSession) {
     speechSession.stop();
     speechSession = null;
-    recognition = null;
   }
   if (audioSpeechSession) {
     audioSpeechSession.stop();
     audioSpeechSession = null;
-    audioRecognition = null;
   }
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
@@ -815,7 +811,7 @@ function appendSpoken(text, langCode) {
   field.setSelectionRange(field.value.length, field.value.length);
   const detected = detectSpokenLang(paragraph) || langCode;
   spokenLangs.add(detected);
-  note('audioNote', `${t('spoken_saved')} ${detected.slice(0, 2).toUpperCase()}`);
+  note('audioNote', `${t('spoken_saved')} ${speechLabel(detected)}`);
 }
 
 function speechRecognition() {
@@ -843,16 +839,20 @@ function startSpeechSession(langCode, handlers) {
     recognition,
     langCode,
     texts: [],
+    interim: '',
     finalIndices: new Set(),
     timer: null,
     finished: false
   };
-  const finish = () => {
-    if (session.finished) return;
+  const stopRecognition = () => {
     session.finished = true;
     clearTimeout(session.timer);
     try { recognition.stop(); } catch { /* already stopped */ }
-    const text = session.texts.join(' ').trim();
+  };
+  const finish = () => {
+    if (session.finished) return;
+    stopRecognition();
+    const text = [...session.texts, session.interim].join(' ').trim();
     if (text && handlers.onText) handlers.onText(text, langCode);
     if (handlers.onDone) handlers.onDone();
   };
@@ -861,18 +861,32 @@ function startSpeechSession(langCode, handlers) {
     session.timer = setTimeout(finish, SILENCE_MS);
   };
   session.stop = finish;
+  // Used when the first words show the recogniser has the wrong language:
+  // drop those words and start again in the detected language.
+  session.cancel = () => {
+    if (session.finished) return;
+    stopRecognition();
+  };
   recognition.onresult = (event) => {
     if (session.finished) return;
     let heard = false;
+    let interim = '';
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
       const result = event.results[i];
       if (!result || !result[0]) continue;
       heard = true;
-      if (result.isFinal && !session.finalIndices.has(i)) {
-        session.finalIndices.add(i);
-        session.texts.push(String(result[0].transcript).trim());
+      const value = String(result[0].transcript).trim();
+      if (result.isFinal) {
+        if (!session.finalIndices.has(i)) {
+          session.finalIndices.add(i);
+          session.texts.push(value);
+        }
+      } else {
+        interim = `${interim} ${value}`.trim();
       }
     }
+    session.interim = interim;
+    if (interim && handlers.onInterim) handlers.onInterim(interim, langCode);
     if (heard) scheduleStop();
   };
   recognition.onerror = (event) => {
@@ -895,6 +909,56 @@ function startSpeechSession(langCode, handlers) {
   return session;
 }
 
+// One mic press can span several recogniser sessions. The first words pick the
+// language; the rest of the dictation is transcribed in that language.
+function startAutoSpeechSession(handlers) {
+  const auto = { session: null, detected: null, finished: false, stop: null };
+
+  const begin = (code) => {
+    if (auto.finished) return;
+    const session = startSpeechSession(code, {
+      onInterim: (text) => {
+        if (auto.finished || auto.detected) return;
+        const guess = detectSpokenLang(text);
+        if (guess === code) return;
+        auto.detected = guess;
+        speechLang = guess;
+        session.cancel();
+        note('audioNote', `${t('speech_detected')}: ${speechLabel(guess)}`);
+        begin(guess);
+      },
+      onText: (text) => {
+        if (auto.finished) return;
+        auto.detected = auto.detected || detectSpokenLang(text);
+        speechLang = auto.detected;
+        if (handlers.onText) handlers.onText(text, auto.detected);
+      },
+      onDone: () => {
+        if (auto.finished) return;
+        auto.finished = true;
+        if (handlers.onDone) handlers.onDone();
+      }
+    });
+    if (!session) {
+      auto.finished = true;
+      if (handlers.onDone) handlers.onDone();
+      return;
+    }
+    auto.session = session;
+  };
+
+  begin(speechLang);
+  auto.stop = () => {
+    if (auto.finished) return;
+    if (auto.session) auto.session.stop();
+    else {
+      auto.finished = true;
+      if (handlers.onDone) handlers.onDone();
+    }
+  };
+  return auto;
+}
+
 function toggleVoice() {
   if (speechSession) {
     speechSession.stop();
@@ -907,19 +971,16 @@ function toggleVoice() {
   if (audioSpeechSession) {
     audioSpeechSession.stop();
     audioSpeechSession = null;
-    audioRecognition = null;
   }
-  speechSession = startSpeechSession(speechLang, {
+  speechSession = startAutoSpeechSession({
     onText: (text, langCode) => appendSpoken(text, langCode),
     onDone: () => {
       speechSession = null;
-      recognition = null;
       $('voiceBtn').classList.remove('listening');
       $('voiceBtn').textContent = t('speak');
     }
   });
-  if (!speechSession) return;
-  recognition = speechSession.recognition;
+  if (speechSession.finished) return;
   $('voiceBtn').classList.add('listening');
   $('voiceBtn').textContent = t('listening');
   note('audioNote', t('listening'));
@@ -936,18 +997,15 @@ async function toggleAudio() {
   }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const langCode = speechLang;
     let speechStartError = '';
     if (speechRecognition()) {
-      audioSpeechSession = startSpeechSession(langCode, {
+      audioSpeechSession = startAutoSpeechSession({
         onText: (text, code) => appendSpoken(text, code),
         onDone: () => {
           audioSpeechSession = null;
-          audioRecognition = null;
         }
       });
-      audioRecognition = audioSpeechSession ? audioSpeechSession.recognition : null;
-      if (!audioSpeechSession) speechStartError = 'start failed';
+      if (audioSpeechSession.finished) speechStartError = 'start failed';
     }
     const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']
       .find((candidate) => MediaRecorder.isTypeSupported(candidate)) || '';
@@ -965,7 +1023,6 @@ async function toggleAudio() {
         audioSpeechSession.stop();
         audioSpeechSession = null;
       }
-      audioRecognition = null;
       const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
       stream.getTracks().forEach((track) => track.stop());
       if (audioRecorder === recorder) {
@@ -997,7 +1054,6 @@ async function toggleAudio() {
       audioSpeechSession.stop();
       audioSpeechSession = null;
     }
-    audioRecognition = null;
     audioRecorder = null;
     audioToken += 1;
     note('audioNote', `${t('audio_denied')}: ${error.message}`, true);
@@ -1031,7 +1087,7 @@ function bind() {
   $('langToggle').addEventListener('click', () => {
     lang = lang === 'en' ? 'et' : 'en';
     applyLanguage();
-    if (recognition) toggleVoice();
+    if (speechSession) toggleVoice();
     refreshCount();
   });
   $('asset').addEventListener('input', () => {
@@ -1050,22 +1106,6 @@ function bind() {
     $('faultType').focus();
   });
   $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      setSpeechLang(button.dataset.lang);
-      if (recognition) toggleVoice();
-      if (audioSpeechSession) {
-        audioSpeechSession.stop();
-        audioSpeechSession = null;
-        audioRecognition = null;
-      }
-      if (audioRecorder) {
-        note('audioNote', t('audio_stop_first'), true);
-        return;
-      }
-      toggleVoice();
-    });
-  });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('audioBtn').addEventListener('click', toggleAudio);
   $('photo').addEventListener('change', async (event) => {
@@ -1094,7 +1134,6 @@ async function start() {
   populateSelects();
   applyLanguage();
   bind();
-  setSpeechLang(speechLang);
   updateTier();
   updateNetwork();
   if (gradeMode) {

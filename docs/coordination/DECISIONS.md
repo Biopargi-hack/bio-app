@@ -15,6 +15,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Speech language detected from first words, no selector
+
+**Decision.** The ET / RU / EN buttons are removed. Pressing the mic starts listening immediately with the last used language as the first guess; interim words are checked and the recogniser restarts in ET, RU or EN as soon as the language is clear. The detected language labels the transcript and the saved record.
+
+**Why.** The owner asked that a worker never has to choose a language in voice mode. The website must work out the language from the speaker's first words and write the text in that language.
+
+**Consequence.** The first one or two words can be lost when the recogniser switches language; a short single utterance may need repeating. This is a Web Speech API limitation (`lang` takes one tag per session), not a backend call. No device test was run here, so accuracy is unverified on the demo phone.
+
+---
+
 ## 2026-11-27 — Minimal capture app: ledger removed, line selector added
 
 **Decision.** The main app no longer shows the proof-chain panel: no record list, audit questions, filter, JSONL export, tamper-break demo or sample CIP summary. Those functions were removed from `app.js` and the gate was updated. A **Line** dropdown (All lines, Line 1–5) was added above the asset field; choosing a line pre-fills the asset in both Estonian and English. Records are still appended with a hash chain.
