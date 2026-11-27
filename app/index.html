@@ -107,14 +107,14 @@
         </div>
 
         <div class="field-grid">
-          <label class="field">
-            <span data-i18n="voice_lang">Voice language</span>
-            <select id="voiceLang">
-              <option value="et-EE">Eesti</option>
-              <option value="ru-RU">Русский</option>
-              <option value="en-US" selected>English</option>
-            </select>
-          </label>
+          <div class="field">
+            <span data-i18n="voice_lang">Speech language</span>
+            <div class="lang-buttons" role="group" aria-label="Speech language">
+              <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
+              <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
+              <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
+            </div>
+          </div>
           <label class="field">
             <span data-i18n="verdict">Verdict</span>
             <select id="verdict">
@@ -133,7 +133,7 @@
         <label class="field text-field">
           <span data-i18n="note_label">What happened — write or speak</span>
           <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write. Each recording adds a new line." data-i18n-placeholder="note_ph"></textarea>
-          <small class="field-hint" data-i18n="note_hint">Choose Estonian, Russian or English above. Speech is written in that language.</small>
+          <small class="field-hint" data-i18n="note_hint">Pick ET, RU or EN, then speak. The app writes the text in the language it hears.</small>
         </label>
 
         <label class="field file-field">
@@ -153,10 +153,6 @@
           </label>
         </div>
 
-        <label class="field">
-          <span data-i18n="reason">Reason when there is no hard evidence</span>
-          <input id="reason" type="text" placeholder="machine closed, no photo possible">
-        </label>
         <label class="field">
           <span data-i18n="supervisor">Supervisor signature</span>
           <input id="supervisor" type="text" placeholder="name, for tier C">
