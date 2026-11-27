@@ -922,6 +922,9 @@ html[data-mode="record"] .hero,
 html[data-mode="record"] #explainer,
 html[data-mode="record"] #how,
 html[data-mode="record"] .benefits,
+html[data-mode="record"] .band,
+html[data-mode="record"] .try,
+html[data-mode="record"] .landing-only,
 html[data-mode="record"] .nav-links,
 html[data-mode="record"] .nav-cta,
 html[data-mode="record"] #sheetLink,
@@ -953,3 +956,11 @@ html[data-mode="record"] main { padding-top: 18px; }
 }
 .evidence-actions .quiet:hover,
 .evidence-actions .quiet:focus-visible { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); }
+
+/* JavaScript off: the head script never sets data-mode, so landing.css never
+   applies and this file draws the landing. Hide the demo, which needs scripts,
+   and keep the step icons and the QR code at their intended size. */
+html:not([data-mode]) .demo,
+html:not([data-mode]) .chain { display: none; }
+html:not([data-mode]) .step-icon { width: 44px; height: 44px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html:not([data-mode]) .qr { width: 240px; margin: 0; }

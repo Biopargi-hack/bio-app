@@ -15,7 +15,15 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="canonical" href="https://taptoprove.ee/">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" id="appStyles">
+  <link rel="stylesheet" href="landing.css" id="landingStyles">
+  <script>
+    (function () {
+      // landing.css imports styles.css as a cascade layer, so each host keeps one sheet.
+      var landing = document.documentElement.dataset.mode === 'landing';
+      document.getElementById(landing ? 'appStyles' : 'landingStyles').disabled = true;
+    })();
+  </script>
 </head>
 <body>
   <a class="skip" href="#capture" data-i18n="skip">Skip to capture</a>
@@ -24,30 +32,140 @@
     <nav class="nav-shell" aria-label="Tap to Prove">
       <a class="nav-brand" href="/">Tap to Prove</a>
       <div class="nav-links">
-        <a href="#explainer" data-i18n="nav_what">Mis see on</a>
         <a href="#how" data-i18n="nav_how">Kuidas töötab</a>
-        <a href="https://nfc.taptoprove.ee/" data-i18n="nav_try">Proovi</a>
+        <a href="#hygieen" data-i18n="nav_table">Tabel</a>
+        <a href="#try" data-i18n="nav_try">Proovi telefonis</a>
       </div>
       <div class="nav-meta">
         <span id="net" class="net" role="status">Online</span>
         <button id="langToggle" class="switch" type="button" aria-label="Switch to Estonian">ET</button>
-        <a class="nav-cta" href="https://nfc.taptoprove.ee/" data-i18n="nav_cta">Proovi kontrolli</a>
+        <a class="nav-cta" href="#capture" data-i18n="nav_cta">Proovi kontrolli</a>
       </div>
     </nav>
   </header>
 
-  <main>
-    <section class="hero panel" aria-labelledby="intro-title">
+  <main class="site">
+    <section class="hero" aria-labelledby="intro-title">
+      <div class="hero-copy">
         <h1 id="intro-title" data-i18n="intro_title">Hügieenikontroll ühe puudutusega.</h1>
         <p class="hero-note" data-i18n="hero_note">NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.</p>
-        <a class="link-button primary" href="#capture" data-i18n="landing_start">Proovi kontrolli</a>
-        <a class="link-button ghost" href="#hygieen" data-i18n="landing_table">Vaata tabelit</a>
+        <div class="hero-actions">
+          <a class="link-button primary" href="#capture" data-i18n="landing_start">Proovi kontrolli</a>
+          <a class="link-button ghost" href="#hygieen" data-i18n="landing_table">Vaata tabelit</a>
+        </div>
         <p class="hero-proof" data-i18n="hero_proof">Pabervormi ega fotot pole vaja.</p>
+      </div>
+
+      <div class="demo" id="demo" aria-labelledby="demo-title">
+        <h2 id="demo-title" class="sr-only" data-i18n="demo_title">Proovi siin</h2>
+        <div class="demo-stage">
+          <div class="demo-cards" role="group" aria-labelledby="demoHint">
+            <button class="tag" type="button" data-place="Pesu" data-place-en="Wash" data-tag="TAP-DEMO-01">
+              <span class="tag-mark" aria-hidden="true"></span>
+              <span class="tag-place">Pesu</span>
+              <span class="tag-id">TAP-DEMO-01</span>
+            </button>
+            <button class="tag" type="button" data-place="Täitepea" data-place-en="Filler head" data-tag="TAP-DEMO-02">
+              <span class="tag-mark" aria-hidden="true"></span>
+              <span class="tag-place">Täitepea</span>
+              <span class="tag-id">TAP-DEMO-02</span>
+            </button>
+            <button class="tag" type="button" data-place="Kastipesu" data-place-en="Crate washer" data-tag="TAP-DEMO-07">
+              <span class="tag-mark" aria-hidden="true"></span>
+              <span class="tag-place">Kastipesu</span>
+              <span class="tag-id">TAP-DEMO-07</span>
+            </button>
+          </div>
+
+          <div class="phone" id="demoPhone">
+            <div class="phone-screen" aria-live="polite">
+              <div class="phone-status" aria-hidden="true">
+                <span id="demoClock">12:00</span>
+                <span class="phone-battery"></span>
+              </div>
+              <div class="ps ps-idle">
+                <span class="ps-nfc" aria-hidden="true"></span>
+                <p data-i18n="demo_idle">Hoia telefoni kaardi vastas</p>
+              </div>
+              <div class="ps ps-grade" hidden>
+                <span class="ps-label" data-i18n="demo_place">Koht</span>
+                <strong class="ps-place" id="demoPlace"></strong>
+                <div class="ps-grades" role="group" aria-labelledby="demoGradeLabel">
+                  <span id="demoGradeLabel" class="sr-only" data-i18n="grade_prompt">Hinda seda kohta</span>
+                  <button type="button" data-grade="3"><b>3</b><span data-i18n="grade3_word">korras</span></button>
+                  <button type="button" data-grade="2"><b>2</b><span data-i18n="grade2_word">must</span></button>
+                  <button type="button" data-grade="1"><b>1</b><span data-i18n="grade1_word">tõsine</span></button>
+                </div>
+              </div>
+              <div class="ps ps-saved" hidden>
+                <span class="ps-check" aria-hidden="true"></span>
+                <strong data-i18n="demo_saved">Kirje salvestatud</strong>
+                <span class="ps-meta" id="demoSavedMeta"></span>
+              </div>
+            </div>
+            <span class="phone-ping" aria-hidden="true"></span>
+          </div>
+        </div>
+        <p class="demo-hint" id="demoHint" data-i18n="demo_hint">Lohista kaart telefonile või vajuta kaardile.</p>
+      </div>
+
+      <div class="chain" aria-labelledby="chain-title">
+        <div class="chain-head">
+          <h2 id="chain-title" data-i18n="demo_ledger">Kirjete ahel</h2>
+          <p id="demoChainState" class="chain-state" role="status"></p>
+          <p class="chain-label" data-i18n="demo_label">Näidis. Midagi ei salvestu.</p>
+        </div>
+        <ol id="demoChain" class="chain-list" aria-labelledby="chain-title"></ol>
+        <p class="chain-empty" id="demoChainEmpty" data-i18n="demo_empty">Kirjeid veel pole. Puuduta kaarti ja vali hinne.</p>
+        <div class="demo-words" hidden>
+          <span data-word="intact" data-i18n="demo_intact">Ahel terve. Iga kirje viitab eelmisele.</span>
+          <span data-word="broken" data-i18n="demo_broken">Ahel katki kirjes N. Muudetud kirje ei ühti enam oma räsiga.</span>
+          <span data-word="edit" data-i18n="demo_edit">Muuda</span>
+          <span data-word="restore" data-i18n="demo_restore">Taasta</span>
+          <span data-word="record" data-i18n="record_added">Kirje</span>
+          <span data-word="grade" data-i18n="grade_short">hinne</span>
+          <span data-word="prev" data-i18n="demo_prev">eelmine</span>
+        </div>
+      </div>
     </section>
+
+    <div class="band">
+      <section id="explainer" class="explainer" aria-labelledby="what-title">
+        <h2 id="what-title" data-i18n="what_heading">Kontroll, mis kirjutab end ise.</h2>
+        <p data-i18n="what_body">Tap to Prove on NFC-kaartide ja telefonirakenduse lahendus tootmisliini hügieenikontrolliks. Iga kontrollitava koha küljes on veekindel kaart. Selle puudutamisel avaneb telefonis õige koht ja kontrollija saab hinnangu kohe salvestada.</p>
+      </section>
+
+      <section id="how" class="how" aria-labelledby="how-title">
+        <h2 id="how-title" class="how-title" data-i18n="how_heading">Neli sammu, üks kirje.</h2>
+        <ol class="steps">
+          <li class="step">
+            <svg class="step-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="9" width="30" height="30" rx="5"/><circle cx="24" cy="24" r="5"/><path d="M31 17a10 10 0 0 1 0 14"/></svg>
+            <span class="step-num" aria-hidden="true">1</span>
+            <p data-i18n="flow1">Kleebi kaart kontrollitava koha külge.</p>
+          </li>
+          <li class="step">
+            <svg class="step-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="15" y="6" width="18" height="34" rx="4"/><path d="M21 35h6"/><path d="M38 14a9 9 0 0 1 0 12"/><path d="M42 10a15 15 0 0 1 0 20"/></svg>
+            <span class="step-num" aria-hidden="true">2</span>
+            <p data-i18n="flow2">Puuduta kaarti telefoniga.</p>
+          </li>
+          <li class="step">
+            <svg class="step-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="15" width="11" height="18" rx="2"/><rect x="18.5" y="15" width="11" height="18" rx="2"/><rect x="32" y="15" width="11" height="18" rx="2"/><path d="M8.5 24l2 2 3-4"/></svg>
+            <span class="step-num" aria-hidden="true">3</span>
+            <p data-i18n="flow3">Vali hinne 3, 2 või 1.</p>
+          </li>
+          <li class="step">
+            <svg class="step-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="30" rx="3"/><path d="M7 18h34M7 27h34M19 9v30M30 9v30"/></svg>
+            <span class="step-num" aria-hidden="true">4</span>
+            <p data-i18n="flow4">Kirje salvestub kohe.</p>
+          </li>
+        </ol>
+      </section>
+    </div>
 
     <section id="capture" class="station panel" aria-labelledby="capture-title">
       <div class="section-head">
         <h2 id="capture-title" data-i18n="capture_title">Kontrolli salvestamine</h2>
+        <p class="capture-intro landing-only" data-i18n="capture_intro">Salvesta päris kontroll siit brauserist. Telefonis avaneb sama vorm NFC-kaardi puudutusel.</p>
       </div>
 
       <div class="capture-layout">
@@ -134,23 +252,6 @@
         </div>
       </div>
     </section>
-    <section id="explainer" class="explainer panel" aria-labelledby="what-title">
-      <div class="section-head">
-        <h2 id="what-title" data-i18n="what_heading">Kontroll, mis kirjutab end ise.</h2>
-        <p data-i18n="what_body">Tap to Prove on NFC-kaartide ja telefonirakenduse lahendus tootmisliini hügieenikontrolliks. Iga kontrollitava koha küljes on veekindel kaart. Selle puudutamisel avaneb telefonis õige koht ja kontrollija saab hinnangu kohe salvestada.</p>
-      </div>
-    </section>
-
-    <section id="how" class="how panel" aria-labelledby="how-title">
-      <h2 id="how-title" data-i18n="how_heading">Neli sammu, üks kirje.</h2>
-      <div class="step-grid">
-        <article class="step"><b>01</b><h3 data-i18n="flow1">Kleebi kaart kontrollitava koha külge.</h3></article>
-        <article class="step"><b>02</b><h3 data-i18n="flow2">Puuduta kaarti telefoniga.</h3></article>
-        <article class="step"><b>03</b><h3 data-i18n="flow3">Vali hinne 3, 2 või 1.</h3></article>
-        <article class="step"><b>04</b><h3 data-i18n="flow4">Kirje salvestub kohe.</h3></article>
-      </div>
-    </section>
-
     <section id="hygieen" class="sample-sheet panel" aria-labelledby="workbook-title">
       <div class="section-head">
         <h2 id="workbook-title" data-i18n="workbook_title">Tööraamat</h2>
@@ -169,7 +270,7 @@
       <p id="workbookStatus" class="note" role="status"></p>
     </section>
 
-    <section class="benefits panel" aria-labelledby="benefits-title">
+    <section class="benefits" aria-labelledby="benefits-title">
       <h2 id="benefits-title" data-i18n="benefits_title">Loodud liinile.</h2>
       <div class="benefit-grid">
         <article class="benefit"><h3 data-i18n="benefit1_title">Kiirem kui paber</h3><p data-i18n="benefit1_body">Puuduta kaarti, vali hinne ja kontroll on kirjas mõne sekundiga.</p></article>
@@ -178,16 +279,32 @@
       </div>
     </section>
 
-
+    <section id="try" class="try" aria-labelledby="try-title">
+      <div class="try-copy">
+        <h2 id="try-title" data-i18n="try_title">Proovi telefonis.</h2>
+        <p data-i18n="try_body">Skaneeri kood telefoni kaameraga. Avaneb sama kontrollpunkt, mis avaneb NFC-kaardi puudutusel.</p>
+        <a class="link-button primary" href="https://nfc.taptoprove.ee/" data-i18n="try_cta">Ava kontrollpunkt</a>
+      </div>
+      <figure class="qr">
+        <svg viewBox="-2 -2 37 37" role="img" aria-labelledby="qrCaption" shape-rendering="crispEdges"><path stroke="#000" d="M0 0.5h7m2 0h2m2 0h1m1 0h1m2 0h2m2 0h2m2 0h7m-33 1h1m5 0h1m4 0h5m1 0h1m3 0h3m2 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m2 0h3m3 0h3m1 0h2m1 0h2m2 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m3 0h1m3 0h2m3 0h2m2 0h2m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m5 0h5m1 0h1m1 0h1m5 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m1 0h1m2 0h1m2 0h3m1 0h4m2 0h1m1 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-24 1h1m4 0h5m2 0h1m1 0h1m-24 1h1m2 0h1m1 0h2m1 0h2m2 0h4m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m-28 1h1m1 0h1m1 0h1m2 0h2m2 0h1m4 0h2m2 0h1m1 0h1m1 0h4m-28 1h2m3 0h2m1 0h2m4 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1m1 0h1m-29 1h1m3 0h6m1 0h1m5 0h6m1 0h2m2 0h1m-32 1h1m1 0h2m1 0h1m1 0h1m1 0h1m3 0h1m1 0h2m1 0h1m3 0h5m1 0h1m1 0h1m-31 1h1m1 0h1m3 0h2m9 0h2m1 0h4m1 0h1m1 0h2m1 0h2m-32 1h1m1 0h2m1 0h3m2 0h1m2 0h1m1 0h1m3 0h1m1 0h5m2 0h3m-30 1h1m6 0h1m2 0h1m1 0h4m1 0h3m1 0h2m1 0h1m4 0h1m-31 1h1m1 0h1m1 0h3m2 0h2m1 0h1m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m2 0h1m-31 1h1m1 0h3m1 0h1m3 0h2m1 0h1m1 0h1m4 0h3m1 0h1m1 0h1m1 0h1m-30 1h3m2 0h5m1 0h1m1 0h1m3 0h1m2 0h1m5 0h1m3 0h1m1 0h1m-32 1h4m3 0h1m1 0h4m3 0h1m1 0h1m1 0h2m2 0h1m1 0h1m-25 1h1m2 0h3m1 0h4m1 0h2m6 0h1m1 0h1m5 0h1m-31 1h1m1 0h2m11 0h2m3 0h1m1 0h5m3 0h2m-33 1h3m1 0h7m1 0h1m3 0h1m2 0h1m2 0h1m4 0h1m1 0h2m1 0h1m-32 1h2m1 0h2m3 0h2m1 0h1m1 0h3m1 0h1m2 0h1m2 0h2m3 0h1m1 0h1m-32 1h1m5 0h3m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m1 0h7m1 0h1m-24 1h4m2 0h1m1 0h1m2 0h6m3 0h2m1 0h2m-33 1h7m2 0h2m1 0h1m4 0h2m5 0h1m1 0h1m1 0h4m-32 1h1m5 0h1m1 0h1m3 0h1m1 0h1m1 0h4m1 0h2m1 0h1m3 0h1m-29 1h1m1 0h3m1 0h1m4 0h3m1 0h3m1 0h2m1 0h1m1 0h6m2 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h3m4 0h1m4 0h1m1 0h1m1 0h1m-29 1h1m1 0h3m1 0h1m5 0h1m1 0h1m6 0h1m1 0h2m3 0h2m2 0h1m-33 1h1m5 0h1m3 0h1m2 0h1m1 0h4m1 0h2m2 0h2m-26 1h7m1 0h4m2 0h1m1 0h1m1 0h4m1 0h4m1 0h1m2 0h1"/></svg>
+        <figcaption id="qrCaption" data-i18n="try_caption">Näidiskoht Pesu, kaart TAP-DEMO-01</figcaption>
+      </figure>
+    </section>
   </main>
 
-  <footer>
-    <div class="footer-links">
-      <a href="/showcase" id="showcaseLink" data-i18n="showcase">Vaata näidet ja NFC linki</a>
-      <a href="/sheet" id="sheetLink" data-i18n="sheet">Elavad kirjed</a>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <a class="nav-brand footer-brand" href="/">Tap to Prove</a>
+      <p data-i18n="footer">A. Le Coqi väljakutse 3 hackathonil Hack the Future of Food 2026. Tap to prove.</p>
+      <div class="footer-links">
+        <a href="/showcase" id="showcaseLink" data-i18n="showcase">Vaata näidet ja NFC linki</a>
+        <a href="/paper" data-i18n="paper">Prindi pabervorm</a>
+        <a href="/sheet" id="sheetLink" data-i18n="sheet">Elavad kirjed</a>
+      </div>
     </div>
   </footer>
 
   <script type="module" src="app.js"></script>
+  <script type="module" src="landing.js"></script>
 </body>
 </html>
