@@ -58,6 +58,11 @@
     .rule b { color: var(--accent); }
     .rule-state { min-height: 58px; margin: 16px 0; padding: 14px 0; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line); font: 600 12px/1.5 var(--mono); }
 
+    .machine-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+    .machine-links > span { width: 100%; font: 600 11px/1.2 var(--mono); color: var(--muted); text-transform: uppercase; }
+    .machine-links a { min-height: 34px; padding: 6px 9px; border: 1px solid var(--line); background: var(--wash); color: var(--ink); font: 600 11px/1 var(--mono); text-decoration: none; border-radius: 8px; }
+    .machine-links a:hover { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+
     .role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
     .role-cell { padding: 18px 0; border-top: 3px solid var(--ink); }
     .role-cell strong { display: block; font: 700 24px/1 var(--display); }
@@ -238,6 +243,7 @@
             <a class="ghost" href="https://nfc.arle.top/?asset=Villimisliin%201%2C%20koht%2017&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
           </div>
           <p class="copy-note" id="copyNote" role="status"></p>
+          <div class="machine-links" id="machineLinks"></div>
         </div>
       </div>
     </section>
@@ -280,7 +286,7 @@
         emptyRows: 'Märkusi pole.',
         nfcTitle: 'NFC link', stickerNote: 'kleebis kontrollikohal',
         nfcLead: 'Avab õige koha ja kaardiga.',
-        copy: 'Kopeeri link', open: 'Ava näide',
+        copy: 'Kopeeri link', open: 'Ava näide', other_machines: 'Teised masinad',
         footerNote: 'Näide. Andmebaas on Supabase, ühendus tuleb.', footerLink: 'Ava töövaade',
         dirty: 'must', serious: 'tõsine', clean: 'korras', none: 'märkusi pole',
         viewerOnly: 'Vaataja õigus, muutmist ei võimaldata.', saved: 'Salvestatud', photo: 'pilt', voice: 'hääl 00:04', video: 'video 00:12', text: 'tekst', dirty_note: 'must koht, vaata tõendit',
@@ -305,7 +311,7 @@
         emptyRows: 'No notes.',
         nfcTitle: 'NFC link', stickerNote: 'sticker on the checkpoint',
         nfcLead: 'Opens with the right spot and card.',
-        copy: 'Copy link', open: 'Open example',
+        copy: 'Copy link', open: 'Open example', other_machines: 'Other machines',
         footerNote: 'Example. Supabase database, connection next.', footerLink: 'Open work view',
         dirty: 'dirty', serious: 'serious', clean: 'clean', none: 'no notes',
         viewerOnly: 'Viewer role, editing is disabled.', saved: 'Saved', photo: 'photo', voice: 'voice 00:04', video: 'video 00:12', text: 'text', dirty_note: 'dirty spot, see proof',
@@ -315,6 +321,37 @@
 
     const $ = (id) => document.getElementById(id);
     const NFC_URL = 'https://nfc.arle.top/?asset=Villimisliin%201%2C%20koht%2017&tag=TAP-DEMO-01&via=nfc';
+
+    const MACHINE_LINKS = [
+      ['Pesu', 'TAP-DEMO-02'],
+      ['Täitepea', 'TAP-DEMO-03'],
+      ['Klapp', 'TAP-DEMO-04'],
+      ['Drenaaž', 'TAP-DEMO-05'],
+      ['Uks', 'TAP-DEMO-06'],
+      ['Kätepesu', 'TAP-DEMO-07'],
+      ['Kastipesu', 'TAP-DEMO-08'],
+      ['Siirupituba', 'TAP-DEMO-09']
+    ];
+
+    function machineUrl(name, tag) {
+      return `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=${tag}&via=nfc`;
+    }
+
+    function renderMachineLinks() {
+      const host = $('machineLinks');
+      if (!host) return;
+      const label = document.createElement('span');
+      label.textContent = t('other_machines');
+      host.replaceChildren(label);
+      for (const [name, tag] of MACHINE_LINKS) {
+        const link = document.createElement('a');
+        link.href = machineUrl(name, tag);
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = name;
+        host.appendChild(link);
+      }
+    }
     let role = 'muutja';
     let lang = 'et';
     let selectedId = 1;
@@ -334,6 +371,7 @@
       for (const [id, key] of Object.entries(map)) $(id).textContent = t(key);
       $('copyBtn').textContent = t('copy');
       $('nfcOpen').textContent = t('open');
+      renderMachineLinks();
       document.documentElement.lang = lang;
       select(selectedId);
     }
