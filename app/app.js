@@ -95,6 +95,14 @@ const WORDS = {
     grade3_label: '3 clean',
     grade2_label: '2 dirty',
     grade1_label: '1 serious',
+    performer_label: 'Performed by',
+    performer_placeholder: 'name or initials',
+    grade_comment_label: 'Comment',
+    grade_comment_placeholder: 'what you saw',
+    grade_comment_required: 'A comment is required for grade 2 or 1.',
+    grade_save: 'Save grade',
+    grade_locked_note: 'Grade saved. This tag is closed. Tap a new tag for a new check.',
+    grade3_closed: 'Grade 3 saved. Nothing else is needed.',
     record_added: 'Record',
     nfc_tag: 'NFC card',
     qr_link: 'QR link',
@@ -200,6 +208,14 @@ const WORDS = {
     grade3_label: '3 korras',
     grade2_label: '2 must',
     grade1_label: '1 tõsine',
+    performer_label: 'Teostaja',
+    performer_placeholder: 'nimi või initsiaalid',
+    grade_comment_label: 'Kommentaar',
+    grade_comment_placeholder: 'mida nägid',
+    grade_comment_required: 'Hinde 2 või 1 korral tuleb kommentaar.',
+    grade_save: 'Salvesta hinne',
+    grade_locked_note: 'Hinne salvestatud. See kleeps on kinni. Uueks kontrolliks puuduta uut kleepsu.',
+    grade3_closed: 'Hinne 3 salvestatud. Rohkem sisestada ei pea.',
     record_added: 'Kirje',
     record_one: 'kirje',
     record_many: 'kirjet',
@@ -241,6 +257,8 @@ let saving = false;
 let audioToken = 0;
 
 let gradeMode = false;
+let pendingGrade = 0;
+let gradeLocked = false;
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
   for (const el of document.querySelectorAll('[data-i18n]')) {
@@ -746,6 +764,17 @@ function quickRecord(kind, grade = 0) {
       return;
     }
     const isGrade = kind === 'grade';
+    if (isGrade && gradeLocked) {
+      note('quickNote', WORDS[lang].grade_locked_note);
+      return;
+    }
+    const gradeComment = $('gradeComment').value.trim();
+    const performer = $('performer').value.trim();
+    if (isGrade && grade !== 3 && !gradeComment) {
+      note('quickNote', WORDS[lang].grade_comment_required, true);
+      $('gradeComment').focus({ preventScroll: true });
+      return;
+    }
     if (audioBusy('quickNote')) return;
     const isDefault = kind === 'default';
     const noEvidence = !hasEvidence();
@@ -754,9 +783,9 @@ function quickRecord(kind, grade = 0) {
     const tier = isGrade ? 'C' : noEvidence ? 'C' : tierFor();
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
     const faultLabel = $('faultType').selectedOptions[0]?.textContent.trim() || WORDS[lang].fault_foam;
-    const transcript = isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : faultLabel;
+    const transcript = isGrade ? (grade === 3 ? gradeReason : gradeComment) : isClean ? WORDS[lang].quick_prompt : faultLabel;
     const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : isClean ? 'clean' : 'not clean';
-    const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason;
+    const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? (grade === 3 ? gradeReason : gradeComment) : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason;
     const previous = reusedPhoto(photoState);
     const record = await appendRecord({
       asset,
@@ -766,6 +795,7 @@ function quickRecord(kind, grade = 0) {
       method: isGrade ? 'Rated' : isClean ? 'Declared' : 'Visual',
       verdict,
       grade: isGrade ? grade : null,
+      performer: isGrade ? performer : '',
       transcript,
       tier,
       reason,
@@ -781,7 +811,15 @@ function quickRecord(kind, grade = 0) {
       ...mediaPayload()
     });
     await persistMedia(record);
-    const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
+    if (isGrade) {
+      gradeLocked = true;
+      pendingGrade = 0;
+      $('gradeRow').hidden = true;
+      $('gradeCommentField').hidden = true;
+      $('gradeSaveBtn').hidden = true;
+      $('faultBtn').hidden = true;
+    }
+    const done = isGrade ? (grade === 3 ? WORDS[lang].grade3_closed : WORDS[lang].grade_done.replace('N', grade)) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
   });
 }
@@ -797,12 +835,23 @@ function sourceLabel() {
   return WORDS[lang].no_tag;
 }
 
+function resetGradeUi() {
+  pendingGrade = 0;
+  gradeLocked = false;
+  if ($('gradeRow')) $('gradeRow').hidden = !gradeMode;
+  if ($('gradeCommentField')) $('gradeCommentField').hidden = true;
+  if ($('gradeSaveBtn')) $('gradeSaveBtn').hidden = true;
+  if ($('gradeComment')) $('gradeComment').value = '';
+  if ($('faultBtn')) $('faultBtn').hidden = false;
+}
+
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
   currentSource = origin;
   $('asset').value = name;
   $('assetStampName').textContent = name;
   $('assetSource').textContent = sourceLabel();
+  if (gradeMode) resetGradeUi();
 }
 
 
@@ -1043,7 +1092,25 @@ function bind() {
   $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
   $('defaultBtn').addEventListener('click', () => quickRecord('default'));
   document.querySelectorAll('.grade-btn').forEach((btn) => {
-    btn.addEventListener('click', () => quickRecord('grade', Number(btn.dataset.grade)));
+    btn.addEventListener('click', () => {
+      const value = Number(btn.dataset.grade);
+      if (gradeLocked) {
+        note('quickNote', WORDS[lang].grade_locked_note);
+        return;
+      }
+      if (value === 3) {
+        quickRecord('grade', 3);
+        return;
+      }
+      pendingGrade = value;
+      $('gradeCommentField').hidden = false;
+      $('gradeSaveBtn').hidden = false;
+      $('gradeComment').focus({ preventScroll: true });
+      note('quickNote', WORDS[lang].grade_comment_required);
+    });
+  });
+  $('gradeSaveBtn').addEventListener('click', () => {
+    if (pendingGrade) quickRecord('grade', pendingGrade);
   });
   $('faultBtn').addEventListener('click', () => {
     setFaultPanel(true);
@@ -1102,6 +1169,9 @@ async function start() {
     $('cleanBtn').hidden = true;
     $('defaultBtn').hidden = true;
     $('faultBtn').hidden = false;
+    $('gradePerformerField').hidden = false;
+    $('gradeCommentField').hidden = true;
+    $('gradeSaveBtn').hidden = true;
     note('quickNote', WORDS[lang].grade_note);
   }
   if (asset) {
