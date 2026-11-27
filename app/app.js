@@ -62,11 +62,14 @@ const WORDS = {
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
     audio_unsupported: 'This browser cannot record audio.',
-    speech_unsupported: 'This browser cannot turn speech into text. Type the note instead.',
     speech_lang_unsupported: 'Speech recognition is not available in this browser. Type the note instead.',
     speech_fallback: 'Estonian is unavailable for speech here. Listening in English.',
     speech_stopped: 'Voice stopped',
     listening: 'Listening',
+    record_stop_hint: 'Press the button again when you are done.',
+    transcribing: 'Writing it down...',
+    record_failed: 'Could not write the voice down. Check the microphone permission and the connection.',
+    record_short: 'The recording was too short. Press, speak, and press again.',
     polishing: 'Correcting spelling',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
@@ -217,11 +220,14 @@ const WORDS = {
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
-    speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst.',
     speech_lang_unsupported: 'Kõnetuvastus ei ole selles brauseris saadaval. Kirjuta tekst.',
     speech_fallback: 'Eesti keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan',
+    record_stop_hint: 'Vajuta nuppu uuesti, kui oled lõpetanud.',
+    transcribing: 'Kirjutan üles…',
+    record_failed: 'Häält ei saanud üles kirjutada. Kontrolli mikrofoniluba ja ühendust.',
+    record_short: 'Salvestus jäi liiga lühikeseks. Vajuta, räägi ja vajuta uuesti.',
     polishing: 'Parandan kirjavigu',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
@@ -1333,6 +1339,36 @@ let recorder = null;
 let recordChunks = [];
 let recordStream = null;
 let recorderReady = null;
+let recordMime = '';
+// iPhone Safari has no Web Speech API; MediaRecorder there writes audio/mp4.
+const AUDIO_TYPES = [
+  'audio/webm;codecs=opus',
+  'audio/webm',
+  'audio/mp4;codecs=mp4a.40.2',
+  'audio/mp4',
+  'audio/aac',
+  'audio/ogg;codecs=opus'
+];
+
+function pickAudioMime() {
+  if (typeof MediaRecorder === 'undefined') return '';
+  return AUDIO_TYPES.find((type) => {
+    try { return MediaRecorder.isTypeSupported(type); } catch { return false; }
+  }) || '';
+}
+
+function audioFileName(type) {
+  const value = String(type || '').toLowerCase();
+  if (value.includes('mp4') || value.includes('aac') || value.includes('m4a')) return 'note.m4a';
+  if (value.includes('ogg')) return 'note.ogg';
+  if (value.includes('mpeg')) return 'note.mp3';
+  if (value.includes('wav')) return 'note.wav';
+  return 'note.webm';
+}
+
+function canRecordAudio() {
+  return Boolean(navigator.mediaDevices?.getUserMedia) && typeof MediaRecorder !== 'undefined';
+}
 
 function startRecorder() {
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
@@ -1342,8 +1378,9 @@ function startRecorder() {
       return;
     }
     recordStream = stream;
-    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((type) => MediaRecorder.isTypeSupported(type)) || '';
+    const mime = pickAudioMime();
     recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    recordMime = recorder.mimeType || mime;
     recordChunks = [];
     recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordChunks.push(event.data); };
     recorder.start();
@@ -1360,12 +1397,71 @@ function stopRecorder() {
       resolve(blob && blob.size ? blob : null);
     };
     if (!recorder || recorder.state === 'inactive') {
-      finish(recordChunks.length ? new Blob(recordChunks, { type: 'audio/webm' }) : null);
+      finish(recordChunks.length ? new Blob(recordChunks, { type: recordMime || 'audio/webm' }) : null);
       return;
     }
-    recorder.onstop = () => finish(new Blob(recordChunks, { type: recorder.mimeType || 'audio/webm' }));
+    recorder.onstop = () => finish(new Blob(recordChunks, { type: recorder.mimeType || recordMime || 'audio/webm' }));
     try { recorder.stop(); } catch { finish(null); }
   }));
+}
+
+let recordState = 'idle';
+
+async function transcribeRecording(blob) {
+  const body = new FormData();
+  body.set('file', blob, audioFileName(blob.type || recordMime));
+  body.set('language', 'et');
+  const response = await fetch('./api/transcribe', { method: 'POST', body });
+  if (!response.ok) return '';
+  const payload = await response.json().catch(() => ({}));
+  return String(payload.text || '').trim();
+}
+
+// iPhone Safari has no Web Speech API, so the same button records a clip and
+// sends it to Whisper on the server; the text is written into the note.
+async function toggleRecordOnly() {
+  const button = $('voiceBtn');
+  if (recordState === 'sending') {
+    note('audioNote', t('transcribing'));
+    return;
+  }
+  if (recordState === 'recording') {
+    recordState = 'sending';
+    voiceHold = false;
+    button.classList.remove('listening');
+    button.textContent = t('speak');
+    note('audioNote', t('transcribing'));
+    const blob = await stopRecorder();
+    // A tap-length clip is mostly silence, which Whisper can invent a word for.
+    const tooShort = Boolean(blob) && blob.size < 400;
+    let text = '';
+    try {
+      text = blob && !tooShort ? await transcribeRecording(blob) : '';
+    } catch {
+      text = '';
+    }
+    recordState = 'idle';
+    if (!text) {
+      resetVoiceUI();
+      note('audioNote', t(tooShort ? 'record_short' : 'record_failed'), true);
+      return;
+    }
+    const field = $('transcript');
+    const prefix = String(field.value || '').trim();
+    field.value = prefix ? `${prefix}\n${text}` : text;
+    speechBase = field.value;
+    spokenLangs.add(detectSpokenLang(text));
+    growTranscript(field);
+    resetVoiceUI();
+    return;
+  }
+  recordState = 'recording';
+  voiceHold = true;
+  userOwned = false;
+  button.classList.add('listening');
+  button.textContent = t('listening');
+  note('audioNote', t('record_stop_hint'));
+  startRecorder();
 }
 
 async function polishUtterance(base, owned, token) {
@@ -1375,8 +1471,8 @@ async function polishUtterance(base, owned, token) {
   note('audioNote', t('polishing'));
   try {
     const body = new FormData();
-    const type = blob.type || 'audio/webm';
-    body.set('file', blob, type.includes('mp4') ? 'note.m4a' : 'note.webm');
+    const type = blob.type || recordMime || 'audio/webm';
+    body.set('file', blob, audioFileName(type));
     body.set('language', String(speechLang || 'et-EE').slice(0, 2));
     const response = await fetch('./api/transcribe', { method: 'POST', body });
     if (!response.ok || token !== polishToken || userOwned) return;
@@ -1545,6 +1641,7 @@ function startSpeechSession(langCode, handlers) {
 function resetVoiceUI() {
   speechSession = null;
   voiceHold = false;
+  recordState = 'idle';
   const field = $('transcript');
   if (field) {
     speechBase = field.value;
@@ -1598,6 +1695,10 @@ function beginHeldSpeech(langCode, attempt = 0) {
 }
 
 function toggleVoice() {
+  if (recordState !== 'idle') {
+    toggleRecordOnly();
+    return;
+  }
   if (speechSession || voiceHold) {
     voiceHold = false;
     if (speechSession && !speechSession.finished) speechSession.stop();
@@ -1605,7 +1706,11 @@ function toggleVoice() {
     return;
   }
   if (!speechRecognition()) {
-    note('audioNote', t('speech_unsupported'), true);
+    if (canRecordAudio()) {
+      toggleRecordOnly();
+      return;
+    }
+    note('audioNote', t('audio_unsupported'), true);
     return;
   }
   voiceHold = true;

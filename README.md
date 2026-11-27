@@ -121,6 +121,8 @@ The sample CSV is Excel friendly with a UTF-8 BOM, semicolon separators and comm
 
 The Tööraamat section on `taptoprove.ee` embeds the workbook's `Hügieen` sheet: the column letters, row numbers, blue header row, 5 week columns, checkpoint rows and legend the Excel file has. A save from the capture form fills the cell at once, and a second tab on the same device follows through the browser broadcast. A record's `checkpoint` comes from the place name (`Pesu` becomes `Wash`, `Filler head` stays `Filler head`), which is what fills the grid. The `Kirjed` record list is not on the landing; both sheets are in the downloadable `.xlsx`, and `/sheet` shows the records of this device.
 
+Dictation has two paths. Where the browser has the Web Speech API (Chrome, Edge), words appear while you speak, and the same recording is sent to Whisper to correct the spelling. iPhone Safari has no speech API, so the `Räägi` button records a clip, sends it to `/api/transcribe` on the server, and writes the text into the note when you press the button again. The clip is plain `audio/webm` or `audio/mp4` depending on the browser, named `note.webm` or `note.m4a` to match, and a tap shorter than a word is ignored. This path needs a connection.
+
 The live sheet at `/sheet` reads the same IndexedDB store as the capture app and follows new records on that device through a browser broadcast. It is same device only, same browser profile only. Cross device sync needs a shared store such as Supabase. There is no server yet.
 
 The JSONL export keeps inspection records unchanged and adds a separate
