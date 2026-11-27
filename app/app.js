@@ -779,14 +779,14 @@ function drawCip() {
   const height = 150;
   const points = (values, max) => values.map((v, i) => `${(i / (values.length - 1) * (width - 30) + 20).toFixed(1)},${(height - 14 - v / max * (height - 30)).toFixed(1)}`).join(' ');
   $('cipChart').innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="One plausible CIP curve">
-    <line x1="20" y1="${height - 14}" x2="${width - 10}" y2="${height - 14}" stroke="#666e64" stroke-width="1"/>
-    <line x1="20" y1="20" x2="20" y2="${height - 14}" stroke="#666e64" stroke-width="1"/>
-    <polyline points="${points(temps, 90)}" fill="none" stroke="#e4572e" stroke-width="2.5"/>
-    <polyline points="${points(conductivity, 32)}" fill="none" stroke="#2f6d63" stroke-width="2"/>
-    <text x="24" y="16" font-size="11" font-family="ui-monospace" fill="#666e64">temperature C / conductivity</text>
-    <text x="20" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666e64">pre rinse</text>
-    <text x="180" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666e64">caustic hold</text>
-    <text x="380" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#666e64">sanitise</text>
+    <line x1="20" y1="${height - 14}" x2="${width - 10}" y2="${height - 14}" stroke="#53676d" stroke-width="1"/>
+    <line x1="20" y1="20" x2="20" y2="${height - 14}" stroke="#53676d" stroke-width="1"/>
+    <polyline points="${points(temps, 90)}" fill="none" stroke="#c23a2b" stroke-width="2.5"/>
+    <polyline points="${points(conductivity, 32)}" fill="none" stroke="#0b7a59" stroke-width="2"/>
+    <text x="24" y="16" font-size="11" font-family="ui-monospace" fill="#53676d">temperature C / conductivity</text>
+    <text x="20" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#53676d">pre rinse</text>
+    <text x="180" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#53676d">caustic hold</text>
+    <text x="380" y="${height - 2}" font-size="10" font-family="ui-monospace" fill="#53676d">sanitise</text>
   </svg>`;
 }
 
