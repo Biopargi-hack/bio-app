@@ -859,24 +859,43 @@ main {
 .sample-sheet .eyebrow { margin: 0; }
 .sample-sheet h2, .explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
 .sample-sheet .note { margin: 0; font-size: 13px; }
-/* The embedded workbook: the Kirjed sheet, scrollable like the file it mirrors. */
-.sheet-scroll { margin-top: 18px; overflow-x: auto; border-top: 1px solid var(--line); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
-.sheet-scroll::-webkit-scrollbar { height: 10px; }
-.sheet-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
-#workbookTable { width: 100%; border-collapse: collapse; font: 400 11px/1.35 var(--mono); font-variant-numeric: tabular-nums; }
-#workbookTable th, #workbookTable td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; white-space: nowrap; }
-#workbookTable thead th { background: var(--paper); color: var(--muted); font: 600 10px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; border-bottom: 2px solid var(--ink); }
-#workbookTable th:first-child, #workbookTable td:first-child { position: sticky; left: 0; z-index: 2; background: var(--paper); }
-#workbookTable tbody tr.fresh td { background-color: var(--paper); background-image: linear-gradient(var(--accent-tint), var(--accent-tint)); }
-#workbookTable td.long { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
-#workbookTable td.transcript { max-width: 36rem; white-space: pre-wrap; overflow: visible; overflow-wrap: anywhere; }
-#workbookTable td.chain-ok { color: var(--mint); font-weight: 600; }
-#workbookTable td.chain-bad { color: var(--accent); font-weight: 700; }
-#workbookEmpty { margin-top: 16px; }
-#workbookStatus { margin-top: 10px; }
+/* The embedded workbook: the Excel sheets, cell for cell. */
+.workbook { margin-top: 14px; }
+.workbook-tabs { display: flex; gap: 2px; padding-left: 6px; }
+.workbook-tab { min-height: 36px; padding: 8px 16px; border: 1px solid var(--line-strong); border-bottom: 0; border-radius: 6px 6px 0 0; background: var(--wash); color: var(--muted); font: 600 12px/1 var(--mono); cursor: pointer; }
+.workbook-tab[aria-selected="true"] { background: var(--paper); color: var(--ink); box-shadow: inset 0 3px 0 #1f4e78; }
+.workbook-tab:hover { color: var(--ink); }
+.workbook-scroll { max-height: 62vh; overflow: auto; border: 1px solid var(--line-strong); background: var(--paper); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+.workbook-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
+.workbook-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+.wb-sheet { border-collapse: separate; border-spacing: 0; font: 400 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+.wb-hygiene { table-layout: fixed; width: max-content; }
+.wb-sheet th, .wb-sheet td { padding: 4px 7px; text-align: left; vertical-align: top; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wb-clip { display: block; max-width: 42ch; overflow: hidden; text-overflow: ellipsis; }
+.wb-sheet thead { position: sticky; top: 0; z-index: 5; }
+.wb-letters th { height: 20px; padding: 3px 6px; border-bottom: 1px solid var(--line); background: #eef1f3; color: #5c6569; font: 500 10px/1 var(--sans); text-align: center; }
+.wb-letters .wb-corner { position: sticky; left: 0; z-index: 7; background: #e6eaec; }
+.wb-rowhead { position: sticky; left: 0; z-index: 4; padding: 4px 6px; border-right: 1px solid var(--line); background: #eef1f3; color: #5c6569; font: 500 10px/1 var(--sans); text-align: center; }
+.wb-sheet thead .wb-rowhead { z-index: 6; }
+.wb-head { background: #1f4e78; color: #fff; font-weight: 700; }
+.wb-dates td { background: #e2efda; font-style: italic; }
+.wb-kirjed tbody tr.fresh td { background: #fdf3f5; }
+.wb-kirjed td.chain-ok { color: var(--mint); font-weight: 600; }
+.wb-kirjed td.chain-bad { color: var(--accent); font-weight: 700; }
+.wb-pin { position: sticky; left: 3.5ch; z-index: 2; }
+.wb-hygiene td, .wb-hygiene .wb-label, .wb-hygiene .wb-dates td { border: 1px solid #b7b7b7; }
+.wb-hygiene td { text-align: center; }
+.wb-hygiene .wb-head { text-align: center; }
+.wb-hygiene .wb-label { background: #fff2cc; text-align: left; font-weight: 500; }
+.wb-hygiene .g3 { background: #c6efce; }
+.wb-hygiene .g2 { background: #ffeb9c; }
+.wb-hygiene .g1 { background: #ffc7ce; }
+.wb-hygiene .wb-legend { border: 1px solid #b7b7b7; background: #fff2cc; font-weight: 700; text-align: left; }
 @media (max-width: 720px) {
-  #workbookTable th, #workbookTable td { padding: 7px 8px; }
+  .workbook-scroll { max-height: 52vh; }
+  .wb-sheet th, .wb-sheet td { padding: 4px 6px; }
 }
+#workbookStatus { margin-top: 10px; }
 .explainer .section-head { max-width: 760px; margin: 0; padding: 0; border: 0; }
 .explainer .section-head p:not(.eyebrow) { max-width: 70ch; margin: 14px 0 0; color: var(--muted); font: 400 15px/1.65 var(--sans); }
 .step-grid, .benefit-grid { display: grid; gap: 16px; margin-top: 24px; }
