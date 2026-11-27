@@ -8,7 +8,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | @AARenor | omp | review | Excel friendly CSV and record export | fix/excel_export | none |
 | @linnudtonisted | OpenCode | review | Restore speech text field; remove tier display | PR #48 (`fix/transcript-field`) | device test |
 | @Pepukarv | OpenCode | review | Minimal capture: rating 1-3, note/voice, media, line | #54, PR #57 | none |
-| @stevenlaas123-pixel | _fill in_ | idle | repo hardening | `chore/team-workflow` | — |
+| @stevenlaas123-pixel | omp | review | Simplify capture screen; browser-language speech | `feat/capture_simplify` | speech and NFC device test |
 
 ## Demo-critical path
 

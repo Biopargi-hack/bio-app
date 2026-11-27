@@ -207,8 +207,6 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 64px
 .default-assessment::before { content: '●'; color: var(--accent); font-size: 10px; margin-right: 9px; vertical-align: 2px; }
 .grade-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
 .grade-btn { min-height: 56px; padding: 10px; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font: 700 16px/1 var(--display); text-transform: uppercase; }
-.grade-btn[data-grade="2"] { border-color: var(--accent); color: var(--accent); }
-.grade-btn[data-grade="1"] { background: var(--accent-dark); border-color: var(--accent-dark); color: var(--paper); }
 .grade-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 
 
@@ -562,4 +560,3 @@ footer { background: var(--paper); }
 .grade-card .pad-prompt { margin: 8px 0 0; font: 400 12px/1.4 var(--mono); color: var(--muted); }
 .grade-card .note { margin-bottom: 0; }
 .grade-btn.selected { background: var(--accent); border-color: var(--accent); color: var(--paper); }
-.grade-btn[data-grade="1"].selected { background: var(--accent-dark); border-color: var(--accent-dark); }
