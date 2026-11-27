@@ -125,17 +125,22 @@
           </label>
         </div>
 
-        <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Hold to speak</button>
-        <label class="field">
-          <span data-i18n="what_happened">What happened</span>
-          <textarea id="transcript" rows="3" placeholder="cleaned, filler head, 14:20, residue on the seal"></textarea>
+        <div class="voice-controls">
+          <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Speak to write</button>
+          <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
+          <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone to speak or record a clip. The clip and text are saved with the record.</p>
+        </div>
+        <label class="field text-field">
+          <span data-i18n="note_label">What happened — write or speak</span>
+          <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write. Each recording adds a new line." data-i18n-placeholder="note_ph"></textarea>
+          <small class="field-hint" data-i18n="note_hint">Choose Estonian, Russian or English above. Speech is written in that language.</small>
         </label>
 
         <label class="field file-field">
-          <span data-i18n="photo">Photo evidence</span>
-          <input id="photo" type="file" accept="image/*" capture="environment">
+          <span data-i18n="evidence">Photo or video evidence</span>
+          <input id="photo" type="file" accept="image/*,video/*" capture="environment">
         </label>
-        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo only counts as evidence if the app can read it.</p>
+        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo or video only counts as evidence if the app can read it.</p>
 
         <div class="field-grid">
           <label class="field">
@@ -176,6 +181,7 @@
           <button type="button" data-question="tierc" data-i18n="q_tierc">Tier C without signature</button>
           <button type="button" data-question="today" data-i18n="q_today">Everything today</button>
           <button type="button" data-question="defaults" data-i18n="q_defaults">Fixed defaults</button>
+          <button type="button" data-question="media" data-i18n="q_media">Records with media</button>
         </div>
         <p id="answerNote" class="note" role="status"></p>
 
