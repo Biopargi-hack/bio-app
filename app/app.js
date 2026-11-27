@@ -762,14 +762,14 @@ function quickRecord(kind, grade = 0) {
     if (audioBusy('quickNote')) return;
     const isDefault = kind === 'default';
     const noEvidence = !hasEvidence();
-    const defaultAssessment = isDefault && noEvidence;
+    const defaultAssessment = (isDefault || (isGrade && grade === 3)) && noEvidence;
     const isClean = kind === 'clean' || isDefault || (isGrade && grade === 3);
     const tier = isGrade ? 'C' : noEvidence ? 'C' : tierFor();
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
     const faultLabel = $('faultType').selectedOptions[0]?.textContent.trim() || WORDS[lang].fault_foam;
     const transcript = isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : faultLabel;
     const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : isClean ? 'clean' : 'not clean';
-    const reason = isGrade ? gradeReason : defaultAssessment ? WORDS[lang].default_reason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason;
+    const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason;
     const previous = reusedPhoto(photoState);
     const record = await appendRecord({
       asset,
@@ -789,7 +789,7 @@ function quickRecord(kind, grade = 0) {
       photo_usable: photoState?.usable || false,
       photo_reuse_of: previous?.seq || null,
       language: speechLang,
-      default_assessment: isDefault && noEvidence,
+      default_assessment: defaultAssessment,
       quick: true,
       ...mediaPayload()
     });
@@ -1124,7 +1124,7 @@ async function registerServiceWorker() {
 function setFaultPanel(open) {
   $('faultField').hidden = !open;
   $('faultSaveBtn').hidden = !open;
-  $('cleanBtn').hidden = open;
+  $('cleanBtn').hidden = open || gradeMode;
   $('defaultBtn').hidden = open || gradeMode;
   if (open) $('faultType').selectedIndex = 0;
 }
@@ -1202,8 +1202,9 @@ async function start() {
   updateNetwork();
   if (gradeMode) {
     $('gradeRow').hidden = false;
-    document.querySelector('.pad-actions').hidden = true;
+    $('cleanBtn').hidden = true;
     $('defaultBtn').hidden = true;
+    $('faultBtn').hidden = false;
     note('quickNote', WORDS[lang].grade_note);
   }
   if (asset) {

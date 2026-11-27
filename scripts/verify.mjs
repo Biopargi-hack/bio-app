@@ -59,7 +59,8 @@ if (appSource.includes("tag_sig: currentTag") && appSource.includes("r.tag_sig")
 }
 
 // The no photo case must write a fixed default assessment into the dataset.
-if (appSource.includes("quickRecord('default')") && /default_assessment:\s*isDefault\s*&&\s*noEvidence/.test(appSource)) {
+const defaultWired = appSource.includes("quickRecord('default')") && /defaultAssessment\s*=\s*\(isDefault\s*\|\|\s*\(isGrade\s*&&\s*grade\s*===\s*3\)\)\s*&&\s*noEvidence/.test(appSource) && appSource.includes('default_assessment: defaultAssessment');
+if (defaultWired) {
   ok("fixed default assessment is wired into records");
 } else {
   fail("app/app.js: fixed default assessment is missing from records");
