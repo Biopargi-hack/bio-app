@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Excel friendly CSV and record export | fix/excel_export | none |
+| @AARenor | omp | doing | Split landing and NFC hosts, update docs and gate | `feat/nfc_subdomain` | none |
 | @linnudtonisted | OpenCode | review | Speech-to-text: detect language from first words | `fix/speech-to-text`, issue #44 | device test |
 | @Pepukarv | OpenCode | review | Remove 'Kaheksa kohta. Üks rutiin.' heading from landing | #70, fix/remove_checkpoints_title | none |
 | @stevenlaas123-pixel | omp | review | Escalate four consecutive grade 2 checks | `feat/grade-escalation`, issue #84 | device test |

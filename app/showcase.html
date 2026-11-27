@@ -240,7 +240,7 @@
           <code id="nfcUrl"></code>
           <div class="action-row">
             <button class="solid" type="button" id="copyBtn">Kopeeri link</button>
-            <a class="ghost" href="https://taptoprove.ee/?asset=Villimisliin%201%2C%20koht%2017&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
+            <a class="ghost" href="https://nfc.taptoprove.ee/?asset=Villimisliin%201%2C%20koht%2017&amp;tag=TAP-DEMO-01&amp;via=nfc" id="nfcOpen" target="_blank" rel="noopener">Ava näide</a>
           </div>
           <p class="copy-note" id="copyNote" role="status"></p>
           <div class="machine-links" id="machineLinks"></div>
@@ -285,7 +285,7 @@
         thPlace: 'Koht', thLine: 'Liin', thGrade: 'Hinne', thProof: 'Tõend', thNote: 'Märkus',
         emptyRows: 'Märkusi pole.',
         nfcTitle: 'NFC link', stickerNote: 'näidislink, füüsilist kleebist pole',
-        nfcLead: 'Avab õige koha ja kaardiga.',
+        nfcLead: 'Avab õige koha ja kaardiga nfc.taptoprove.ee kaudu.',
         copy: 'Kopeeri link', open: 'Ava näide', other_machines: 'Teised masinad, näidis',
         footerNote: 'Näide. Andmebaas on Supabase, ühendus tuleb.', footerLink: 'Ava töövaade',
         dirty: 'must', serious: 'tõsine', clean: 'korras', none: 'märkusi pole',
@@ -310,7 +310,7 @@
         thPlace: 'Spot', thLine: 'Line', thGrade: 'Grade', thProof: 'Proof', thNote: 'Note',
         emptyRows: 'No notes.',
         nfcTitle: 'NFC link', stickerNote: 'demo link, no physical sticker',
-        nfcLead: 'Opens with the right spot and card.',
+        nfcLead: 'Opens with the right spot and card at nfc.taptoprove.ee.',
         copy: 'Copy link', open: 'Open example', other_machines: 'Other machines, demo',
         footerNote: 'Example. Supabase database, connection next.', footerLink: 'Open work view',
         dirty: 'dirty', serious: 'serious', clean: 'clean', none: 'no notes',
@@ -320,7 +320,8 @@
     };
 
     const $ = (id) => document.getElementById(id);
-    const NFC_URL = 'https://taptoprove.ee/?asset=Villimisliin%201%2C%20koht%2017&tag=TAP-DEMO-01&via=nfc';
+    const NFC_ORIGIN = 'https://nfc.taptoprove.ee';
+    const NFC_URL = `${NFC_ORIGIN}/?asset=Villimisliin%201%2C%20koht%2017&tag=TAP-DEMO-01&via=nfc`;
 
     const MACHINE_LINKS = [
       ['Pesu', 'TAP-DEMO-02'],
@@ -334,7 +335,7 @@
     ];
 
     function machineUrl(name, tag) {
-      return `https://taptoprove.ee/?asset=${encodeURIComponent(name)}&tag=${tag}&via=nfc`;
+      return `${NFC_ORIGIN}/?asset=${encodeURIComponent(name)}&tag=${tag}&via=nfc`;
     }
 
     function renderMachineLinks() {
