@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask in Discussions
+    url: https://github.com/Biopargi-hack/bio-app/discussions
+    about: Open questions, demo ideas, anything that is not yet a task.
+  - name: Read the agent brief
+    url: https://github.com/Biopargi-hack/bio-app/blob/main/docs/coordination/AGENT-BRIEF.md
+    about: Copy-paste instructions for a new AI agent session.

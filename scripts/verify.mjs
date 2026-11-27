@@ -1,0 +1,177 @@
+#!/usr/bin/env node
+/**
+ * Dependency-free gate for the Tõend static app.
+ *
+ * Checks that the files we ship are the files we reference: JS parses, the
+ * manifest is valid, local links and icons exist, the service worker precache
+ * list is real, and no secret is committed.
+ *
+ * Run locally with: node scripts/verify.mjs
+ */
+
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+const root = resolve(import.meta.dirname, "..");
+const appDir = join(root, "app");
+
+const passed = [];
+const failed = [];
+const ok = (message) => passed.push(message);
+const fail = (message) => failed.push(message);
+
+const REQUIRED_FILES = [
+  "app/index.html",
+  "app/paper.html",
+  "app/app.js",
+  "app/sw.js",
+  "app/styles.css",
+  "app/manifest.webmanifest",
+  "app/sample_cip.csv",
+];
+
+for (const file of REQUIRED_FILES) {
+  if (existsSync(join(root, file))) ok(`${file} exists`);
+  else fail(`${file} is missing`);
+}
+
+// JavaScript must at least parse. No bundler will catch this for us.
+for (const file of ["app/app.js", "app/sw.js"]) {
+  const path = join(root, file);
+  if (!existsSync(path)) continue;
+  try {
+    execFileSync(process.execPath, ["--check", path], { stdio: "pipe" });
+    ok(`${file} parses`);
+  } catch (error) {
+    const detail = error.stderr?.toString().trim() || error.message;
+    fail(`${file} has a syntax error:\n${detail}`);
+  }
+}
+
+// Manifest: valid JSON and every icon actually exists.
+let manifest = null;
+try {
+  manifest = JSON.parse(readFileSync(join(appDir, "manifest.webmanifest"), "utf8"));
+  ok("manifest.webmanifest is valid JSON");
+} catch (error) {
+  fail(`manifest.webmanifest is not valid JSON: ${error.message}`);
+}
+
+if (manifest) {
+  for (const key of ["name", "short_name", "start_url", "display", "icons"]) {
+    if (manifest[key] === undefined) fail(`manifest.webmanifest is missing "${key}"`);
+  }
+  const icons = Array.isArray(manifest.icons) ? manifest.icons : [];
+  if (icons.length === 0) fail("manifest.webmanifest lists no icons");
+  for (const icon of icons) {
+    if (!icon?.src) {
+      fail("manifest.webmanifest has an icon without src");
+      continue;
+    }
+    if (!existsSync(resolve(appDir, icon.src))) {
+      fail(`manifest.webmanifest references missing icon "${icon.src}"`);
+    }
+  }
+}
+
+// HTML: language, title, viewport, real local references, alt text on images.
+const htmlFiles = readdirSync(appDir).filter((name) => name.endsWith(".html"));
+
+for (const name of htmlFiles) {
+  const html = readFileSync(join(appDir, name), "utf8");
+
+  if (!/<html[^>]*\slang=/i.test(html)) fail(`${name}: <html> needs a lang attribute`);
+  if (!/<title>[^<]+<\/title>/i.test(html)) fail(`${name}: missing a non-empty <title>`);
+  if (!/<meta[^>]+name=["']viewport["']/i.test(html)) fail(`${name}: missing viewport meta`);
+
+  for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/gi)) {
+    const reference = match[1];
+    if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
+
+    const path = reference.split(/[?#]/)[0];
+    if (!path) continue;
+
+    if (!existsSync(resolve(appDir, path))) {
+      fail(`${name}: broken local reference "${reference}"`);
+    }
+  }
+
+  for (const match of html.matchAll(/<img\b[^>]*>/gi)) {
+    if (!/\balt=/i.test(match[0])) {
+      fail(`${name}: <img> without alt text: ${match[0].slice(0, 80)}`);
+    }
+  }
+}
+
+if (htmlFiles.length > 0) ok(`${htmlFiles.length} HTML file(s) checked`);
+
+// Service worker: every precached asset must exist, or install fails offline.
+const swPath = join(appDir, "sw.js");
+if (existsSync(swPath)) {
+  const sw = readFileSync(swPath, "utf8");
+  const list = sw.match(/const\s+ASSETS\s*=\s*\[([\s\S]*?)\];/);
+  if (!list) {
+    fail("app/sw.js: could not find the ASSETS precache list");
+  } else {
+    const assets = [...list[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
+    if (assets.length === 0) fail("app/sw.js: ASSETS list is empty");
+    for (const asset of assets) {
+      if (!existsSync(resolve(appDir, asset))) {
+        fail(`app/sw.js precaches missing file "${asset}"`);
+      }
+    }
+    ok(`service worker precaches ${assets.length} assets`);
+  }
+}
+
+// Secrets: strong token shapes anywhere, plus credential files in git.
+const TOKEN_PATTERNS = [
+  { name: "GitHub token", pattern: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}\b/ },
+  { name: "API key", pattern: /\bsk-[A-Za-z0-9]{20,}\b/ },
+  { name: "private key", pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
+];
+
+let tracked = [];
+try {
+  tracked = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+    .split("\n")
+    .filter(Boolean);
+} catch {
+  // Not a git checkout (e.g. a tarball); skip the history-only checks.
+}
+
+const TEXT_FILE = /\.(?:js|mjs|html|css|json|webmanifest|csv|md|ya?ml|txt|toml|sh)$/i;
+const SECRET_FILE = /(^|\/)(?:\.env(\..+)?|id_[a-z0-9]+|.*\.(?:pem|key|p12|pfx))$/i;
+
+for (const file of tracked) {
+  if (SECRET_FILE.test(file)) {
+    fail(`credential-like file is tracked: ${file}`);
+    continue;
+  }
+  if (!TEXT_FILE.test(file)) continue;
+
+  let contents = "";
+  try {
+    contents = readFileSync(join(root, file), "utf8");
+  } catch {
+    continue;
+  }
+
+  for (const { name, pattern } of TOKEN_PATTERNS) {
+    if (pattern.test(contents)) fail(`${file}: looks like a committed ${name}`);
+  }
+}
+
+ok(`${tracked.length} tracked file(s) scanned for secrets`);
+
+// Report.
+console.log(`Tõend verify — ${passed.length} passed, ${failed.length} failed\n`);
+
+if (failed.length > 0) {
+  for (const problem of failed) console.error(`  ✗ ${problem}`);
+  console.error("\nFix the problems above before opening a pull request.");
+  process.exit(1);
+}
+
+console.log("  ✓ all checks passed");

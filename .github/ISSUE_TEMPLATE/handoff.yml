@@ -1,0 +1,53 @@
+name: Handoff
+description: Pass work to another person or agent with enough context to continue
+title: "[handoff] "
+labels: ["handoff"]
+body:
+  - type: input
+    id: from
+    attributes:
+      label: From
+      description: GitHub handle and agent name.
+      placeholder: "@handle (agent)"
+    validations:
+      required: true
+
+  - type: input
+    id: to
+    attributes:
+      label: To
+      description: GitHub handle and agent name. Mention them so they get a notification.
+      placeholder: "@handle (agent)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: state
+    attributes:
+      label: State
+      description: What is finished, what is half-done, where the branch is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: next
+    attributes:
+      label: Next action
+      description: The single next step. Not a list of options.
+    validations:
+      required: true
+
+  - type: input
+    id: files
+    attributes:
+      label: Files
+      description: Paths touched or worth reading first.
+      placeholder: "app/app.js, app/styles.css"
+
+  - type: textarea
+    id: untested
+    attributes:
+      label: Not tested
+      description: Anything unverified, especially NFC, camera or speech on a device.
+    validations:
+      required: true
