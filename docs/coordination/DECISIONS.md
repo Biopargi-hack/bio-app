@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Landing and NFC links use separate hosts
+
+**Decision.** The landing page and app stay at `https://taptoprove.ee`. Every NFC card link, QR link and demo tag now uses `https://nfc.taptoprove.ee/?asset=...&tag=...&via=nfc`. Both hosts serve the same Cloudflare Pages project `toend`; the subdomain gives written cards a stable address. Old cards on `nfc.arle.top` keep redirecting to the landing host.
+
+**Why.** The owner asked for the product page and the card network to have separate addresses. One deploy still serves both, so no new app, build or record format is needed.
+
+**Consequence.** `showcase.html`, README, runbook, canonical link and the verify gate name the new NFC host. New stickers must be written with `nfc.taptoprove.ee`; old `taptoprove.ee/?asset=...` cards still open the app but are no longer the documented format. Cloudflare Pages carries both custom domains on `toend`.
+
+---
+
 ## 2026-11-27 — Detect speech language from first words again
 
 **Decision.** The mic starts listening with no selector. The browser language is only the first guess, normalised to a supported locale (`et-EE`, `ru-RU`, `en-US`); the first spoken words pick the real language and the recogniser restarts in it. Interim words are kept when the mic closes, and an unsupported locale retries once in `en-US`. This reverses PR #62's "browser language only" choice, which left speech producing no text on taptoprove.ee.

@@ -174,12 +174,35 @@ if (appSource.includes("speak: 'Speak'") && appSource.includes("speak: 'Räägi'
   fail("app: voice button copy is still confusing");
 }
 
-// The showcase page must carry the demo NFC link and its tag id.
+// Domain split: landing stays on taptoprove.ee, every NFC link uses nfc.taptoprove.ee.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
-if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=")) {
-  ok("showcase carries the NFC demo link");
+const readmeSource = existsSync(join(root, "README.md")) ? readFileSync(join(root, "README.md"), "utf8") : "";
+const runbookSource = existsSync(join(root, "docs/demo_runbook.md")) ? readFileSync(join(root, "docs/demo_runbook.md"), "utf8") : "";
+if (showcase.includes("TAP-DEMO-01") && showcase.includes("https://nfc.taptoprove.ee/?asset=")) {
+  ok("showcase carries the NFC demo link on nfc.taptoprove.ee");
 } else {
-  fail("app/showcase.html: NFC demo link or tag id is missing");
+  fail("app/showcase.html: NFC demo link or nfc.taptoprove.ee host is missing");
+}
+if (!showcase.includes("https://taptoprove.ee/?asset=") && !appSource.includes("https://taptoprove.ee/?asset=")) {
+  ok("no NFC link still points at the landing host");
+} else {
+  fail("NFC link still uses https://taptoprove.ee/?asset= instead of nfc.taptoprove.ee");
+}
+const indexHead = indexSource.split("</head>")[0];
+if (indexHead.includes('rel="canonical"') && indexHead.includes('href="https://taptoprove.ee/"')) {
+  ok("landing page canonical is https://taptoprove.ee/");
+} else {
+  fail("app/index.html: canonical link to https://taptoprove.ee/ is missing");
+}
+if (readmeSource.includes("Production: https://taptoprove.ee") && readmeSource.includes("https://nfc.taptoprove.ee/?asset=")) {
+  ok("README documents both hosts");
+} else {
+  fail("README.md: landing or NFC host is missing");
+}
+if (runbookSource.includes("https://nfc.taptoprove.ee/?asset=")) {
+  ok("demo runbook uses the NFC host for card links");
+} else {
+  fail("docs/demo_runbook.md: NFC card link host is missing");
 }
 
 // Manifest: valid JSON and every icon actually exists.

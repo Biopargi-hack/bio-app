@@ -14,11 +14,14 @@ Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaar
 
 Kui sama kontrollkoha neli järjestikust hinnangut on 2, salvestatakse neljas hindena 1. Esialgne valik ja automaatse muutmise põhjus jäävad kirjesse; arvestus põhineb sama seadme kirjetel ning järgmine hinnang alustab uut jada.
 
-Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://taptoprove.ee/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
+Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.taptoprove.ee/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
 
 ## Live site
 
 Production: https://taptoprove.ee
+
+Landing leht ja rakendus: https://taptoprove.ee. NFC-kaartide lingid: https://nfc.taptoprove.ee. Mõlemad aadressid serveerivad sama rakendust, muutub ainult kaardilt avatav link.
+Landing page and app: https://taptoprove.ee. NFC card links: https://nfc.taptoprove.ee. Both hosts serve the same app; only the card URL changes.
 
 Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins. The app shell is network first: a reload fetches the newest files, and an offline device falls back to the cached shell.
 
@@ -26,7 +29,7 @@ Pull requests get their own preview URL printed in the Action log. Branch name b
 
 ## Näide ja NFC link
 
-Näide on lehel https://taptoprove.ee/showcase. NFC demo link on `https://taptoprove.ee/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1 ning pildi, hääle, video ja teksti. Andmed on ainult näite lehel.
+Näide on lehel https://taptoprove.ee/showcase. NFC demo link on `https://nfc.taptoprove.ee/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1 ning pildi, hääle, video ja teksti. Andmed on ainult näite lehel.
 
 ## Four contributors
 
@@ -119,7 +122,7 @@ original file. Export fails visibly if a referenced attachment is missing.
 
 ## Deployment details
 
-Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `taptoprove.ee`. The old `nfc.arle.top` alias redirects here.
+Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domains: `taptoprove.ee` (landing and app) and `nfc.taptoprove.ee` (NFC card links). The old `nfc.arle.top` alias redirects to the landing domain.
 
 Secrets are stored in the GitHub repo as `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, set from the machine's `~/.config/opencode/api-keys.env` without printing values. If a secret is ever rotated, update the repo secret too.
 
