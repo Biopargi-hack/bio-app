@@ -573,6 +573,39 @@ footer { background: var(--paper); }
 .grade-card .pad-prompt { margin: 8px 0 0; font: 400 12px/1.4 var(--mono); color: var(--muted); }
 .grade-card .note { margin-bottom: 0; }
 .grade-btn.selected { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.grade-btn[data-grade="1"].selected { background: var(--accent-dark); border-color: var(--accent-dark); }
+
+/* Clearer capture: a place picker, roomy rating and two large evidence actions */
+.place-field { margin-bottom: 14px; }
+.capture-main .readout { margin-bottom: 24px; }
+.evidence-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.evidence-actions .quiet {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  min-height: 76px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 13px/1.2 var(--mono);
+}
+.evidence-actions .quiet::before {
+  content: '';
+  width: 24px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+.evidence-actions .quiet:hover,
+.evidence-actions .quiet:focus-visible {
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.save-row .action { flex: 1 1 220px; }
 
 /* Landing v2: a logbook rhythm, not a stack of cards */
 :root {
@@ -927,3 +960,28 @@ html[data-mode="record"] #sheetLink,
 html[data-mode="record"] footer { display: none !important; }
 
 html[data-mode="record"] main { padding-top: 18px; }
+
+/* Two roomy evidence buttons, kept after the capture-first overrides */
+.evidence-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.evidence-actions .quiet {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  min-height: 76px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 13px/1.2 var(--mono);
+}
+.evidence-actions .quiet::before {
+  content: '';
+  width: 24px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+.evidence-actions .quiet:hover,
+.evidence-actions .quiet:focus-visible { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); }

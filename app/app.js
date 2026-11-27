@@ -15,6 +15,8 @@ const WORDS = {
     offline_copy: 'Checks are written to the device first, even with no network.',
     line: 'Line',
     line_all: 'All lines',
+    place_prompt: 'Choose a place',
+    place_required: 'Choose a place or tap the NFC card.',
     line_1: 'Line 1',
     line_2: 'Line 2',
     line_3: 'Line 3',
@@ -148,6 +150,8 @@ const WORDS = {
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
     line: 'Liin',
     line_all: 'Kõik liinid',
+    place_prompt: 'Vali koht',
+    place_required: 'Vali koht või puuduta NFC-kaarti.',
     line_1: 'Liin 1',
     line_2: 'Liin 2',
     line_3: 'Liin 3',
@@ -936,6 +940,7 @@ function resetCaptureInputs() {
 }
 
 async function finishRecord(record, noteId, message) {
+  note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   resetCaptureInputs();
   showSavedRecord(record);
   await refreshCount();
@@ -947,7 +952,7 @@ function quickRecord(kind, grade = 0) {
   return guardedWrite('quickNote', async () => {
     const asset = $('asset').value.trim();
     if (!asset) {
-      note('quickNote', lang === 'et' ? 'Puuduta NFC-kaarti.' : 'Tap the NFC card.', true);
+      note('quickNote', t('place_required'), true);
       return;
     }
     const isGrade = kind === 'grade';
@@ -1360,6 +1365,10 @@ function bind() {
     currentTag = '';
     currentSource = 'typed';
     $('assetStampName').textContent = $('asset').value.trim() || t('untagged');
+  });
+  $('line').addEventListener('change', () => {
+    const value = $('line').value;
+    setAsset(value ? t(`line_${value}`) : '', '', 'typed');
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
