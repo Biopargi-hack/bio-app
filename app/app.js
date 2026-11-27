@@ -358,7 +358,7 @@ function detectSpokenLang(text) {
 let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
 let speechLang = 'et-EE';
 let spokenLangs = new Set();
-const SILENCE_MS = 2500;
+const SILENCE_MS = 7000;
 // Chrome stops growing one speech hypothesis near a few hundred characters.
 // Flush and open the next session before that, so a spoken note has no length cap.
 const SPEECH_CHUNK_CHARS = 160;
@@ -369,7 +369,6 @@ let utteranceBase = '';
 let userOwned = false;
 let polishing = false;
 let polishToken = 0;
-let speechGraceUntil = 0;
 let speechSession = null;
 let audioSpeechSession = null;
 let mediaItems = [];
@@ -1565,7 +1564,7 @@ function startSpeechSession(langCode, handlers) {
     }
     const denied = error === 'not-allowed' || error === 'service-not-allowed' || error === 'audio-capture';
     const quiet = error === 'no-speech' || error === 'aborted';
-    if (quiet && handlers.onChunkFull && Date.now() < speechGraceUntil) {
+    if (quiet && voiceHold && handlers.onChunkFull) {
       finish({ restart: true });
       return;
     }
@@ -1589,8 +1588,7 @@ function startSpeechSession(langCode, handlers) {
   };
   recognition.onend = () => {
     if (!session.finished) {
-      const recent = session.heardAt && Date.now() - session.heardAt < SILENCE_MS;
-      finish({ restart: Boolean(handlers.onChunkFull) && recent });
+      finish({ restart: Boolean(handlers.onChunkFull) && voiceHold });
     }
     releaseMic();
   };
@@ -1649,7 +1647,6 @@ function beginHeldSpeech(langCode, attempt = 0) {
     },
     onMicFree: () => {
       if (!voiceHold) return;
-      speechGraceUntil = Date.now() + 1500;
       beginHeldSpeech(speechLang);
     }
   });

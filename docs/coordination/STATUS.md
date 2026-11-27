@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | doing | Fix multi origin dedupe and Pages KV binding | `feat/sheets_multi_origin` | real NFC device test |
+| @AARenor | omp | review | Sheets sync and held speech fixes are ready | #133 | real NFC device test |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN selector after #122 | `fix/restore_lang_selector_again` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove extra fields from Excel CSV | `fix/csv-extra-fields` | none |
