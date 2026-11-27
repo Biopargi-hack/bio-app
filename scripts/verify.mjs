@@ -204,6 +204,33 @@ if (runbookSource.includes("https://nfc.taptoprove.ee/?asset=")) {
 } else {
   fail("docs/demo_runbook.md: NFC card link host is missing");
 }
+const stylesForMode = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
+const domainsSource = existsSync(join(root, "docs/DOMAINS.md")) ? readFileSync(join(root, "docs/DOMAINS.md"), "utf8") : "";
+if (indexHead.includes("dataset.mode") && indexHead.includes("/^nfc\\./")) {
+  ok("host mode is selected before styles load");
+} else {
+  fail("app/index.html: hostname mode script is missing");
+}
+if (stylesForMode.includes('html[data-mode="landing"] #capture') && stylesForMode.includes('html[data-mode="record"] .hero')) {
+  ok("CSS hides the wrong view on each host");
+} else {
+  fail("app/styles.css: host view rules are missing");
+}
+if (indexSource.includes('href="https://nfc.taptoprove.ee/"') && !indexSource.includes('href="#hygieen"')) {
+  ok("landing CTA goes to the NFC host and the table link is gone");
+} else {
+  fail("app/index.html: landing CTA or table link is wrong");
+}
+if (domainsSource.includes("record entry only") && domainsSource.includes("nfc origin")) {
+  ok("DOMAINS.md explains the one-way storage");
+} else {
+  fail("docs/DOMAINS.md: host views or storage origin are not documented");
+}
+if (runbookSource.includes("Open the NFC host on a phone")) {
+  ok("runbook warms the NFC host offline");
+} else {
+  fail("docs/demo_runbook.md: offline warm-up still names the landing host");
+}
 
 // Manifest: valid JSON and every icon actually exists.
 let manifest = null;

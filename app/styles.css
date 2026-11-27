@@ -852,3 +852,21 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   .sample-sheet .section-head { align-items: flex-start; flex-direction: column; }
   .hero-quiet { margin-left: 10px; }
 }
+
+/* One host, one view. Landing describes, NFC host records. Neither shows a table. */
+html[data-mode="landing"] #capture,
+html[data-mode="landing"] #hygieen,
+html[data-mode="landing"] #sheetLink,
+html[data-mode="landing"] a[href="#capture"] { display: none !important; }
+
+html[data-mode="record"] .hero,
+html[data-mode="record"] #explainer,
+html[data-mode="record"] #how,
+html[data-mode="record"] #hygieen,
+html[data-mode="record"] .benefits,
+html[data-mode="record"] .nav-links,
+html[data-mode="record"] .nav-cta,
+html[data-mode="record"] #sheetLink,
+html[data-mode="record"] footer { display: none !important; }
+
+html[data-mode="record"] main { padding-top: 18px; }

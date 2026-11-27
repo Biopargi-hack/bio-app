@@ -1,13 +1,19 @@
 # Tap to Prove domains
 
-Updated 2026-11-27. Two host names, one deploy, one app.
+Updated 2026-11-27. Two host names, one deploy, two views.
 
 | Host | Used for | Example |
 | --- | --- | --- |
-| `https://taptoprove.ee` | Landing page, capture app, records sheet, showcase | `https://taptoprove.ee/`, `https://taptoprove.ee/showcase`, `https://taptoprove.ee/sheet` |
-| `https://nfc.taptoprove.ee` | Every NFC card link, QR link and demo tag | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
+| `https://taptoprove.ee` | Landing page only. Description, steps and a button to the NFC host. No record form and no table. | `https://taptoprove.ee/` |
+| `https://nfc.taptoprove.ee` | Record entry only. No landing copy, no ledger and no table. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
 
-Both names are custom domains on Cloudflare Pages project `toend`. They serve the same files from the `main` deploy. The subdomain is a naming split for written cards, not a second app, backend or record store. Records still live in the device IndexedDB and the chain format is unchanged.
+Both names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS then hides the sections that do not belong to that host.
+
+## View split and storage
+
+The landing host describes the product and has no capture form. The NFC host is record entry only. This matters for storage: IndexedDB, `toend-device`, `toend-records-event` and the hash chain are scoped to one origin. Every record lands in the nfc origin store. There is no second ledger on the landing host and no split device ID.
+
+Offline warm-up happens on the NFC host. Open `https://nfc.taptoprove.ee/` on the demo phone and reload once so its service worker caches the shell. Reloading the landing host does not cache the record view.
 
 ## Card URL format
 
@@ -21,9 +27,8 @@ Generated examples are in `app/showcase.html` (`NFC_URL` and `MACHINE_LINKS`). T
 
 ## Migration
 
-Cards already written with `nfc.arle.top` still redirect to the app and keep working. Cards written with `https://taptoprove.ee/?asset=...` also still open the app because the query parsing is identical on both hosts. Do not rewrite those stickers just for the name. Write all new cards with `nfc.taptoprove.ee`.
+Cards already written with `nfc.arle.top` still redirect to the app and work. Cards written with `https://taptoprove.ee/?asset=...` now open the landing only view and no longer record. Those stickers must be rewritten with `https://nfc.taptoprove.ee/?asset=...&tag=...&via=nfc`. Old values in session notes and git history stay as historical records.
 
-Old values in session notes and git history are historical records and are left untouched. Current references in README, the demo runbook, the showcase and the verify gate use the new host.
 
 ## Verify
 
@@ -31,7 +36,7 @@ Old values in session notes and git history are historical records and are left 
 node scripts/verify.mjs
 ```
 
-The gate rejects an NFC link on the landing host, a missing canonical landing URL, and README or runbook text that still points card links at `taptoprove.ee`.
+The gate rejects an NFC link on the landing host, a missing canonical landing URL, a missing hostname mode script, missing CSS view rules, a landing CTA that does not go to the NFC host, and docs that still describe a shared app view.
 
 Live check after a deploy:
 

@@ -1222,7 +1222,7 @@ async function start() {
   bind();
   updateTier();
   updateNetwork();
-  if (asset) {
+  if (asset && document.documentElement.dataset.mode === 'record') {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : 'link');
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });

@@ -20,8 +20,12 @@ Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.t
 
 Production: https://taptoprove.ee
 
-Landing leht ja rakendus: https://taptoprove.ee. NFC-kaartide lingid: https://nfc.taptoprove.ee. Mõlemad aadressid serveerivad sama rakendust, muutub ainult kaardilt avatav link.
-Landing page and app: https://taptoprove.ee. NFC card links: https://nfc.taptoprove.ee. Both hosts serve the same app; only the card URL changes.
+Landing leht: https://taptoprove.ee. Ainult kirjeldus, ilma kirjeforma ja tabelita.
+NFC kaardid ja kirjed: https://nfc.taptoprove.ee. Ainult kirjevaade, ilma landinguta ja tabelita.
+Mõlemad aadressid serveerivad sama deploy, vaade valitakse domeeni järgi. Kõik kirjed jäävad nfc.taptoprove.ee seadmesse.
+Landing page: https://taptoprove.ee, description only, no record form and no table.
+NFC cards and records: https://nfc.taptoprove.ee, record entry only, no landing copy and no table.
+Both hosts serve the same deploy and pick the view from the hostname. All records stay in the device store on nfc.taptoprove.ee.
 
 Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins. The app shell is network first: a reload fetches the newest files, and an offline device falls back to the cached shell.
 
