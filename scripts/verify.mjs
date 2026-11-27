@@ -67,6 +67,28 @@ if (defaultWired) {
   fail("app/app.js: fixed default assessment is missing from records");
 }
 
+// Speech must not depend on a raw browser locale or lose interim-only words.
+const speechLocaleWired = appSource.includes("speechLocale(navigator.language)") && appSource.includes("SPEECH_FALLBACK");
+if (speechLocaleWired) {
+  ok("speech locale is normalised with a fallback");
+} else {
+  fail("app/app.js: speech locale is not normalised with a fallback");
+}
+
+const speechTextWired = appSource.includes("session.texts, session.interim") && appSource.includes("handlers.onInterim");
+if (speechTextWired) {
+  ok("speech keeps interim words when the mic closes");
+} else {
+  fail("app/app.js: interim speech words are dropped");
+}
+
+const speechCopyWired = appSource.includes("speech_detected: 'Speech language detected'") && appSource.includes("speech_detected: 'Tuvastatud kõne keel'");
+if (speechCopyWired) {
+  ok("speech language detection copy is bilingual");
+} else {
+  fail("app/app.js: speech language detection copy is missing in et or en");
+}
+
 // NFC and QR links must open a grade 1 to 3 rating view.
 const indexSource = existsSync(join(appDir, "index.html")) ? readFileSync(join(appDir, "index.html"), "utf8") : "";
 if (appSource.includes("kind === 'grade'") && indexSource.includes('id="gradeRow"')) {

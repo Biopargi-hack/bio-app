@@ -54,20 +54,22 @@ const WORDS = {
     speak: 'Speak to write',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Speech recognition uses your browser language.',
+    audio_hint: 'Press Speak and talk. The app detects your language from the first words.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
     audio_unsupported: 'This browser cannot record audio.',
     speech_unsupported: 'This browser cannot turn speech into text. Type the note instead.',
-    speech_lang_unsupported: 'Speech recognition does not support your browser language. Type the note instead.',
+    speech_lang_unsupported: 'Speech recognition is not available in this browser. Type the note instead.',
+    speech_detected: 'Speech language detected',
+    speech_fallback: 'Your browser language is unavailable for speech. Listening in English.',
     speech_stopped: 'Voice stopped',
     listening: 'Listening... pause 2-3s to stop',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
-    note_hint: 'Speech recognition uses your browser language and may require an internet connection.',
+    note_hint: 'Press Speak and talk. Estonian, Russian and English are detected from the first words; recognition may need an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
@@ -155,20 +157,22 @@ const WORDS = {
     speak: 'Räägi ja kirjuta',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Kõnetuvastus kasutab brauseri keelt.',
+    audio_hint: 'Vajuta „Räägi ja kirjuta“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
     speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst.',
-    speech_lang_unsupported: 'Kõnetuvastus ei toeta brauseri keelt. Kirjuta tekst.',
+    speech_lang_unsupported: 'Kõnetuvastus ei ole selles brauseris saadaval. Kirjuta tekst.',
+    speech_detected: 'Tuvastatud kõne keel',
+    speech_fallback: 'Brauseri keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan… 2–3 s vaikust ja mikrofon sulgub',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
-    note_hint: 'Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.',
+    note_hint: 'Vajuta „Räägi ja kirjuta“ ning räägi. Eesti, vene ja inglise keel tuvastatakse esimestest sõnadest; kõnetuvastus võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     evidence: 'Foto või video tõend',
@@ -242,12 +246,33 @@ const WORDS = {
   }
 };
 
+const SPEECH_LOCALES = { et: 'et-EE', ru: 'ru-RU', en: 'en-US' };
+const SPEECH_FALLBACK = 'en-US';
+const SPEECH_LABELS = { 'et-EE': 'ET', 'ru-RU': 'RU', 'en-US': 'EN' };
+
+// The Web Speech API needs a regional locale. A bare or unknown browser
+// language used to leave recognition with no usable locale at all.
+function speechLocale(code) {
+  const base = String(code || '').toLowerCase().split('-')[0];
+  return SPEECH_LOCALES[base] || SPEECH_FALLBACK;
+}
+
+function speechLabel(code) {
+  return SPEECH_LABELS[code] || String(code || '').slice(0, 2).toUpperCase();
+}
+
+// One recogniser accepts one language, so the first words choose it.
+function detectSpokenLang(text) {
+  const value = String(text || '');
+  if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
+  if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|mustus|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin|puhastatud|kontroll|seade|viga)\b/i.test(value)) return 'et-EE';
+  return 'en-US';
+}
+
 let lang = 'et';
-let speechLang = navigator.language || 'et-EE';
+let speechLang = speechLocale(navigator.language);
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
-let recognition = null;
-let audioRecognition = null;
 let speechSession = null;
 let audioSpeechSession = null;
 let photoState = null;
@@ -685,7 +710,6 @@ function resetCaptureInputs() {
   if (speechSession) {
     speechSession.stop();
     speechSession = null;
-    recognition = null;
   }
   $('transcript').value = '';
   setGrade(0);
@@ -797,15 +821,16 @@ function setAsset(name, tagId = '', origin = 'typed') {
 }
 
 
-function appendSpoken(text, langCode) {
+function appendSpoken(text) {
   const field = $('transcript');
   const paragraph = String(text || '').trim();
   if (!paragraph) return;
+  const detected = detectSpokenLang(paragraph);
   field.value = field.value.trim() ? `${field.value.trim()}\n${paragraph}` : paragraph;
   field.focus({ preventScroll: true });
   field.setSelectionRange(field.value.length, field.value.length);
-  spokenLangs.add(langCode);
-  note('audioNote', t('spoken_saved'));
+  spokenLangs.add(detected);
+  note('audioNote', `${t('spoken_saved')} ${speechLabel(detected)}`);
 }
 
 function speechRecognition() {
@@ -833,16 +858,21 @@ function startSpeechSession(langCode, handlers) {
     recognition,
     langCode,
     texts: [],
+    interim: '',
     finalIndices: new Set(),
     timer: null,
     finished: false
   };
-  const finish = () => {
-    if (session.finished) return;
+  const stopRecognition = () => {
     session.finished = true;
     clearTimeout(session.timer);
     try { recognition.stop(); } catch { /* already stopped */ }
-    const text = session.texts.join(' ').trim();
+  };
+  const finish = () => {
+    if (session.finished) return;
+    stopRecognition();
+    // Interim words are all some browsers ever deliver before the mic closes.
+    const text = [...session.texts, session.interim].join(' ').trim();
     if (text && handlers.onText) handlers.onText(text, langCode);
     if (handlers.onDone) handlers.onDone();
   };
@@ -851,25 +881,36 @@ function startSpeechSession(langCode, handlers) {
     session.timer = setTimeout(finish, SILENCE_MS);
   };
   session.stop = finish;
+  // Dropping the first guess when the language changes must not append text.
+  session.cancel = stopRecognition;
   recognition.onresult = (event) => {
     if (session.finished) return;
     let heard = false;
+    let interim = '';
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
       const result = event.results[i];
       if (!result || !result[0]) continue;
       heard = true;
-      if (result.isFinal && !session.finalIndices.has(i)) {
-        session.finalIndices.add(i);
-        session.texts.push(String(result[0].transcript).trim());
+      const value = String(result[0].transcript).trim();
+      if (result.isFinal) {
+        if (!session.finalIndices.has(i)) {
+          session.finalIndices.add(i);
+          session.texts.push(value);
+        }
+      } else {
+        interim = `${interim} ${value}`.trim();
       }
     }
+    session.interim = interim;
+    if (interim && handlers.onInterim) handlers.onInterim(interim, langCode);
     if (heard) scheduleStop();
   };
   recognition.onerror = (event) => {
     if (session.finished) return;
-    const error = event.error;
+    const retried = handlers.onUnsupported?.(event.error) ?? false;
+    if (retried) return;
     finish();
-    speechErrorNote(error);
+    speechErrorNote(event.error);
   };
   recognition.onend = () => {
     if (session.finished) return;
@@ -885,6 +926,67 @@ function startSpeechSession(langCode, handlers) {
   return session;
 }
 
+// One mic press can span several recogniser sessions: the first words choose
+// the language, then the rest of the dictation runs in that language.
+function startAutoSpeechSession(handlers) {
+  const auto = { session: null, detected: null, finished: false, fallbackUsed: false, stop: null };
+
+  const begin = (code) => {
+    if (auto.finished) return;
+    const session = startSpeechSession(code, {
+      onInterim: (text) => {
+        if (auto.finished || auto.detected) return;
+        const guess = detectSpokenLang(text);
+        if (guess === code) return;
+        auto.detected = guess;
+        speechLang = guess;
+        session.cancel();
+        note('audioNote', `${t('speech_detected')}: ${speechLabel(guess)}`);
+        begin(guess);
+      },
+      onText: (text) => {
+        if (auto.finished) return;
+        auto.detected = auto.detected || detectSpokenLang(text);
+        speechLang = auto.detected;
+        if (handlers.onText) handlers.onText(text, auto.detected);
+      },
+      onUnsupported: (error) => {
+        if (auto.finished || auto.fallbackUsed) return false;
+        if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
+        auto.fallbackUsed = true;
+        auto.detected = null;
+        session.cancel();
+        speechLang = SPEECH_FALLBACK;
+        note('audioNote', t('speech_fallback'));
+        begin(SPEECH_FALLBACK);
+        return true;
+      },
+      onDone: () => {
+        if (auto.finished) return;
+        auto.finished = true;
+        if (handlers.onDone) handlers.onDone();
+      }
+    });
+    if (!session) {
+      auto.finished = true;
+      if (handlers.onDone) handlers.onDone();
+      return;
+    }
+    auto.session = session;
+  };
+
+  begin(speechLang);
+  auto.stop = () => {
+    if (auto.finished) return;
+    if (auto.session) auto.session.stop();
+    else {
+      auto.finished = true;
+      if (handlers.onDone) handlers.onDone();
+    }
+  };
+  return auto;
+}
+
 function toggleVoice() {
   if (speechSession) {
     speechSession.stop();
@@ -894,17 +996,15 @@ function toggleVoice() {
     note('audioNote', t('speech_unsupported'), true);
     return;
   }
-  speechSession = startSpeechSession(speechLang, {
-    onText: (text, langCode) => appendSpoken(text, langCode),
+  speechSession = startAutoSpeechSession({
+    onText: (text) => appendSpoken(text),
     onDone: () => {
       speechSession = null;
-      recognition = null;
       $('voiceBtn').classList.remove('listening');
       $('voiceBtn').textContent = t('speak');
     }
   });
-  if (!speechSession) return;
-  recognition = speechSession.recognition;
+  if (speechSession.finished) return;
   $('voiceBtn').classList.add('listening');
   $('voiceBtn').textContent = t('listening');
   note('audioNote', t('listening'));
@@ -949,7 +1049,7 @@ function bind() {
   $('langToggle').addEventListener('click', () => {
     lang = lang === 'en' ? 'et' : 'en';
     applyLanguage();
-    if (recognition) toggleVoice();
+    if (speechSession) toggleVoice();
     refreshCount();
   });
   $('asset').addEventListener('input', () => {
