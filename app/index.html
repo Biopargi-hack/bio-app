@@ -58,7 +58,6 @@
         <div class="capture-main">
           <div class="readout" id="assetStamp">
             <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
-            <small id="assetSource">No tag read yet</small>
           </div>
           <input id="asset" type="hidden" autocomplete="off" spellcheck="false">
 
@@ -74,21 +73,25 @@
           </section>
 
           <div class="voice-controls">
-            <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Speak to write</button>
-            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Press Speak and talk. The app detects your language from the first words.</p>
+            <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Räägi</button>
+            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Kõnetuvastus kasutab brauseri keelt.</p>
           </div>
 
           <label class="field text-field">
-            <span data-i18n="note_label">What happened — write or speak</span>
-            <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write." data-i18n-placeholder="note_ph"></textarea>
-            <small class="field-hint" data-i18n="note_hint">Press Speak and talk. Estonian, Russian and English are detected from the first words; recognition may need an internet connection.</small>
+            <span data-i18n="note_label">Mis juhtus — kirjuta või räägi</span>
+            <textarea id="transcript" rows="5" placeholder="Kirjuta siia või vajuta „Räägi“." data-i18n-placeholder="note_ph"></textarea>
+            <small class="field-hint" data-i18n="note_hint">Kõnetuvastus kasutab brauseri keelt.</small>
           </label>
 
-          <label class="field file-field">
-            <span data-i18n="evidence">Photo or video evidence</span>
-            <input id="photo" type="file" accept="image/*,video/*" capture="environment">
-          </label>
-          <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo or video only counts as evidence if the app can read it.</p>
+          <div class="field file-field">
+            <span data-i18n="evidence">Foto või video tõend</span>
+            <div class="evidence-actions">
+              <button id="photoBtn" class="quiet" type="button" data-i18n="take_photo">Tee foto</button>
+              <button id="videoBtn" class="quiet" type="button" data-i18n="record_video">Film video</button>
+            </div>
+            <input id="photo" type="file" accept="image/*,video/*" capture="environment" hidden>
+          </div>
+          <p id="photoNote" class="note" role="status" data-i18n="photo_hint">Foto või video loeb tõendina ainult siis, kui rakendus suudab selle lugeda.</p>
 
           <div class="row save-row">
             <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>

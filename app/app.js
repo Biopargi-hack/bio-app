@@ -51,7 +51,7 @@ const WORDS = {
     clean: 'Clean',
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
-    speak: 'Speak to write',
+    speak: 'Speak',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
     audio_hint: 'Press Speak and talk. The app detects your language from the first words.',
@@ -68,11 +68,13 @@ const WORDS = {
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
-    note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
+    note_ph: 'Type here, or press Speak. Each recording adds a new line.',
     note_hint: 'Press Speak and talk. Estonian, Russian and English are detected from the first words; recognition may need an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     evidence: 'Photo or video evidence',
+    take_photo: 'Take photo',
+    record_video: 'Record video',
     photo_hint: 'A photo or video only counts as evidence if the app can read it.',
     instrument: 'Instrument reading',
     save: 'Append record',
@@ -154,10 +156,10 @@ const WORDS = {
     clean: 'Puhas',
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
-    speak: 'Räägi ja kirjuta',
+    speak: 'Räägi',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta „Räägi ja kirjuta“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.',
+    audio_hint: 'Vajuta „Räägi“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -171,11 +173,13 @@ const WORDS = {
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
-    note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
-    note_hint: 'Vajuta „Räägi ja kirjuta“ ning räägi. Eesti, vene ja inglise keel tuvastatakse esimestest sõnadest; kõnetuvastus võib vajada internetiühendust.',
+    note_ph: 'Kirjuta siia või vajuta „Räägi“. Iga salvestus lisab uue rea.',
+    note_hint: 'Kõnetuvastus kasutab brauseri keelt ja võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     evidence: 'Foto või video tõend',
+    take_photo: 'Tee foto',
+    record_video: 'Film video',
     photo_hint: 'Foto või video loeb tõendina ainult siis, kui rakendus suudab selle lugeda.',
     media_badge: 'Meedia',
     audio_badge: 'Häälmärkus',
@@ -308,7 +312,6 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
-  if ($('assetSource')) $('assetSource').textContent = sourceLabel();
   if (activeCheckpoint && currentSource === 'checkpoint' && $('asset').value) $('assetStampName').textContent = activeCheckpoint[lang];
   renderCheckpoints();
 }
@@ -805,19 +808,12 @@ function chooseCheckpoint(index) {
   $('grade3').focus({ preventScroll: true });
 }
 
-function sourceLabel() {
-  if (currentSource === 'nfc') return currentTag ? `${WORDS[lang].nfc_tag} ${currentTag}` : WORDS[lang].nfc_tag;
-  if (currentSource === 'link') return currentTag ? `${WORDS[lang].qr_link} ${currentTag}` : WORDS[lang].qr_link;
-  if (currentSource === 'checkpoint') return WORDS[lang].checkpoint_source;
-  return WORDS[lang].no_tag;
-}
 
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
   currentSource = origin;
   $('asset').value = name;
   $('assetStampName').textContent = name;
-  $('assetSource').textContent = sourceLabel();
 }
 
 
@@ -1057,7 +1053,6 @@ function bind() {
     currentSource = 'typed';
     activeCheckpoint = null;
     $('assetStampName').textContent = $('asset').value.trim() || t('untagged');
-    $('assetSource').textContent = sourceLabel();
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
@@ -1067,6 +1062,16 @@ function bind() {
     if (button) chooseCheckpoint(button.dataset.checkpoint);
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
+  $('photoBtn').addEventListener('click', () => {
+    $('photo').accept = 'image/*';
+    $('photo').capture = 'environment';
+    $('photo').click();
+  });
+  $('videoBtn').addEventListener('click', () => {
+    $('photo').accept = 'video/*';
+    $('photo').capture = 'environment';
+    $('photo').click();
+  });
   $('photo').addEventListener('change', async (event) => {
     const token = ++photoToken;
     const file = event.target.files?.[0];

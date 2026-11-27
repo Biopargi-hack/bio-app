@@ -123,6 +123,23 @@ if (appSource.includes("new BroadcastChannel('toend-records')") && appSource.inc
   fail("app: record broadcast or live sheet link is missing");
 }
 
+const cameraWired = indexSource.includes('id="photoBtn"') && indexSource.includes('id="videoBtn"') && indexSource.includes('capture="environment"') && appSource.includes('photoBtn') && appSource.includes('videoBtn');
+if (cameraWired) {
+  ok("photo and video buttons open the device camera");
+} else {
+  fail("app: direct camera buttons are missing");
+}
+if (!indexSource.includes('id="assetSource"') && !appSource.includes('assetSource')) {
+  ok("visible NFC card number is removed");
+} else {
+  fail("app: visible NFC card number readout is still present");
+}
+if (appSource.includes("speak: 'Speak'") && appSource.includes("speak: 'Räägi'") && !appSource.includes('Räägi ja kirjuta')) {
+  ok("voice button copy is short in both languages");
+} else {
+  fail("app: voice button copy is still confusing");
+}
+
 // The showcase page must carry the demo NFC link and its tag id.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
 if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=")) {
