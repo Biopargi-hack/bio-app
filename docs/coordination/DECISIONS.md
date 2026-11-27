@@ -32,7 +32,15 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 **Why.** The site and the hero illustration told two different visual stories. One token set keeps the product consistent and makes the next UI change a token edit instead of a hunt through inline styles.
 
 **Consequence.** Blue accents are gone. Contrast stays at WCAG AA (8.11:1 for white on red, 13.62:1 for ink on paper); the offline shell and bilingual copy are unchanged.
+---
 
+## 2026-11-27 — Speech uses continuous listening with a silence timer
+
+**Decision.** Recognition runs with `continuous = true` and `interimResults = true`. A 2500 ms timer is reset by every recognition event and only then stops the microphone. All final results from the session are joined into one paragraph; duplicate result indices are ignored.
+
+**Why.** The default non-continuous recognition closed after a short pause, so workers lost the rest of a sentence. A short pause must not end the session.
+
+**Consequence.** The mic closes about 2-3 seconds after the worker stops speaking. Tapping the active button still stops early. Both the language buttons and voice-note recording use the same session helper.
 ---
 
 ## 2026-11-27 — Language buttons start listening; no signature field
