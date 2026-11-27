@@ -220,8 +220,10 @@ function note(id, text, isError = false) {
 function populateSelects() {
   const cp = $('checkpoint');
   for (const name of CHECKPOINTS) cp.add(new Option(name, name));
+  cp.value = CHECKPOINTS[0];
   const method = $('method');
   for (const name of METHODS) method.add(new Option(name, name));
+  method.value = METHODS[0];
 }
 
 function deviceId() {
@@ -861,6 +863,7 @@ function bind() {
 
 async function start() {
   tags = loadTags();
+  populateSelects();
   applyLanguage();
   renderTagSlots();
   bind();
