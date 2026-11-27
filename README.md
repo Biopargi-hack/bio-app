@@ -12,11 +12,20 @@ Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid 
 
 Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti ja saab eeltäidetud vaate "Kõik on puhas ja korras". Kiirnupud 3, 2 ja 1 salvestavad hinnangu mõne sekundiga. Kui pilti ei saa, kasutatakse nuppu "Pilti ei saa? Kasuta fikseeritud hinnangut". Kirje saab fikseeritud põhjuse ja tase C, aga andmed jäävad täielikuks ja jälgitavaks. Kui midagi on must, valitakse viga listist ja tehakse võimalusel pilt.
 
-Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://taptoprove.ee/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
+Kui sama kontrollkoha neli järjestikust hinnangut on 2, salvestatakse neljas hindena 1. Esialgne valik ja automaatse muutmise põhjus jäävad kirjesse; arvestus põhineb sama seadme kirjetel ning järgmine hinnang alustab uut jada.
+
+Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.taptoprove.ee/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
 
 ## Live site
 
 Production: https://taptoprove.ee
+
+Landing leht: https://taptoprove.ee. Ainult kirjeldus, ilma kirjeforma ja tabelita.
+NFC kaardid ja kirjed: https://nfc.taptoprove.ee. Ainult kirjevaade, ilma landinguta ja tabelita.
+Mõlemad aadressid serveerivad sama deploy, vaade valitakse domeeni järgi. Kõik kirjed jäävad nfc.taptoprove.ee seadmesse.
+Landing page: https://taptoprove.ee, description only, no record form and no table.
+NFC cards and records: https://nfc.taptoprove.ee, record entry only, no landing copy and no table.
+Both hosts serve the same deploy and pick the view from the hostname. All records stay in the device store on nfc.taptoprove.ee.
 
 Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins. The app shell is network first: a reload fetches the newest files, and an offline device falls back to the cached shell.
 
@@ -24,7 +33,7 @@ Pull requests get their own preview URL printed in the Action log. Branch name b
 
 ## Näide ja NFC link
 
-Näide on lehel https://taptoprove.ee/showcase. NFC demo link on `https://taptoprove.ee/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1 ning pildi, hääle, video ja teksti. Andmed on ainult näite lehel.
+Näide on lehel https://taptoprove.ee/showcase. NFC demo link on `https://nfc.taptoprove.ee/?asset=Villimisliin%202%20Filler%20head&tag=TAP-DEMO-01&via=nfc`. Leht näitab ühe villimisliini 100 kontrollikohta, muutja ja vaataja rolli, hinded 3, 2 ja 1 ning pildi, hääle, video ja teksti. Andmed on ainult näite lehel.
 
 ## Four contributors
 
@@ -63,8 +72,8 @@ Watch the deploy in the Actions tab, then reload the live site once. A warm phon
 |---|---|
 | `app/index.html` | Screens and copy |
 | `app/styles.css` | Visual system |
-| `app/sheet.html` | Live records table for a second Chrome tab, with Excel CSV export |
-| `app/app.js` | Capture, photo check, hash chain, broadcast, Excel CSV export and audit console |
+| `app/sheet.html` | Live records table, Excel CSV and JSONL with attachments |
+| `app/app.js` | Capture, photo check, hash chain, broadcast and hygiene grid |
 | `app/sw.js` | Offline shell |
 | `app/sample_cip.csv` | Excel friendly synthetic CIP sample, not linked to records |
 | `app/paper.html` | Printable paper form for the timed comparison |
@@ -99,7 +108,7 @@ handoffs use the issue template. PR comments are the async conversation.
 1. Give a judge an NFC sticker written with your own NFC tool. Tap it and the URL opens with the asset and card ID prefilled and grade buttons 3, 2 and 1 ready. If NFC is unavailable, use the asset field or a QR link. iPhone background reading is not device tested.
 2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
-4. Use the line dropdown or tap a sticker, then append one record. Show the queued count on the device.
+4. Use the asset field or tap a sticker, then append one record. Show the queued count on the device.
 5. Open the live sheet in a second tab from the footer link. Press a grade in the capture tab, then press Append record. The new row appears in the sheet without a reload. Press Excel CSV in the sheet to download current records, then print the paper form and time five checks against the app.
 
 ## What is real and what is sample
@@ -117,11 +126,12 @@ original file. Export fails visibly if a referenced attachment is missing.
 
 ## Deployment details
 
-Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `taptoprove.ee`. The old `nfc.arle.top` alias redirects here.
+Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domains: `taptoprove.ee` (landing and app) and `nfc.taptoprove.ee` (NFC card links). The old `nfc.arle.top` alias redirects to the landing domain.
 
 Secrets are stored in the GitHub repo as `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, set from the machine's `~/.config/opencode/api-keys.env` without printing values. If a secret is ever rotated, update the repo secret too.
 
-To deploy by hand from this machine:
+Automatic deploy happens on every push to `main` and on same-repo pull requests
+through `.github/workflows/deploy.yml`. The command below is a manual fallback:
 
 ```bash
 cd app

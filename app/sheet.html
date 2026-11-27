@@ -58,6 +58,7 @@
       <div class="sheet-actions">
         <a href="/" data-i18n="capture">Open capture</a>
         <button id="sheetExcelBtn" type="button" data-i18n="excel">Excel CSV</button>
+        <button id="sheetJsonlBtn" type="button" data-i18n="jsonl">JSONL + files</button>
       </div>
     </div>
 
@@ -66,6 +67,7 @@
       <span id="liveText" data-i18n="live">Live</span>
       <span id="countText"></span>
       <span id="updatedText"></span>
+      <span id="exportText"></span>
     </div>
 
     <div class="table-wrap" id="sheet-table">
@@ -98,6 +100,7 @@
   </footer>
 
   <script type="module">
+    import { csvCell, recordHeaders } from './data.js';
     const $ = (id) => document.getElementById(id);
     const EVENT_KEY = 'toend-records-event';
     const CHANNEL = 'toend-records';
@@ -112,7 +115,7 @@
         foot: 'Same device only. Records live in this browser. Cross-device sync needs a shared store.',
         footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'One pager',
         count: (n) => `${n} record${n === 1 ? '' : 's'}`, updated: (s) => `Updated ${s}`,
-        excel_empty: 'No records to export yet.', excel_done: 'Excel CSV ready.', excel_failed: 'Excel CSV failed.',
+        excel_empty: 'No records to export yet.', excel_done: 'Excel CSV ready.', excel_failed: 'Excel CSV failed.', jsonl: 'JSONL + files', jsonl_done: 'JSONL ready.', jsonl_failed: 'JSONL export failed.', attachment_missing: 'Attachment missing, nothing exported.',
         saveNote: 'Live records'
       },
       et: {
@@ -124,12 +127,12 @@
         foot: 'Ainult samas seadmes. Kirjed on selles brauseris. Erinevate seadmete vaheliseks sünkroniseerimiseks on vaja jagatud hoidlat.',
         footer: 'Hack the Future of Food 2026. Tap to prove.', onePager: 'Üheleht',
         count: (n) => `${n} kirjet`, updated: (s) => `Uuendatud ${s}`,
-        excel_empty: 'Eksportimiseks pole kirjeid.', excel_done: 'Excel CSV on valmis.', excel_failed: 'Excel CSV ebaõnnestus.',
+        excel_empty: 'Eksportimiseks pole kirjeid.', excel_done: 'Excel CSV on valmis.', excel_failed: 'Excel CSV ebaõnnestus.', jsonl: 'JSONL + failid', jsonl_done: 'JSONL on valmis.', jsonl_failed: 'JSONL eksport ebaõnnestus.', attachment_missing: 'Manus puudub, midagi ei eksporditud.',
         saveNote: 'Elavad kirjed'
       }
     };
 
-    let lang = localStorage.getItem('toend-lang') === 'et' ? 'et' : 'en';
+    let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
     let records = [];
     let lastSeq = 0;
     const channel = 'BroadcastChannel' in window ? new BroadcastChannel('toend-records') : null;
@@ -148,17 +151,24 @@
       render();
     }
 
+    let dbPromise = null;
     function openDb() {
-      return new Promise((resolve, reject) => {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
         const request = indexedDB.open('toend', 2);
         request.onupgradeneeded = () => {
           const db = request.result;
           if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'seq' });
           if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'key' });
         };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          db.onversionchange = () => { db.close(); dbPromise = null; };
+          resolve(db);
+        };
+        request.onerror = () => { dbPromise = null; reject(request.error); };
       });
+      return dbPromise;
     }
 
     async function allRecords() {
@@ -170,19 +180,37 @@
       });
     }
 
+    async function getMedia(key) {
+      const db = await openDb();
+      return new Promise((resolve, reject) => {
+        const request = db.transaction('media', 'readonly').objectStore('media').get(key);
+        request.onsuccess = () => resolve(request.result?.blob || null);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function blobToDataUrl(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    }
+
     function cell(row, value) {
       const td = document.createElement('td');
       td.textContent = value === null || value === undefined || value === '' ? '—' : String(value);
       return td;
     }
 
-    function render() {
+    function render(previousSeq = lastSeq) {
       $('recordsBody').replaceChildren();
       $('emptyState').hidden = records.length > 0;
       $('countText').textContent = t('count', records.length);
       for (const record of records) {
         const row = document.createElement('tr');
-        if (record.seq > lastSeq) row.className = 'fresh';
+        if (record.seq > previousSeq) row.className = 'fresh';
         row.append(
           cell(row, record.seq),
           cell(row, record.created_at ? new Date(record.created_at).toLocaleString(lang === 'et' ? 'et-EE' : 'en-GB') : ''),
@@ -211,36 +239,66 @@
       try {
         const next = await allRecords();
         const newest = next.reduce((max, record) => Math.max(max, Number(record.seq) || 0), 0);
-        if (announce && newest > lastSeq) pulse();
+        const before = announce ? lastSeq : newest;
+        if (announce && newest > before) pulse();
         records = next;
         lastSeq = newest;
-        render();
+        render(before);
       } catch (error) {
         console.warn('live sheet refresh failed', error);
+        $('exportText').textContent = t('excel_failed');
       }
     }
 
-    function csvCell(value) {
-      const text = value === null || value === undefined ? '' : String(value);
-      return `"${text.replaceAll('"', '""')}"`;
-    }
 
-    async function exportExcel() {
-      if (!records.length) {
-        console.info(t('excel_empty'));
-        return;
-      }
-      const headers = ['seq', 'created_at', 'asset', 'checkpoint', 'method', 'verdict', 'grade', 'tier', 'tag_sig', 'source', 'transcript', 'instrument', 'language', 'device_id', 'hash'];
-      const rows = [headers.map(csvCell).join(';')];
-      for (const record of records) rows.push(headers.map((key) => csvCell(record[key])).join(';'));
-      const blob = new Blob(['\ufeff' + rows.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+    function downloadFile(text, name, type) {
+      const blob = new Blob([text], { type });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `toend-records-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.download = name;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      console.info(t('excel_done'));
+    }
+
+    async function exportExcel() {
+      try {
+        const current = await allRecords();
+        if (!current.length) { $('exportText').textContent = t('excel_empty'); return; }
+        const headers = recordHeaders(current);
+        const rows = [headers.map(csvCell).join(';')];
+        for (const record of current) rows.push(headers.map((key) => csvCell(record[key])).join(';'));
+        downloadFile('\ufeff' + rows.join('\r\n') + '\r\n', `toend-records-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+        $('exportText').textContent = t('excel_done');
+      } catch (error) {
+        console.warn('Excel export failed', error);
+        $('exportText').textContent = t('excel_failed');
+      }
+    }
+
+    async function exportJsonl() {
+      try {
+        const current = await allRecords();
+        if (!current.length) { $('exportText').textContent = t('excel_empty'); return; }
+        const lines = [];
+        for (const record of current) {
+          const { photo_thumb, ...clean } = record;
+          lines.push(JSON.stringify(clean));
+          const attachments = [];
+          if (record.media_hash && !record.photo_reuse_of) attachments.push({ key: `${record.seq}:media`, seq: record.seq });
+          if (record.audio_hash) attachments.push({ key: `${record.seq}:audio`, seq: record.seq });
+          for (const item of attachments) {
+            const blob = await getMedia(item.key);
+            if (!blob) { $('exportText').textContent = t('attachment_missing'); return; }
+            lines.push(JSON.stringify({ type: 'attachment', seq: item.seq, key: item.key, data_url: await blobToDataUrl(blob) }));
+          }
+        }
+        downloadFile(lines.join('\n') + '\n', `toend-records-${new Date().toISOString().slice(0, 10)}.jsonl`, 'application/x-ndjson;charset=utf-8');
+        $('exportText').textContent = t('jsonl_done');
+      } catch (error) {
+        console.warn('JSONL export failed', error);
+        $('exportText').textContent = t('jsonl_failed');
+      }
     }
 
     $('langBtn').addEventListener('click', () => {
@@ -249,6 +307,7 @@
       applyLanguage();
     });
     $('sheetExcelBtn').addEventListener('click', exportExcel);
+    $('sheetJsonlBtn').addEventListener('click', exportJsonl);
 
     channel?.addEventListener('message', (event) => {
       if (event.data?.type === 'record') refresh(true);

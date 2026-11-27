@@ -5,10 +5,10 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Excel friendly CSV and record export | fix/excel_export | none |
+| @AARenor | omp | doing | Landing describes, NFC host records only | `feat/host_views` | device tap test |
 | @linnudtonisted | OpenCode | review | Speech-to-text: detect language from first words | `fix/speech-to-text`, issue #44 | device test |
 | @Pepukarv | OpenCode | review | Remove 'Kaheksa kohta. Üks rutiin.' heading from landing | #70, fix/remove_checkpoints_title | none |
-| @stevenlaas123-pixel | omp | review | Correct media capture copy | `fix/media-copy`, issue #78 | device test |
+| @stevenlaas123-pixel | omp | review | Remove slide-like panels | `fix/continuous-layout-current` | device test |
 
 ## Demo-critical path
 

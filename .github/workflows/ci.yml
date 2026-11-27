@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -41,10 +42,21 @@ jobs:
               "## Not tested",
               "## Handoff",
             ];
-            const missing = required.filter((heading) => !body.includes(heading));
-            if (missing.length > 0) {
-              core.setFailed(
-                `PR description is missing: ${missing.join(", ")}. ` +
-                  "Fill every section of the template so the next person can continue."
-              );
+            const check = required.map((heading) => {
+              const start = body.indexOf(heading);
+              if (start < 0) return { heading, ok: false, reason: "missing" };
+              const next = required
+                .map((other) => body.indexOf(other, start + heading.length))
+                .filter((index) => index >= 0)
+                .sort((a, b) => a - b)[0] ?? body.length;
+              const text = body.slice(start + heading.length, next).trim();
+              return {
+                heading, ok: text.length > 0,
+                reason: text.length ? "" : "empty",
+              };
+            });
+            const bad = check.filter((item) => !item.ok);
+            if (bad.length > 0) {
+              const details = bad.map((item) => `${item.heading} ${item.reason}`).join(", ");
+              core.setFailed(`PR description has ${details}. Fill every section so the next person can continue.`);
             }

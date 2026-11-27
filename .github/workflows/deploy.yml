@@ -16,12 +16,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # Fork pull requests cannot read the Cloudflare secrets; skip them.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main') &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     permissions:
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify
+        run: node scripts/verify.mjs
 
       - name: Deploy to Cloudflare Pages
         env:

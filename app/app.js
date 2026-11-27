@@ -1,9 +1,10 @@
+import { imageHashBits, isoWeekKey } from './data.js';
+
 const $ = (id) => document.getElementById(id);
 
 const WORDS = {
   en: {
     rail_caption: 'One tap, one record.',
-    flow_title: 'How it works',
     flow1: 'Stick the card on the place you check.',
     flow2: 'Tap the card with your phone.',
     flow3: 'Pick grade 3, 2 or 1.',
@@ -22,22 +23,16 @@ const WORDS = {
     skip: 'Skip to capture',
     hero_note: 'An NFC card and a phone app for recording production line checks. Tap the card, pick a grade and the record is there.',
     intro_title: 'Hygiene checks in one tap.',
-    what_title: 'What it is',
     what_body: 'Tap to Prove is an NFC card and phone app for hygiene checks on a production line. A waterproof card sits on each place to check. Tapping it opens the right place on the phone and the checker can save a grade at once.',
     what_note: 'When a photo is not possible, a fixed grade keeps the record complete. It can still be reviewed later. The card replaces the paper form instead of adding another step.',
     nav_what: 'What it is',
     nav_how: 'How it works',
     nav_try: 'Try',
     nav_cta: 'Try a check',
-    hero_kicker: 'Hygiene checks on the line',
+    landing_start: 'Try a check',
     hero_proof: 'No paper form. No photo needed.',
-    float_card: 'NFC card',
-    float_grade: '3 · 2 · 1',
-    float_record: 'Record saved',
-    float_default: 'No photo, still complete',
     what_heading: 'A check that writes itself.',
     how_heading: 'Four steps, one record.',
-    benefits_kicker: 'Why a card',
     benefits_title: 'Made for the line.',
     benefit1_title: 'Faster than paper',
     benefit1_body: 'Tap the card, pick a grade and the check is written in seconds.',
@@ -45,7 +40,6 @@ const WORDS = {
     benefit2_body: 'When a photo is not possible, a fixed grade keeps the record complete.',
     benefit3_title: 'Records in one place',
     benefit3_body: 'The live sheet shows new checks on the same device.',
-    capture_kicker: 'Try a check',
     sample_toggle: 'See the synthetic sample month',
     capture_title: 'Check capture',
     untagged: 'Untagged asset',
@@ -112,6 +106,7 @@ const WORDS = {
     grade_required: 'Pick a rating first.',
     grade_reason: 'Grade N recorded from the tagged place',
     grade_done: 'Grade N saved',
+    grade_escalated: 'Four consecutive grade 2 checks: saved as grade 1.',
     grade3_label: '3 clean',
     grade2_label: '2 dirty',
     grade1_label: '1 serious',
@@ -120,7 +115,6 @@ const WORDS = {
     qr_link: 'QR link',
     showcase: 'See the example and NFC link',
     footer: 'A. Le Coq challenge 3 at Hack the Future of Food 2026. Tap to prove.',
-    hygiene_title: 'Hygiene log',
     hygiene_note: 'Last six weeks.',
     hygiene_download: 'Download workbook',
     hygiene_live: 'Grades: 3 clean, 2 dirty, 1 serious. Cells fill from records on this device. The full year is in the workbook.',
@@ -131,7 +125,6 @@ const WORDS = {
   },
   et: {
     rail_caption: 'Üks puudutus, üks kirje.',
-    flow_title: 'Kuidas see töötab',
     flow1: 'Kleebi kaart kontrollitava koha külge.',
     flow2: 'Puuduta kaarti telefoniga.',
     flow3: 'Vali hinne 3, 2 või 1.',
@@ -150,22 +143,16 @@ const WORDS = {
     skip: 'Liigu salvestamise juurde',
     hero_note: 'NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.',
     intro_title: 'Hügieenikontroll ühe puudutusega.',
-    what_title: 'Mis see on',
     what_body: 'Tap to Prove on NFC-kaartide ja telefonirakenduse lahendus tootmisliini hügieenikontrolliks. Iga kontrollitava koha küljes on veekindel kaart. Selle puudutamisel avaneb telefonis õige koht ja kontrollija saab hinnangu kohe salvestada.',
     what_note: 'Kui pilti teha ei saa, kasutatakse fikseeritud hinnangut. Kirje jääb ikkagi täielikuks ja selle saab hiljem üle vaadata. Kaart asendab pabervormi, mitte ei lisa uut sammu.',
     nav_what: 'Mis see on',
     nav_how: 'Kuidas töötab',
     nav_try: 'Proovi',
     nav_cta: 'Proovi kontrolli',
-    hero_kicker: 'Tootmisliini hügieenikontroll',
+    landing_start: 'Proovi kontrolli',
     hero_proof: 'Pabervormi ega fotot pole vaja.',
-    float_card: 'NFC kaart',
-    float_grade: '3 · 2 · 1',
-    float_record: 'Kirje on olemas',
-    float_default: 'Pilti pole vaja',
     what_heading: 'Kontroll, mis kirjutab end ise.',
     how_heading: 'Neli sammu, üks kirje.',
-    benefits_kicker: 'Miks kaart',
     benefits_title: 'Loodud liinile.',
     benefit1_title: 'Kiirem kui paber',
     benefit1_body: 'Puuduta kaarti, vali hinne ja kontroll on kirjas mõne sekundiga.',
@@ -173,7 +160,6 @@ const WORDS = {
     benefit2_body: 'Kui pilti ei saa, hoiab fikseeritud hinnang kirje täielikuna.',
     benefit3_title: 'Kirjed ühes kohas',
     benefit3_body: 'Elav tabel näitab uusi kontrolle samas seadmes kohe.',
-    capture_kicker: 'Proovi kontrolli',
     sample_toggle: 'Vaata sünteetilist näidis kuud',
     capture_title: 'Kontrolli salvestamine',
     untagged: 'Märgistamata koht',
@@ -223,7 +209,6 @@ const WORDS = {
     filter: 'Otsi koha või kontrollpunkti järgi',
     export: 'Ekspordi JSONL',
     tamper: 'Näita ahela murdu',
-    hygiene_title: 'Hügieenipäevik',
     hygiene_note: 'Viimased kuus nädalat.',
     hygiene_download: 'Laadi tööraamat alla',
     hygiene_live: 'Hinded: 3 korras, 2 must, 1 tõsine. Lahtrid täituvad selle seadme kirjetest. Kogu aasta on Exceli failis.',
@@ -256,6 +241,7 @@ const WORDS = {
     grade_required: 'Vali esmalt hinne.',
     grade_reason: 'Hinne N märgitud kleepsu kohas',
     grade_done: 'Hinne N salvestatud',
+    grade_escalated: 'Neli järjestikust hinnet 2: salvestati hindena 1.',
     grade_short: 'hinne',
     grade3_label: '3 korras',
     grade2_label: '2 must',
@@ -306,7 +292,7 @@ function detectSpokenLang(text) {
   return 'en-US';
 }
 
-let lang = 'et';
+let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
 let speechLang = speechLocale(navigator.language);
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
@@ -530,10 +516,12 @@ function notifyRecords(record) {
   } catch (error) {
     console.warn('record broadcast failed', error);
   }
-  try {
-    localStorage.setItem('toend-records-event', JSON.stringify(event));
-  } catch (error) {
-    console.warn('record event fallback failed', error);
+  if (!recordsChannel) {
+    try {
+      localStorage.setItem('toend-records-event', JSON.stringify(event));
+    } catch (error) {
+      console.warn('record event fallback failed', error);
+    }
   }
 }
 
@@ -548,6 +536,25 @@ async function appendRecord(payload, mediaFile, audioBlob) {
       const records = request.result.sort((a, b) => a.seq - b.seq);
       const last = records.at(-1);
       const seq = last ? last.seq + 1 : 1;
+      if (payload.grade === 2) {
+        let consecutive = 0;
+        for (let i = records.length - 1; i >= 0; i -= 1) {
+          if (records[i].asset !== payload.asset) continue;
+          if (records[i].grade !== 2) break;
+          if (++consecutive === 3) break;
+        }
+        if (consecutive === 3) {
+          const gradeReason = WORDS[lang].grade_reason.replace('N', 2);
+          payload = {
+            ...payload,
+            selected_grade: 2,
+            grade: 1,
+            verdict: 'serious',
+            reason: t('grade_escalated'),
+            transcript: payload.transcript === gradeReason ? t('grade_escalated') : payload.transcript
+          };
+        }
+      }
       const body = {
         ...payload,
         seq,
@@ -560,7 +567,7 @@ async function appendRecord(payload, mediaFile, audioBlob) {
       record = { ...body, hash: sha256Sync(body) };
       store.put(record);
       const media = tx.objectStore('media');
-      if (mediaFile) media.put({ key: `${seq}:media`, blob: mediaFile });
+      if (mediaFile && !payload.photo_reuse_of) media.put({ key: `${seq}:media`, blob: mediaFile });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
     };
     tx.oncomplete = () => resolve(record);
@@ -598,7 +605,7 @@ function imageHash(canvas) {
   for (let y = 0; y < 8; y += 1) {
     for (let x = 0; x < 8; x += 1) bits += lum[y * 9 + x] > lum[y * 9 + x + 1] ? '1' : '0';
   }
-  return parseInt(bits, 2).toString(16).padStart(16, '0');
+  return imageHashBits(bits);
 }
 
 async function analysePhoto(file) {
@@ -752,6 +759,7 @@ function resetCaptureInputs() {
   $('photo').value = '';
   photoState = null;
   audioState = null;
+  photoFailed = false;
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
   updateTier();
@@ -803,8 +811,10 @@ function quickRecord(kind, grade = 0) {
       quick: true,
       ...mediaPayload()
     }, photoState?.file, audioState?.blob);
+    notifyRecords(record);
     const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
     await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
+    if (record.selected_grade === 2) note('quickNote', t('grade_escalated'));
   });
 }
 
@@ -816,13 +826,11 @@ async function refreshCount() {
 
 
 function isoWeek(value) {
-  const source = new Date(value);
-  if (Number.isNaN(source.getTime())) return null;
-  const date = new Date(Date.UTC(source.getUTCFullYear(), source.getUTCMonth(), source.getUTCDate()));
-  const day = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+  try {
+    return Number(isoWeekKey(value).split('-W')[1]);
+  } catch {
+    return null;
+  }
 }
 
 function gradeClass(grade) {
@@ -888,14 +896,24 @@ function renderHygieneGrid() {
 
 function fillHygieneFromRecords() {
   if (!hygieneData || !allRecordsCache) return;
+  const workbookYear = Object.values(hygieneData.dates || {})[0]?.split('.').pop() || String(new Date().getFullYear());
+  let unmapped = 0;
   for (const record of allRecordsCache) {
     const key = hygieneKey(record.asset);
-    const week = isoWeek(record.created_at);
-    if (!key || !week) continue;
+    let week = null;
+    try {
+      const weekKey = isoWeekKey(record.created_at);
+      if (weekKey.startsWith(`${workbookYear}-W`)) week = Number(weekKey.split('-W')[1]);
+    } catch { /* A bad date cannot be painted. */ }
+    if (!key || !week) { unmapped += 1; continue; }
     const cell = document.querySelector(`#hygieneTable td[data-asset="${key}"][data-week="N${week}"]`);
+    if (!cell) { unmapped += 1; continue; }
     setHygieneCell(cell, gradeFromRecord(record));
   }
+  const note = $('hygieneUnmapped');
+  if (note) note.textContent = unmapped ? `${unmapped} ${lang === 'et' ? 'kirjet ei näidatud päevikus' : 'records not shown in the workbook'}` : '';
 }
+
 
 async function loadHygieneGrid() {
   try {
@@ -1145,6 +1163,7 @@ function saveFromForm() {
 function bind() {
   $('langToggle').addEventListener('click', () => {
     lang = lang === 'en' ? 'et' : 'en';
+    localStorage.setItem('toend-lang', lang);
     applyLanguage();
     if (speechSession) toggleVoice();
     refreshCount();
@@ -1204,11 +1223,12 @@ async function start() {
   bind();
   updateTier();
   updateNetwork();
-  if (asset) {
+  if (asset && document.documentElement.dataset.mode === 'record') {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : 'link');
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
     $('grade3').focus({ preventScroll: true });
   }
+  navigator.storage?.persist?.().catch(() => {});
   await loadHygieneGrid();
   await refreshCount();
   await registerServiceWorker();

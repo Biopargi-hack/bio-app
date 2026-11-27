@@ -9,8 +9,9 @@
  * Run locally with: node scripts/verify.mjs
  */
 
+import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -31,6 +32,7 @@ const REQUIRED_FILES = [
   "app/showcase.html",
   "app/sample_cip.csv",
   "app/sheet.html",
+  "app/data.js",
   "app/hygieen.json",
   "app/taptoprove_ledger.xlsx",
 ];
@@ -51,6 +53,14 @@ for (const file of ["app/app.js", "app/sw.js"]) {
     const detail = error.stderr?.toString().trim() || error.message;
     fail(`${file} has a syntax error:\n${detail}`);
   }
+}
+
+try {
+  execFileSync(process.execPath, ["--test", join(root, "scripts/data_flow_test.mjs")], { stdio: "pipe" });
+  ok("data flow tests pass");
+} catch (error) {
+  const detail = error.stderr?.toString().trim() || error.message;
+  fail(`data flow tests failed:\n${detail}`);
 }
 
 // Card ID must survive from the tap into every appended record.
@@ -130,10 +140,21 @@ if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource
 } else {
   fail("app/sheet.html: live sheet wiring is missing");
 }
-if (appSource.includes("new BroadcastChannel('toend-records')") && appSource.includes("postMessage(event)") && indexSource.includes('id="sheetLink"')) {
-  ok("capture app broadcasts records and links to live sheet");
+if (appSource.includes("notifyRecords(record)") && sheetSource.includes("new BroadcastChannel('toend-records')") && indexSource.includes('id="sheetLink"')) {
+  ok("capture app broadcasts saved records and links to live sheet");
 } else {
-  fail("app: record broadcast or live sheet link is missing");
+  fail("app: record broadcast call or live sheet link is missing");
+}
+if (appSource.includes("if (!recordsChannel)") && sheetSource.includes('db.onversionchange')) {
+  ok("record events fall back without double refresh and sheet closes stale databases");
+} else {
+  fail("app: record event fallback or sheet database handoff is missing");
+}
+const freshExportReads = (sheetSource.match(/const current = await allRecords\(\);/g) || []).length;
+if (freshExportReads >= 2 && sheetSource.includes("import { csvCell, recordHeaders }") && sheetSource.includes("recordHeaders(current)")) {
+  ok("sheet exports fresh complete CSV and JSONL with attachments");
+} else {
+  fail("app/sheet.html: fresh complete export wiring is missing");
 }
 
 const cameraWired = indexSource.includes('id="photoBtn"') && indexSource.includes('id="videoBtn"') && indexSource.includes('capture="environment"') && appSource.includes('photoBtn') && appSource.includes('videoBtn');
@@ -153,12 +174,62 @@ if (appSource.includes("speak: 'Speak'") && appSource.includes("speak: 'Räägi'
   fail("app: voice button copy is still confusing");
 }
 
-// The showcase page must carry the demo NFC link and its tag id.
+// Domain split: landing stays on taptoprove.ee, every NFC link uses nfc.taptoprove.ee.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
-if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=")) {
-  ok("showcase carries the NFC demo link");
+const readmeSource = existsSync(join(root, "README.md")) ? readFileSync(join(root, "README.md"), "utf8") : "";
+const runbookSource = existsSync(join(root, "docs/demo_runbook.md")) ? readFileSync(join(root, "docs/demo_runbook.md"), "utf8") : "";
+if (showcase.includes("TAP-DEMO-01") && showcase.includes("https://nfc.taptoprove.ee/?asset=")) {
+  ok("showcase carries the NFC demo link on nfc.taptoprove.ee");
 } else {
-  fail("app/showcase.html: NFC demo link or tag id is missing");
+  fail("app/showcase.html: NFC demo link or nfc.taptoprove.ee host is missing");
+}
+if (!showcase.includes("https://taptoprove.ee/?asset=") && !appSource.includes("https://taptoprove.ee/?asset=")) {
+  ok("no NFC link still points at the landing host");
+} else {
+  fail("NFC link still uses https://taptoprove.ee/?asset= instead of nfc.taptoprove.ee");
+}
+const indexHead = indexSource.split("</head>")[0];
+if (indexHead.includes('rel="canonical"') && indexHead.includes('href="https://taptoprove.ee/"')) {
+  ok("landing page canonical is https://taptoprove.ee/");
+} else {
+  fail("app/index.html: canonical link to https://taptoprove.ee/ is missing");
+}
+if (readmeSource.includes("Production: https://taptoprove.ee") && readmeSource.includes("https://nfc.taptoprove.ee/?asset=")) {
+  ok("README documents both hosts");
+} else {
+  fail("README.md: landing or NFC host is missing");
+}
+if (runbookSource.includes("https://nfc.taptoprove.ee/?asset=")) {
+  ok("demo runbook uses the NFC host for card links");
+} else {
+  fail("docs/demo_runbook.md: NFC card link host is missing");
+}
+const stylesForMode = existsSync(join(appDir, "styles.css")) ? readFileSync(join(appDir, "styles.css"), "utf8") : "";
+const domainsSource = existsSync(join(root, "docs/DOMAINS.md")) ? readFileSync(join(root, "docs/DOMAINS.md"), "utf8") : "";
+if (indexHead.includes("dataset.mode") && indexHead.includes("/^nfc\\./")) {
+  ok("host mode is selected before styles load");
+} else {
+  fail("app/index.html: hostname mode script is missing");
+}
+if (stylesForMode.includes('html[data-mode="landing"] #capture') && stylesForMode.includes('html[data-mode="record"] .hero')) {
+  ok("CSS hides the wrong view on each host");
+} else {
+  fail("app/styles.css: host view rules are missing");
+}
+if (indexSource.includes('href="https://nfc.taptoprove.ee/"') && indexSource.includes('href="#hygieen"')) {
+ ok("landing CTA goes to the NFC host and the table link is present");
+} else {
+  fail("app/index.html: landing CTA or table link is wrong");
+}
+if (domainsSource.includes("record entry only") && domainsSource.includes("nfc origin")) {
+  ok("DOMAINS.md explains the one-way storage");
+} else {
+  fail("docs/DOMAINS.md: host views or storage origin are not documented");
+}
+if (runbookSource.includes("Open the NFC host on a phone")) {
+  ok("runbook warms the NFC host offline");
+} else {
+  fail("docs/demo_runbook.md: offline warm-up still names the landing host");
 }
 
 // Manifest: valid JSON and every icon actually exists.
@@ -217,6 +288,17 @@ for (const name of htmlFiles) {
       fail(`${name}: <img> without alt text: ${match[0].slice(0, 80)}`);
     }
   }
+
+  for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)) {
+    const script = match[1];
+    if (!script.trim()) continue;
+    try {
+      const args = /type=["']module["']/i.test(match[0]) ? ["--check", "--input-type=module", "-"] : ["--check", "-"];
+      execFileSync(process.execPath, args, { input: script, stdio: "pipe" });
+    } catch (error) {
+      fail(`${name}: inline script has a syntax error: ${error.stderr?.toString().trim() || error.message}`);
+    }
+  }
 }
 
 if (htmlFiles.length > 0) ok(`${htmlFiles.length} HTML file(s) checked`);
@@ -237,6 +319,18 @@ if (existsSync(swPath)) {
       }
     }
     ok(`service worker precaches ${assets.length} assets`);
+
+    const digest = createHash("sha256");
+    for (const asset of assets) {
+      digest.update(asset);
+      const path = [resolve(appDir, asset), resolve(appDir, `${asset}.html`)]
+        .find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
+      if (path) digest.update(readFileSync(path));
+    }
+    const expected = `tap-to-prove-${digest.digest("hex").slice(0, 12)}`;
+    const declared = sw.match(/const CACHE = ['"]([^'"]+)['"]/)?.[1];
+    if (declared === expected) ok(`service worker cache version matches assets (${expected})`);
+    else fail(`app/sw.js: CACHE is "${declared}", expected "${expected}" for current assets`);
   }
 }
 
@@ -280,6 +374,25 @@ for (const file of tracked) {
 
 ok(`${tracked.length} tracked file(s) scanned for secrets`);
 
+
+const deployYaml = existsSync(join(root, ".github/workflows/deploy.yml")) ? readFileSync(join(root, ".github/workflows/deploy.yml"), "utf8") : "";
+if (deployYaml.includes("node scripts/verify.mjs") && deployYaml.includes("github.ref == 'refs/heads/main'")) {
+  ok("deploy workflow verifies before publishing and restricts manual runs to main");
+} else {
+  fail(".github/workflows/deploy.yml: verification gate or manual dispatch branch guard is missing");
+}
+const ciYaml = existsSync(join(root, ".github/workflows/ci.yml")) ? readFileSync(join(root, ".github/workflows/ci.yml"), "utf8") : "";
+if (ciYaml.includes("types: [opened, synchronize, reopened, edited]") && ciYaml.includes("text.length")) {
+  ok("CI rechecks edited PR descriptions and rejects empty sections");
+} else {
+  fail(".github/workflows/ci.yml: edited PR trigger or non-empty section check is missing");
+}
+const readme = existsSync(join(root, "README.md")) ? readFileSync(join(root, "README.md"), "utf8") : "";
+if (readme.includes("Automatic deploy happens on every push") && !readme.includes("line dropdown")) {
+  ok("README documents automatic deploy and drops the removed line dropdown");
+} else {
+  fail("README.md: deployment or demo wording is stale");
+}
 // Report.
 console.log(`Tap to Prove verify — ${passed.length} passed, ${failed.length} failed\n`);
 
