@@ -101,12 +101,19 @@ if (appSource.includes("new BroadcastChannel('toend-records')") && appSource.inc
   fail("app: record broadcast or live sheet link is missing");
 }
 
-// The showcase page must carry the demo NFC link and its tag id.
+// The showcase must use the production domain, never the retired nfc.arle.top host.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
-if (showcase.includes("TAP-DEMO-01") && (showcase.includes("nfc.arle.top/?asset=") || showcase.includes("taptoprove.ee/?asset="))) {
-  ok("showcase carries the NFC demo link");
+if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=") && !showcase.includes("nfc.arle.top")) {
+  ok("showcase carries the NFC demo link on taptoprove.ee");
 } else {
-  fail("app/showcase.html: NFC demo link or tag id is missing");
+  fail("app/showcase.html: NFC demo link is missing or still uses the old domain");
+}
+
+const readmeSource = existsSync(join(root, "README.md")) ? readFileSync(join(root, "README.md"), "utf8") : "";
+if (readmeSource.includes("https://taptoprove.ee") && !readmeSource.includes("nfc.arle.top")) {
+  ok("README points only to taptoprove.ee");
+} else {
+  fail("README.md: production link is missing or still uses the old domain");
 }
 
 // Manifest: valid JSON and every icon actually exists.
