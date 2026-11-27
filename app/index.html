@@ -78,7 +78,7 @@
             <textarea id="gradeComment" rows="2" data-i18n-placeholder="grade_comment_placeholder" placeholder="what you saw"></textarea>
           </label>
           <button id="gradeSaveBtn" class="quiet" type="button" data-i18n="grade_save" hidden>Save grade</button>
-          <div class="grade-done" id="gradeDone" hidden>
+          <div class="grade-done" id="gradeDone" role="status" aria-live="polite" aria-atomic="true" hidden>
             <span class="grade-done-mark" aria-hidden="true">✓</span>
             <span>
               <strong data-i18n="grade_closed_title">Tag closed</strong>
