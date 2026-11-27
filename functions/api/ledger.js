@@ -95,8 +95,8 @@ async function readKeys(token, sheetId) {
   return new Set((data.values || []).map((row) => `${String(row[9] ?? '')}|${String(row[0] ?? '')}`));
 }
 
-async function appendRow(token, sheetId, row) {
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Live!A:A')}:append`;
+async function appendRow(token, sheetId, sheetName, row) {
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(sheetName + '!A:A')}:append`;
   const response = await fetch(`${url}?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
     method: 'POST',
     headers: {
@@ -105,9 +105,10 @@ async function appendRow(token, sheetId, row) {
     },
     body: JSON.stringify({ values: [row] })
   });
-  if (!response.ok) throw new Error(`sheet append ${response.status}: ${await response.text()}`);
+  if (!response.ok) throw new Error(`sheet append ${sheetName} ${response.status}: ${await response.text()}`);
   return response.json();
 }
+
 
 async function storeEvidence(env, item, base) {
   if (!env.EVIDENCE) return '';
@@ -151,6 +152,76 @@ function gradeFor(record) {
   if (record.grade !== null && record.grade !== undefined && record.grade !== '') return record.grade;
   const grades = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
   return grades[record.verdict] || '';
+}
+
+const CHECKPOINT_PAIRS = [
+  ['Kätepesu', 'Hand wash sink'], ['Siirupituba', 'Syrup room wall'],
+  ['Kastipesu', 'Crate washer'], ['Täitepea', 'Filler head'],
+  ['Drenaaž', 'Drain'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
+];
+
+const HYGIENE_LABELS = [
+  'Täitepea', 'Villija uksed ja villija alune',
+  'Villijast väljuvad pleksiklaasid. Alates maist on seal plastikkardinad.',
+  'Villijast väljuv liin', 'Villija esine põrand',
+  'Villija lagi ja klaasseinte kohal olevad plekkseinad', 'Pudeli kuivataja',
+  'Torustikud (mix, vill, past)', 'Mixer + põrand',
+  'VP keskuse lähiümbruse põrand', 'Õhuliinid', 'Õhuliinide alune põrand',
+  'Pudelipress', 'Pudelipressi ruumi uks-puhas', 'Pudelipressi välissein',
+  'Preformi etteanne', 'Pressi alune', 'Pressi jahutuse alune',
+  'Pressikapi sahtlid', 'Korkide ladustamise ala laos', 'Alumine korgikolu',
+  'Ülemine korgikolu', 'Ülemise platvormi käepiirded', 'Korgilift',
+  'Liin villijast Spectrumini'
+];
+
+function displayCheckpoint(record) {
+  const text = String(record.checkpoint || record.asset || '').toLocaleLowerCase();
+  for (const [estonian, english] of CHECKPOINT_PAIRS) {
+    if (text.includes(estonian.toLocaleLowerCase()) || text.includes(english.toLocaleLowerCase())) return estonian;
+  }
+  return String(record.checkpoint || '');
+}
+
+function weekParts(value) {
+  const source = new Date(value);
+  if (Number.isNaN(source.getTime())) return null;
+  const day = new Date(Date.UTC(source.getUTCFullYear(), source.getUTCMonth(), source.getUTCDate()));
+  const shift = (day.getUTCDay() + 6) % 7;
+  day.setUTCDate(day.getUTCDate() - shift + 3);
+  const first = new Date(Date.UTC(day.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((day - first) / 86400000) + 1) / 7);
+  return { year: day.getUTCFullYear(), week };
+}
+
+function hygieneTarget(record) {
+  const parts = weekParts(record.created_at);
+  if (!parts) return null;
+  const bucket = Math.min(53, Math.max(1, Math.floor((parts.week + 4) / 5) * 5));
+  const columnIndex = [15, 20, 25, 30, 35, 40, 45, 50].indexOf(bucket);
+  if (columnIndex < 0) return null;
+  const rowIndex = HYGIENE_LABELS.indexOf(displayCheckpoint(record));
+  if (rowIndex < 0) return null;
+  return { range: `Hügieen!${String.fromCharCode(66 + columnIndex)}${11 + rowIndex}`, grade: gradeFor(record) };
+}
+
+async function readCell(token, sheetId, range) {
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(range)}`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error(`sheet read ${range} ${response.status}`);
+  const data = await response.json();
+  const value = Number((data.values || [[]])[0]?.[0]);
+  return Number.isFinite(value) ? value : null;
+}
+
+async function updateCell(token, sheetId, range, value) {
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(range)}`;
+  const response = await fetch(`${url}?valueInputOption=USER_ENTERED`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ values: [[value]] })
+  });
+  if (!response.ok) throw new Error(`sheet update ${range} ${response.status}: ${await response.text()}`);
+  return response.json();
 }
 
 async function onRequestPost({ request, env }) {
@@ -220,8 +291,38 @@ async function onRequestPost({ request, env }) {
       plain(record.source),
       plain(record.language || record.speech_lang)
     ];
-    await appendRow(token, env.SHEET_ID, row);
-    return Response.json({ ok: true, seq: record.seq, files: links.length });
+    await appendRow(token, env.SHEET_ID, 'Live', row);
+    const stamp = new Date(record.created_at);
+    const iso = Number.isNaN(stamp.getTime()) ? new Date().toISOString() : stamp.toISOString();
+    const ledgerRow = [
+      record.seq,
+      plain(record.created_at),
+      iso.slice(0, 10).split('-').reverse().join('.'),
+      iso.slice(11, 16),
+      plain(record.asset || record.checkpoint),
+      plain(displayCheckpoint(record)),
+      plain(record.method),
+      plain(record.verdict),
+      gradeFor(record),
+      plain(record.reason),
+      plain(record.transcript),
+      plain(record.source),
+      plain(record.supervisor || record.device_id),
+      evidence,
+      '', '', '', '', '', '', '',
+      'kontrollimata',
+      plain(record.hash)
+    ];
+    await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
+    let hygieneUpdated = false;
+    const target = hygieneTarget(record);
+    if (target) {
+      const current = await readCell(token, env.SHEET_ID, target.range);
+      const next = current === null ? target.grade : Math.min(current, target.grade);
+      await updateCell(token, env.SHEET_ID, target.range, next);
+      hygieneUpdated = true;
+    }
+    return Response.json({ ok: true, seq: record.seq, files: links.length, hygieneUpdated });
   } catch (error) {
     console.error('ledger sync failed', error);
     return Response.json({ error: 'sheet write failed' }, { status: 502 });
