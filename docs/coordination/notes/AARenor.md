@@ -102,3 +102,5 @@ Format:
 - **2026-11-27 18:45** — Compacted the downloaded workbook from five sheets to two: Hügieen and Kirjed. Hügieen is now one eleven row grid with a single legend row, and Kirjed combines the old Ledger, Audit, Evidence and Chain views into fourteen columns. The generator at AI-drop/taptoprove_sheets/sync_ledger.py now writes this compact workbook by default and has a --workbook-only flag that leaves the cloud sheet unchanged. Ruff F,E9 and ty pass, excel_hygiene reports no errors and the app verify passes.
 
 - **2026-11-27 18:48** — Split hosts: landing taptoprove.ee, NFC cards nfc.taptoprove.ee. Canonical added, showcase and machine links moved, README, runbook, DECISIONS, DOMAINS doc and verify gate updated. Cloudflare domain nfc.taptoprove.ee added to Pages project toend.
+
+- **2026-11-27 18:53** — PR 89 admin merged to main. Live check: taptoprove.ee serves the canonical landing page and nfc.taptoprove.ee/showcase serves NFC links; card URL returns 200. Four fresh demo card links TAP-NFC-001 to 004 sent to Telegram. Physical NFC taps still not device tested.
