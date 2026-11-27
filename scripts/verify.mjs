@@ -52,10 +52,10 @@ for (const file of ["app/app.js", "app/sw.js"]) {
 
 // Card ID must survive from the tap into every appended record.
 const appSource = existsSync(join(root, "app/app.js")) ? readFileSync(join(root, "app/app.js"), "utf8") : "";
-if (appSource.includes("tag_sig: currentTag") && appSource.includes("r.tag_sig")) {
-  ok("card ID is written to records and shown in the ledger");
+if (appSource.includes("tag_sig: currentTag")) {
+  ok("card ID is written to records");
 } else {
-  fail("app/app.js: card ID is missing from records or the ledger row");
+  fail("app/app.js: card ID is missing from records");
 }
 
 // The no photo case must write a fixed default assessment into the dataset.
@@ -66,19 +66,24 @@ if (defaultWired) {
   fail("app/app.js: fixed default assessment is missing from records");
 }
 
-// The default assessment must be visible in the audit row and filter.
-if (appSource.includes("kind === 'defaults'") && appSource.includes('class="default-flag"')) {
-  ok("fixed default is visible in the audit view");
-} else {
-  fail("app/app.js: fixed default is not visible in the audit view");
-}
-
 // NFC and QR links must open a grade 1 to 3 rating view.
 const indexSource = existsSync(join(appDir, "index.html")) ? readFileSync(join(appDir, "index.html"), "utf8") : "";
 if (appSource.includes("kind === 'grade'") && indexSource.includes('id="gradeRow"')) {
   ok("NFC link opens a grade view");
 } else {
   fail("app: NFC link grade view is missing");
+}
+
+// The minimal capture app must not bring back the ledger or audit panel.
+if (!indexSource.includes('id="records"') && !indexSource.includes('id="cipSummary"')) {
+  ok("minimal app has no ledger or audit panel");
+} else {
+  fail("app/index.html still contains the ledger or audit panel");
+}
+if (indexSource.includes('id="line"')) {
+  ok("line selector is present");
+} else {
+  fail("app/index.html: line selector is missing");
 }
 
 // The showcase page must carry the demo NFC link and its tag id.
