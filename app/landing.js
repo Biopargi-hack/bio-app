@@ -1,6 +1,6 @@
-// Landing page demo on taptoprove.ee: a simulated NFC card tap that adds records
-// to an in-page hash chain and the hygiene table. Nothing is written to storage;
-// real records are made on nfc.taptoprove.ee by app.js.
+// Landing page demo on taptoprove.ee: a simulated NFC card tap that saves a
+// record on the phone mock. Nothing is written to storage; real records are made
+// on nfc.taptoprove.ee by app.js.
 const root = document.documentElement;
 const demo = document.getElementById('demo');
 
@@ -16,14 +16,11 @@ function init() {
   const placeEl = document.getElementById('demoPlace');
   const savedMeta = document.getElementById('demoSavedMeta');
   const clock = document.getElementById('demoClock');
-  const chainList = document.getElementById('demoChain');
-  const chainEmpty = document.getElementById('demoChainEmpty');
-  const chainState = document.getElementById('demoChainState');
   const cards = [...demo.querySelectorAll('.tag')];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const ease = 'cubic-bezier(.2, .8, .2, 1)';
   const names = new Map();
-  const chain = [];
+  const records = [];
   let active = null;
   let busy = false;
   let savedTimer = 0;
@@ -186,79 +183,14 @@ function init() {
     return out;
   }
 
-  const recordBody = (record, grade = record.grade) => ({
-    seq: record.seq, place: record.place, tag: record.tag, grade, at: record.at, prev: record.prev
-  });
-
+  // The demo keeps its records in memory only, to number them and show a hash.
   async function append(item, grade) {
-    const prev = chain.length ? chain[chain.length - 1].hash : '0'.repeat(64);
-    const record = { seq: chain.length + 1, place: item.place, tag: item.tag, grade, at: new Date().toISOString(), prev, edited: null };
-    record.hash = await digest(recordBody(record));
-    chain.push(record);
-    await verify();
-    renderChain(record.seq);
+    const prev = records.length ? records[records.length - 1].hash : '0'.repeat(64);
+    const record = { seq: records.length + 1, place: item.place, tag: item.tag, grade, at: new Date().toISOString(), prev };
+    record.hash = await digest(record);
+    records.push(record);
     return record;
   }
-
-  let brokenAt = 0;
-  async function verify() {
-    brokenAt = 0;
-    let prev = '0'.repeat(64);
-    for (const record of chain) {
-      const shown = record.edited ?? record.grade;
-      const hash = await digest(recordBody(record, shown));
-      if (hash !== record.hash || record.prev !== prev) { brokenAt = record.seq; break; }
-      prev = record.hash;
-    }
-  }
-
-  function renderChain(freshSeq = 0) {
-    chainEmpty.hidden = chain.length > 0;
-    chainState.classList.toggle('broken', brokenAt > 0);
-    chainState.textContent = !chain.length ? '' : brokenAt ? word('broken').replace('N', brokenAt) : word('intact');
-    chainList.replaceChildren(...chain.map((record) => {
-      const shown = record.edited ?? record.grade;
-      const li = document.createElement('li');
-      li.className = `link${record.seq === brokenAt ? ' broken' : ''}${record.seq === freshSeq ? ' fresh' : ''}`;
-      const time = new Date(record.at).toLocaleTimeString(lang() === 'en' ? 'en-GB' : 'et-EE');
-      li.innerHTML = `
-        <div class="link-top"><span class="link-seq"></span><span class="link-grade g${shown}"></span></div>
-        <strong class="link-place"></strong>
-        <span class="link-meta"><span class="link-time"></span><span class="link-tag"></span></span>
-        <span class="link-hash"></span>
-        <span class="link-prev"></span>
-        <button class="link-edit" type="button"></button>`;
-      li.querySelector('.link-seq').textContent = seqLabel(record.seq);
-      const badge = li.querySelector('.link-grade');
-      badge.textContent = String(shown);
-      badge.setAttribute('aria-label', `${word('grade')} ${shown}`);
-      li.querySelector('.link-place').textContent = placeName(record.place);
-      li.querySelector('.link-time').textContent = time;
-      li.querySelector('.link-tag').textContent = record.tag;
-      const hash = li.querySelector('.link-hash');
-      hash.textContent = shortHash(record.hash);
-      hash.title = record.hash;
-      li.querySelector('.link-prev').textContent = `${word('prev')} ${shortHash(record.prev)}`;
-      const edit = li.querySelector('.link-edit');
-      edit.dataset.seq = String(record.seq);
-      edit.textContent = record.edited == null ? word('edit') : word('restore');
-      edit.setAttribute('aria-label', `${edit.textContent} ${seqLabel(record.seq)}`);
-      return li;
-    }));
-    if (freshSeq) chainList.scrollTo({ left: chainList.scrollWidth, behavior: reduced.matches ? 'auto' : 'smooth' });
-  }
-
-  chainList.addEventListener('click', async (event) => {
-    const button = event.target.closest('.link-edit');
-    if (!button) return;
-    const record = chain[Number(button.dataset.seq) - 1];
-    if (!record) return;
-    record.edited = record.edited == null ? (record.grade === 3 ? 1 : 3) : null;
-    await verify();
-    renderChain();
-    chainList.querySelector(`.link-edit[data-seq="${record.seq}"]`)?.focus({ preventScroll: true });
-  });
-
 
   function savedText(record) {
     return `${word('record')} ${seqLabel(record.seq)} · ${shortHash(record.hash)}`;
@@ -269,12 +201,10 @@ function init() {
     if (active) placeEl.textContent = placeName(active.place);
     if (lastSaved) savedMeta.textContent = savedText(lastSaved);
     tick();
-    renderChain();
   }
 
   // app.js rewrites the copy on a language switch; keep the demo in step.
   new MutationObserver(relabel).observe(root, { attributes: true, attributeFilter: ['lang'] });
 
   show('idle');
-  renderChain();
 }
