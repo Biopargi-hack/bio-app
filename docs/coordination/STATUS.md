@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Voice mode keeps a long spoken note, no 300 character cap | `fix/voice_no_output_limit` | device speech test |
+| @AARenor | omp | review | Voice spelling: a typed letter stays, online text is corrected | `fix/voice_spelling` | device speech test |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN voice buttons | `fix/restore_language_buttons` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove speech language selector | `fix/remove-speech-selector` | device speech test |

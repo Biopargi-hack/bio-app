@@ -57,7 +57,7 @@ const WORDS = {
     voice_lang: 'Speech language',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Tap ET, RU or EN, then speak. A long note is kept in full. The mic closes after about 3 seconds of quiet.',
+    audio_hint: 'Tap ET, RU or EN, then speak. A long note is kept in full. Spelling is corrected when you are online.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
@@ -68,11 +68,12 @@ const WORDS = {
     speech_fallback: 'Your browser language is unavailable for speech. Listening in English.',
     speech_stopped: 'Voice stopped',
     listening: 'Listening',
+    polishing: 'Correcting spelling',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak. Each recording adds a new line.',
-    note_hint: 'The recognised text is written here with no length limit. Speech may need an internet connection.',
+    note_hint: 'A letter you add stays. Spelling is corrected when you are online.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     take_photo: 'Take photo',
@@ -202,7 +203,7 @@ const WORDS = {
     voice_lang: 'Kõne keel',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta ET, RU või EN ja räägi. Pikk jutt jääb tervenisti alles. Mikrofon sulgub umbes 3 sekundi vaikuse järel.',
+    audio_hint: 'Vajuta ET, RU või EN ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -213,11 +214,12 @@ const WORDS = {
     speech_fallback: 'Brauseri keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
     speech_stopped: 'Kõnetuvastus peatus',
     listening: 'Kuulan',
+    polishing: 'Parandan kirjavigu',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
-    note_ph: 'Kirjuta siia või vajuta „Räägi“. Iga salvestus lisab uue rea.',
-    note_hint: 'Äratuntud tekst ilmub siia ilma pikkuse piirita. Kõnetuvastus võib vajada internetiühendust.',
+    note_ph: 'Kirjuta siia või vajuta „Räägi“. Puuduv täht jääb alles.',
+    note_hint: 'Kui lisad puuduva tähe, jääb see alles. Võrgus parandatakse ka kirjavead.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     take_photo: 'Tee foto',
@@ -353,7 +355,8 @@ function detectSpokenLang(text) {
 }
 
 let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
-let speechLang = speechLocale(navigator.language);
+let speechLang = 'et-EE';
+speechLocale(navigator.language);
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
 // Chrome stops growing one speech hypothesis near a few hundred characters.
@@ -363,6 +366,10 @@ const SPEECH_CHUNK_MS = 8000;
 let voiceHold = false;
 let voiceRestartLang = '';
 let speechBase = '';
+let utteranceBase = '';
+let userOwned = false;
+let polishing = false;
+let polishToken = 0;
 let speechGraceUntil = 0;
 let speechSession = null;
 let audioSpeechSession = null;
@@ -1248,9 +1255,14 @@ function growTranscript(field) {
 function writeSpeech(extra, commit) {
   const field = $('transcript');
   if (!field) return;
+  if (userOwned) {
+    speechBase = field.value;
+    growTranscript(field);
+    return;
+  }
   const base = speechBase.trim();
   const tail = String(extra || '').trim();
-  field.value = tail ? (base ? `${base}\n${tail}` : tail) : base;
+  field.value = tail ? (base ? `${base} ${tail}` : tail) : base;
   if (commit) {
     speechBase = field.value;
     if (tail) spokenLangs.add(detectSpokenLang(tail));
@@ -1258,6 +1270,76 @@ function writeSpeech(extra, commit) {
   growTranscript(field);
   const end = field.value.length;
   field.setSelectionRange(end, end);
+}
+
+let recorder = null;
+let recordChunks = [];
+let recordStream = null;
+let recorderReady = null;
+
+function startRecorder() {
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
+  recorderReady = navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+    if (!voiceHold) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+    recordStream = stream;
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((type) => MediaRecorder.isTypeSupported(type)) || '';
+    recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    recordChunks = [];
+    recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordChunks.push(event.data); };
+    recorder.start();
+  }).catch(() => { recorder = null; });
+}
+
+function stopRecorder() {
+  return Promise.resolve(recorderReady).catch(() => {}).then(() => new Promise((resolve) => {
+    const finish = (blob) => {
+      recordStream?.getTracks().forEach((track) => track.stop());
+      recordStream = null;
+      recorder = null;
+      recordChunks = [];
+      resolve(blob && blob.size ? blob : null);
+    };
+    if (!recorder || recorder.state === 'inactive') {
+      finish(recordChunks.length ? new Blob(recordChunks, { type: 'audio/webm' }) : null);
+      return;
+    }
+    recorder.onstop = () => finish(new Blob(recordChunks, { type: recorder.mimeType || 'audio/webm' }));
+    try { recorder.stop(); } catch { finish(null); }
+  }));
+}
+
+async function polishUtterance(base, owned, token) {
+  const blob = await stopRecorder();
+  if (owned || token !== polishToken || !blob || blob.size < 400 || !navigator.onLine) return;
+  polishing = true;
+  note('audioNote', t('polishing'));
+  try {
+    const body = new FormData();
+    const type = blob.type || 'audio/webm';
+    body.set('file', blob, type.includes('mp4') ? 'note.m4a' : 'note.webm');
+    body.set('language', String(speechLang || 'et-EE').slice(0, 2));
+    const response = await fetch('./api/transcribe', { method: 'POST', body });
+    if (!response.ok || token !== polishToken || userOwned) return;
+    const payload = await response.json();
+    const text = String(payload.text || '').trim();
+    if (!text) return;
+    const field = $('transcript');
+    const prefix = String(base || '').trim();
+    field.value = prefix ? `${prefix}\n${text}` : text;
+    speechBase = field.value;
+    spokenLangs.add(detectSpokenLang(text));
+    growTranscript(field);
+  } catch {
+    // The browser text stays when the spelling check cannot run.
+  } finally {
+    if (token === polishToken) {
+      polishing = false;
+      note('audioNote', t('audio_hint'));
+    }
+  }
 }
 
 function speechRecognition() {
@@ -1482,8 +1564,15 @@ function resetVoiceUI() {
 function afterVoiceStop() {
   const next = voiceRestartLang;
   voiceRestartLang = '';
+  const base = utteranceBase;
+  const owned = userOwned;
+  const token = polishToken;
   resetVoiceUI();
-  if (next) toggleVoice();
+  if (next) {
+    toggleVoice();
+    return;
+  }
+  polishUtterance(base, owned, token);
 }
 
 function beginHeldSpeech(langCode, attempt = 0) {
@@ -1531,10 +1620,14 @@ function toggleVoice() {
     return;
   }
   voiceHold = true;
-  speechBase = $('transcript').value;
+  userOwned = false;
+  polishToken += 1;
+  utteranceBase = $('transcript').value;
+  speechBase = utteranceBase;
   $('voiceBtn').classList.add('listening');
   $('voiceBtn').textContent = t('listening');
   note('audioNote', t('listening'));
+  startRecorder();
   beginHeldSpeech(speechLang);
 }
 
@@ -1614,6 +1707,11 @@ function bind() {
     });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
+  $('transcript').addEventListener('input', (event) => {
+    if (!event.isTrusted || (!voiceHold && !polishing)) return;
+    userOwned = true;
+    speechBase = $('transcript').value;
+  });
   $('photoBtn').addEventListener('click', () => {
     $('photo').accept = 'image/*';
     $('photo').capture = 'environment';
@@ -1673,6 +1771,7 @@ async function start() {
   gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
   applyLanguage();
   bind();
+  setSpeechLang('et-EE');
   updateTier();
   updateNetwork();
   if (asset && document.documentElement.dataset.mode === 'record') {

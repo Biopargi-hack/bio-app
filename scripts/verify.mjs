@@ -80,7 +80,7 @@ if (defaultWired) {
 }
 
 // Speech must not depend on a raw browser locale or lose interim-only words.
-const speechLocaleWired = appSource.includes("speechLocale(navigator.language)") && appSource.includes("SPEECH_FALLBACK");
+const speechLocaleWired = appSource.includes("speechLocale(navigator.language)") && appSource.includes("let speechLang = 'et-EE'") && appSource.includes("SPEECH_FALLBACK");
 if (speechLocaleWired) {
   ok("speech locale is normalised with a fallback");
 } else {
@@ -108,6 +108,13 @@ if (speechUnlimited) {
   ok("voice mode keeps a long note instead of cutting it near 300 characters");
 } else {
   fail("app/app.js: voice mode still caps a spoken note");
+}
+
+const spellingWired = appSource.includes("if (userOwned)") && appSource.includes("fetch('./api/transcribe'");
+if (spellingWired && existsSync(join(root, "functions/api/transcribe.js")) && !readFileSync(join(root, "functions/api/transcribe.js"), "utf8").includes("gsk_")) {
+  ok("a typed letter stays and spelling is corrected online");
+} else {
+  fail("app: voice still drops a typed letter or the spelling check is missing");
 }
 
 // NFC and QR links must open a grade 1 to 3 rating view.
