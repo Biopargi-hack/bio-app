@@ -53,3 +53,5 @@ Format:
 - **2026-11-27 19:34** — Issue #107: QA found taptoprove.ee used landing mode and CSS hid #capture, so voice buttons/transcript were unusable. Landing now shows capture, CTA scrolls to it, docs updated; verify 50/50; Playwright at 390px confirmed capture/transcript visible, 3 language buttons, Filmi video, no errors.
 
 - **2026-11-27 20:09** — Issue #112: QA found PR 108 removed the language selector and live taptoprove.ee had no ET/RU/EN buttons. Restored buttons that set the recognition locale and start listening; updated bilingual copy and cache hash. verify 50/50.
+
+- **2026-11-27 21:23** — Issue #125: QA found PR 122 removed ET/RU/EN picker and hardcoded et-EE. Restored selector with ET default, kept iPhone Safari record fallback and spelling worker, updated verify gate and cache hash. verify 57/57.

@@ -94,11 +94,11 @@ if (speechTextWired) {
   fail("app/app.js: interim speech words are dropped");
 }
 
-const speechCopyWired = !appSource.includes("speech_detected") && !appSource.includes("voice_lang:") && !appSource.includes("lang-btn") && !readFileSync(join(appDir, "index.html"), "utf8").includes("lang-btn");
+const speechCopyWired = appSource.includes("voice_lang:") && appSource.includes("setSpeechLang") && readFileSync(join(appDir, "index.html"), "utf8").includes("lang-btn");
 if (speechCopyWired) {
-  ok("the speech language picker is gone");
+  ok("the ET/RU/EN speech language picker is available");
 } else {
-  fail("app: the speech language picker or its copy is still present");
+  fail("app: the ET/RU/EN speech language picker is missing");
 }
 
 // iPhone Safari has no Web Speech API, so the button records and sends the clip.

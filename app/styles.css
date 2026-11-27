@@ -811,6 +811,18 @@ main {
 .grade-btn.selected, .grade-btn:hover { border-color: var(--accent); background: var(--accent); color: var(--paper); }
 .voice { width: auto; min-height: 44px; margin: 0; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 8px; font: 700 13px/1 var(--sans); text-transform: none; }
 .voice-controls .note, .field-hint, .note { font-family: var(--sans); }
+.lang-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.lang-btn {
+  min-height: 44px;
+  padding: 8px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 700 14px/1 var(--mono);
+}
+.lang-btn:hover { background: var(--wash); }
+.lang-btn.active { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 .field > span { margin-bottom: 8px; color: var(--ink); font: 700 13px/1.4 var(--sans); letter-spacing: 0; text-transform: none; }
 .text-field textarea { min-height: 100px; max-height: 70vh; overflow: auto; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 400 14px/1.5 var(--sans); }
 .quiet { min-height: 44px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 8px; font: 700 13px/1 var(--sans); text-transform: none; }
