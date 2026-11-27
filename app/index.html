@@ -96,20 +96,17 @@
               <button id="photoBtn" class="quiet" type="button" data-i18n="take_photo">Tee foto</button>
               <button id="videoBtn" class="quiet" type="button" data-i18n="record_video">Filmi video</button>
             </div>
-            <input id="photo" type="file" accept="image/*,video/*" capture="environment" hidden>
+            <input id="photo" type="file" accept="image/*,video/*" capture="environment" multiple hidden>
           </div>
           <figure id="mediaPreview" class="media-preview" hidden>
-            <div class="media-preview-frame">
-              <img id="mediaPreviewImage" alt="" hidden>
-              <video id="mediaPreviewVideo" controls playsinline muted hidden></video>
-            </div>
             <figcaption class="media-preview-meta">
               <span class="media-preview-text">
                 <strong id="mediaPreviewTitle"></strong>
                 <span id="mediaPreviewDetail"></span>
               </span>
-              <button id="mediaClearBtn" class="quiet small" type="button" data-i18n="media_clear">Eemalda</button>
+              <button id="mediaClearBtn" class="quiet small" type="button" data-i18n="media_clear_all">Eemalda kõik</button>
             </figcaption>
+            <ul id="mediaGallery" class="media-gallery"></ul>
           </figure>
           <p id="photoNote" class="note" role="status"></p>
 

@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | review | Photo and video preview, Proof column, table media links | PR #105 | device tap test |
+| @AARenor | omp | review | Several photos and videos per record: gallery preview, per-file remove, proof dialog shows every attachment, table links `media` to `media_6` | `feat/multi_photo` | device camera test |
 | @linnudtonisted | OpenCode | review | Normalize cache hash across Windows and CI | `fix/cache_hash` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove speech language selector | `fix/remove-speech-selector` | device speech test |
