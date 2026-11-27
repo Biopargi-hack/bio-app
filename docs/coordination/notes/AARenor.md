@@ -84,3 +84,7 @@ Format:
 - **2026-11-27 17:19** — Added a landing hero to the root page with a short explanation, four demo steps, a Start a check button and an Open records dashboard button linking to /sheet. A live record count card updates from IndexedDB. Verify passed and desktop plus mobile browser checks showed no errors or overflow. DNS check: registrar is Zone Media OÜ, registry name servers are already Cloudflare, no DS record exists, but recursive DNS still returns ns.zone.eu and the live title is Domain is Registered. This PR was admin merged during the hackathon after checks passed.
 
 - **2026-11-27 17:36** — Rebuilt the landing page as a logbook style hero with a three step flow and a clickable list of eight checkpoints. Choosing a checkpoint clears the old rating, photo, audio and transcript, sets a stable English asset value, shows the translated label, and opens the rating view. The dashboard button still targets /sheet, which returns the live records page with an empty table. Verify passed and desktop plus mobile browser checks showed 8 checkpoints, no console errors and no horizontal overflow.
+
+- **2026-11-27 18:05** — Landing explains what Tap to Prove is and how a check works. Removed the eight-place list, device record count and queue badge.
+
+- **2026-11-27 18:07** — Admin squash merge by AARenor. No separate reviewer approval; the owner merged this landing copy directly for the demo.
