@@ -48,7 +48,7 @@ const WORDS = {
     sample_label: 'Sample data, synthetic, not A. Le Coq',
     cip_note: 'Three cycles short of temperature. One record cannot be signed.',
     paper: 'Print the paper form',
-    footer: 'Built for Hack the Future of Food 2026. Tap a tag, speak a check, keep the record.'
+    footer: 'Built for Hack the Future of Food 2026. Tap, speak, keep the record.'
   },
   et: {
     subtitle: 'Tootmisliini lennuregistraator',
