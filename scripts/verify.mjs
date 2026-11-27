@@ -72,9 +72,17 @@ if (appSource.includes("kind === 'defaults'") && appSource.includes('class="defa
   fail("app/app.js: fixed default is not visible in the audit view");
 }
 
+// NFC and QR links must open a grade 1 to 3 rating view.
+const indexSource = existsSync(join(appDir, "index.html")) ? readFileSync(join(appDir, "index.html"), "utf8") : "";
+if (appSource.includes("kind === 'grade'") && indexSource.includes('id="gradeRow"')) {
+  ok("NFC link opens a grade view");
+} else {
+  fail("app: NFC link grade view is missing");
+}
+
 // The showcase page must carry the demo NFC link and its tag id.
 const showcase = existsSync(join(root, "app/showcase.html")) ? readFileSync(join(root, "app/showcase.html"), "utf8") : "";
-if (showcase.includes("TAP-DEMO-01") && showcase.includes("taptoprove.ee/?asset=")) {
+if (showcase.includes("TAP-DEMO-01") && (showcase.includes("nfc.arle.top/?asset=") || showcase.includes("taptoprove.ee/?asset="))) {
   ok("showcase carries the NFC demo link");
 } else {
   fail("app/showcase.html: NFC demo link or tag id is missing");
@@ -120,10 +128,13 @@ for (const name of htmlFiles) {
     const reference = match[1];
     if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
 
-    const path = reference.split(/[?#]/)[0];
+    let path = reference.split(/[?#]/)[0];
     if (!path) continue;
 
-    if (!existsSync(resolve(appDir, path))) {
+    const candidates = path.startsWith('/')
+      ? [resolve(appDir, path.slice(1)), resolve(appDir, `${path.slice(1)}.html`)]
+      : [resolve(appDir, path)];
+    if (!candidates.some((candidate) => existsSync(candidate))) {
       fail(`${name}: broken local reference "${reference}"`);
     }
   }
@@ -148,7 +159,7 @@ if (existsSync(swPath)) {
     const assets = [...list[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
     if (assets.length === 0) fail("app/sw.js: ASSETS list is empty");
     for (const asset of assets) {
-      if (!existsSync(resolve(appDir, asset))) {
+      if (!existsSync(resolve(appDir, asset)) && !existsSync(resolve(appDir, `${asset}.html`))) {
         fail(`app/sw.js precaches missing file "${asset}"`);
       }
     }

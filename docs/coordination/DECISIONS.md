@@ -5,6 +5,72 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-27 — Language buttons start listening; no signature field
+
+**Decision.** Tapping ET / RU / EN both selects the language and immediately
+starts speech recognition. The separate speak button repeats in the selected
+language. The supervisor signature field and its tier C validation are removed;
+tier C saves with the fixed default reason.
+
+**Why.** The worker treated the language buttons as the voice mode and spoke
+without pressing a second button. A signature field added typing to a flow that
+must stay fast and offline.
+
+**Consequence.** Unsupported browsers or unsupported languages show a clear
+bilingual message; the worker can type or record a clip instead. Audit filters
+no longer rely on `supervisor`.
+
+---
+
+## 2026-11-27 — Speech language is explicit, detected from the text
+
+**Decision.** The single language dropdown is replaced by ET / RU / EN buttons;
+Estonian is the default. Each recorded sentence is also classified from its
+text (Cyrillic → RU, Estonian letters/words → ET, otherwise EN) and the detected
+codes are stored in `speech_lang`. The "Reason when there is no hard evidence"
+field is removed; tier C uses the fixed default reason instead.
+
+**Why.** Web Speech API needs one BCP-47 language per session and cannot listen
+in three languages at once. English was the old default, so spoken Estonian was
+written as English. Explicit buttons plus text classification make the recorded
+language correct and keep tier C traceable without extra typing.
+
+**Consequence.** The worker picks ET/RU/EN before speaking. A wrong pick can
+still mis-transcribe; the detected language is stored, not the selected one.
+
+---
+
+## 2026-11-27 — One writable note field, speech in the chosen language
+
+**Decision.** Capture has one clearly writable note field. Typing goes straight
+into it; speech recognition (ET, RU or EN) appends each recognised sentence as a
+new line in the selected language. The selected `speech_lang` is saved with the
+record. The separate "details" field was removed.
+
+**Why.** Two textareas confused the worker and one was hard to type into. A
+single field keeps typed and spoken notes together and traceable.
+
+**Consequence.** `transcript` carries the full note; `details` is no longer
+written. Voice note mode also transcribes to the same field while recording.
+
+---
+
+## 2026-11-27 — Fault media lives in a second IndexedDB store
+
+**Decision.** Photo, video and voice clips are stored as blobs in a new `media`
+object store (IndexedDB version 2). The hash-chained record keeps only the byte
+hash, type, size and duration, plus the typed or spoken note and its language.
+
+**Why.** The app has no backend and must work offline. Keeping blobs out of the
+record body preserves the existing append-only hash chain while still tying each
+clip to its record with a verifiable hash.
+
+**Consequence.** Upgrading an existing device opens version 2 and creates the
+store without touching old records. Ledger rows link to stored clips; a missing
+clip hides its link instead of breaking the chain.
+
+---
+
 ## 2026-11-27 — No team-wide review requests
 
 **Decision.** Removed `.github/CODEOWNERS` and the "require code owner review"

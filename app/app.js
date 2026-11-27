@@ -29,19 +29,36 @@ const WORDS = {
     asset: 'Asset',
     checkpoint: 'Checkpoint',
     method: 'Method',
-    voice_lang: 'Voice language',
+    voice_lang: 'Speech language',
     verdict: 'Verdict',
     clean: 'Clean',
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
-    speak: 'Hold to speak',
+    speak: 'Speak to write',
+    record_audio: 'Record voice note',
+    record_audio_stop: 'Stop and save voice note',
+    audio_hint: 'Use the microphone to speak or record a clip. The clip and text are saved with the record.',
+    audio_recording: 'Recording... tap to stop and save',
+    audio_saved: 'Voice note saved',
+    spoken_saved: 'Spoken text added',
+    audio_unsupported: 'This browser cannot record audio.',
+    speech_unsupported: 'This browser cannot turn speech into text. Type the note or record a voice clip.',
+    speech_lang_unsupported: 'Speech recognition does not support this language here. Try another language or type the note.',
+    speech_stopped: 'Voice stopped',
+    listening: 'Listening... tap to stop',
+    audio_denied: 'Microphone permission was denied.',
+    audio_stop_first: 'Stop the voice note before saving.',
+    note_label: 'What happened — write or speak',
+    note_ph: 'Type here, or press Speak to write. Each recording adds a new line.',
+    note_hint: 'Tap ET, RU or EN to speak. The app writes the text in the language it hears.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
-    photo_hint: 'A photo only counts as evidence if the app can read it.',
+    evidence: 'Photo or video evidence',
+    photo_hint: 'A photo or video only counts as evidence if the app can read it.',
+    media_badge: 'Media',
+    audio_badge: 'Voice note',
     instrument: 'Instrument reading',
     tier: 'Evidence tier',
-    reason: 'Reason when there is no hard evidence',
-    supervisor: 'Supervisor signature',
     save: 'Append record',
     ledger_title: 'Traceable dataset',
     chain_empty: 'No records yet. The first one starts the chain.',
@@ -68,6 +85,14 @@ const WORDS = {
     quick_reason: 'Declared clean at the tagged place',
     quick_fault_reason: 'Fault chosen from the NFC quick list',
     quick_done: 'Quick record',
+    grade_prompt: 'Rate this spot',
+    grade_note: 'Pick 3 clean, 2 dirty, or 1 serious.',
+    grade_reason: 'Grade N recorded from the tagged place',
+    grade_done: 'Grade N saved',
+    grade_short: 'grade',
+    grade3_label: '3 clean',
+    grade2_label: '2 dirty',
+    grade1_label: '1 serious',
     record_added: 'Record',
     record_one: 'record',
     record_many: 'records',
@@ -91,6 +116,7 @@ const WORDS = {
     q_tierc: 'Tier C without signature',
     q_today: 'Everything today',
     q_defaults: 'Fixed defaults',
+    q_media: 'Records with media',
     empty_records: 'Nothing here yet. Tap a tag and append a check.',
     answer_note: 'matching records. Answered in',
     ms_from_device: 'ms from this device.',
@@ -123,19 +149,36 @@ const WORDS = {
     asset: 'Koht',
     checkpoint: 'Kontrollpunkt',
     method: 'Meetod',
-    voice_lang: 'Hääle keel',
+    voice_lang: 'Kõne keel',
     verdict: 'Otsus',
     clean: 'Puhas',
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
-    speak: 'Vajuta ja räägi',
+    speak: 'Räägi ja kirjuta',
+    record_audio: 'Salvesta häälmärkus',
+    record_audio_stop: 'Peata ja salvesta häälmärkus',
+    audio_hint: 'Mikrofoniga saad rääkida või klippi salvestada. Klipp ja tekst salvestatakse kirjega.',
+    audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
+    audio_saved: 'Häälmärkus salvestatud',
+    spoken_saved: 'Räägitud tekst lisatud',
+    audio_unsupported: 'See brauser ei saa heli salvestada.',
+    speech_unsupported: 'See brauser ei oska kõnet tekstiks muuta. Kirjuta tekst või salvesta häälmärkus.',
+    speech_lang_unsupported: 'Kõnetuvastus ei toeta siin seda keelt. Proovi teist keelt või kirjuta tekst.',
+    speech_stopped: 'Kõnetuvastus peatus',
+    listening: 'Kuulan… vajuta peatamiseks',
+    audio_denied: 'Mikrofoni luba keelati.',
+    audio_stop_first: 'Peata häälmärkus enne salvestamist.',
+    note_label: 'Mis juhtus — kirjuta või räägi',
+    note_ph: 'Kirjuta siia või vajuta „Räägi ja kirjuta“. Iga salvestus lisab uue rea.',
+    note_hint: 'Vajuta ET, RU või EN ja räägi. Rakendus kirjutab teksti selles keeles, mida ta kuuleb.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
-    photo_hint: 'Foto loeb tõendina ainult siis, kui rakendus suudab selle lugeda.',
+    evidence: 'Foto või video tõend',
+    photo_hint: 'Foto või video loeb tõendina ainult siis, kui rakendus suudab selle lugeda.',
+    media_badge: 'Meedia',
+    audio_badge: 'Häälmärkus',
     instrument: 'Mõõteriista näit',
     tier: 'Tõendi tase',
-    reason: 'Põhjus, kui kõva tõend puudub',
-    supervisor: 'Vastutaja allkiri',
     save: 'Lisa kirje',
     ledger_title: 'Jälgitav andmestik',
     chain_empty: 'Kirjeid veel pole. Esimene käivitab ahela.',
@@ -162,6 +205,14 @@ const WORDS = {
     quick_reason: 'Märgistatud kohas kinnitatud puhas',
     quick_fault_reason: 'Viga valitud NFC kiirlistist',
     quick_done: 'Kiirkirje',
+    grade_prompt: 'Hinna see koht',
+    grade_note: 'Vali 3 korras, 2 must või 1 tõsine.',
+    grade_reason: 'Hinne N märgitud kleepsu kohas',
+    grade_done: 'Hinne N salvestatud',
+    grade_short: 'hinne',
+    grade3_label: '3 korras',
+    grade2_label: '2 must',
+    grade1_label: '1 tõsine',
     record_added: 'Kirje',
     record_one: 'kirje',
     record_many: 'kirjet',
@@ -185,6 +236,7 @@ const WORDS = {
     q_tierc: 'C tase ilma allkirjata',
     q_today: 'Kõik tänased',
     q_defaults: 'Fikseeritud hinnangud',
+    q_media: 'Kirjed meediaga',
     empty_records: 'Kirjeid veel pole. Puuduta kleepsu ja lisa kontroll.',
     answer_note: 'vastavat kirjet. Vastus leiti',
     ms_from_device: 'ms jooksul seadmest.',
@@ -201,28 +253,61 @@ const WORDS = {
 };
 
 let lang = 'et';
+let speechLang = 'et-EE';
+let spokenLangs = new Set();
 let ndefReader = null;
 let recognition = null;
+let audioRecognition = null;
 let photoState = null;
+let audioRecorder = null;
+let audioState = null;
+let mediaUrls = new Set();
 let demoBreak = null;
 let currentTag = '';
 let currentSource = 'typed';
 
+let gradeMode = false;
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
   for (const el of document.querySelectorAll('[data-i18n]')) {
     const word = WORDS[lang][el.dataset.i18n];
     if (word) el.textContent = word;
   }
+  for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
+    const word = WORDS[lang][el.dataset.i18nPlaceholder];
+    if (word) el.placeholder = word;
+  }
+  if (audioRecorder) $('audioBtn').textContent = t('record_audio_stop');
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
   if ($('assetSource')) $('assetSource').textContent = sourceLabel();
+  if (gradeMode && $('quickPrompt')) $('quickPrompt').textContent = WORDS[lang].grade_prompt;
 }
 
 function note(id, text, isError = false) {
   const el = $(id);
   el.textContent = text;
   el.classList.toggle('error', isError);
+}
+
+function t(key) {
+  return WORDS[lang][key] || key;
+}
+
+function setSpeechLang(code) {
+  speechLang = code;
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    const active = button.dataset.lang === code;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function detectSpokenLang(text) {
+  const value = String(text || '');
+  if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
+  if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|must|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin)\b/i.test(value)) return 'et-EE';
+  return 'en-US';
 }
 
 function populateSelects() {
@@ -245,10 +330,11 @@ function deviceId() {
 
 function openDb() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('toend', 1);
+    const req = indexedDB.open('toend', 2);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'seq' });
+      if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'key' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -272,6 +358,37 @@ async function putRecord(record) {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+async function putMedia(key, blob) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('media', 'readwrite');
+    tx.objectStore('media').put({ key, blob });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getMedia(key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('media', 'readonly').objectStore('media').get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function hashBlob(blob) {
+  const buffer = await blob.arrayBuffer();
+  if (globalThis.crypto?.subtle) {
+    const digest = await crypto.subtle.digest('SHA-256', buffer);
+    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+  const bytes = new Uint8Array(buffer);
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i += 1) hash = Math.imul(hash ^ bytes[i], 16777619) >>> 0;
+  return hash.toString(16).padStart(8, '0');
 }
 
 function stable(value) {
@@ -363,6 +480,7 @@ function imageHash(canvas) {
 }
 
 async function analysePhoto(file) {
+  const byteHash = await hashBlob(file);
   try {
     const bitmap = await bitmapFor(file);
     const canvas = document.createElement('canvas');
@@ -387,12 +505,56 @@ async function analysePhoto(file) {
     thumb.getContext('2d').drawImage(canvas, 0, 0, 72, 72);
     return {
       usable,
+      kind: 'image',
       hash: imageHash(canvas),
+      media_hash: byteHash,
       thumb: thumb.toDataURL('image/png'),
+      file,
+      name: file.name,
+      mime: file.type,
+      size: file.size,
       reason: usable ? 'Usable photo' : `Unusable: variance ${variance.toFixed(0)}, edge ${edges.toFixed(1)}, light ${mean.toFixed(0)}`
     };
   } catch (error) {
-    return { usable: false, hash: '', thumb: '', reason: `Could not read photo: ${error.message}` };
+    return {
+      usable: false,
+      kind: 'image',
+      hash: '',
+      media_hash: byteHash,
+      thumb: '',
+      file,
+      name: file.name,
+      mime: file.type,
+      size: file.size,
+      reason: `Could not read photo: ${error.message}`
+    };
+  }
+}
+
+async function analyseVideo(file) {
+  const byteHash = await hashBlob(file);
+  const meta = { kind: 'video', media_hash: byteHash, file, name: file.name, mime: file.type, size: file.size };
+  const url = URL.createObjectURL(file);
+  try {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.src = url;
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('video decode timeout')), 3000);
+      video.onloadeddata = () => { clearTimeout(timer); resolve(); };
+      video.onerror = () => { clearTimeout(timer); reject(new Error('video decode failed')); };
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = 72;
+    canvas.height = 72;
+    canvas.getContext('2d').drawImage(video, 0, 0, 72, 72);
+    const thumb = canvas.toDataURL('image/png');
+    URL.revokeObjectURL(url);
+    return { ...meta, usable: file.size > 0, hash: byteHash, thumb, reason: `Video ${file.name}` };
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    return { ...meta, usable: false, hash: byteHash, thumb: '', reason: `Could not read video: ${error.message}` };
   }
 }
 
@@ -424,6 +586,32 @@ function reusedPhoto(hash) {
 
 let allRecordsCache = [];
 
+function mediaPayload() {
+  return {
+    speech_lang: spokenLangs.size ? [...spokenLangs].join(',') : speechLang,
+    media_kind: photoState?.kind || '',
+    media_hash: photoState?.media_hash || photoState?.hash || '',
+    media_name: photoState?.name || '',
+    media_mime: photoState?.mime || '',
+    media_size: photoState?.size || 0,
+    audio_hash: audioState?.hash || '',
+    audio_mime: audioState?.mime || '',
+    audio_size: audioState?.size || 0,
+    audio_duration: audioState?.duration || 0
+  };
+}
+
+async function persistMedia(record) {
+  if (photoState?.file) await putMedia(`${record.seq}:media`, photoState.file);
+  if (audioState?.blob) await putMedia(`${record.seq}:audio`, audioState.blob);
+}
+
+function audioBusy(noteId) {
+  if (!audioRecorder) return false;
+  note(noteId, t('audio_stop_first'), true);
+  return true;
+}
+
 async function saveRecord() {
   const asset = $('asset').value.trim();
   const transcript = $('transcript').value.trim();
@@ -431,25 +619,12 @@ async function saveRecord() {
     note('saveNote', 'Asset and what happened are required.', true);
     return;
   }
+  if (audioBusy('saveNote')) return;
 
   const tier = tierFor();
   const verdict = $('verdict').value;
-  const reason = $('reason').value.trim();
-  const supervisor = $('supervisor').value.trim();
+  const reason = tier === 'C' ? t('default_reason') : '';
   const instrument = $('instrument').value.trim();
-
-  if (verdict === 'cannot sign' && supervisor) {
-    note('saveNote', 'Cannot sign: remove the supervisor signature.', true);
-    return;
-  }
-  if (tier === 'C' && !reason) {
-    note('saveNote', 'Tier C needs a reason. Say why there is no hard evidence.', true);
-    return;
-  }
-  if (tier === 'C' && verdict !== 'cannot sign' && !supervisor) {
-    note('saveNote', 'Tier C needs a supervisor signature.', true);
-    return;
-  }
 
   const previous = photoState ? reusedPhoto(photoState.hash) : null;
   const effectiveTier = previous ? 'C' : tier;
@@ -463,15 +638,17 @@ async function saveRecord() {
     transcript,
     tier: effectiveTier,
     reason,
-    supervisor: verdict === 'cannot sign' ? '' : supervisor,
+    supervisor: '',
     instrument,
     photo_hash: photoState?.hash || '',
     photo_thumb: photoState?.thumb || '',
     photo_usable: photoState?.usable || false,
     photo_reuse_of: previous?.seq || null,
-    language: $('voiceLang').value
+    language: speechLang,
+    ...mediaPayload()
   });
 
+  await persistMedia(record);
   await finishRecord(record, 'saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
 }
 
@@ -479,52 +656,62 @@ async function finishRecord(record, noteId, message) {
   demoBreak = null;
   note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
-  $('reason').value = '';
-  $('supervisor').value = '';
+  spokenLangs = new Set();
   $('instrument').value = '';
   $('photo').value = '';
   photoState = null;
-  note('photoNote', WORDS[lang].photo_hint);
+  audioState = null;
+  $('audioBtn').classList.remove('recording');
+  $('audioBtn').textContent = t('record_audio');
+  note('photoNote', t('photo_hint'));
+  note('audioNote', t('audio_hint'));
   updateTier();
   await refreshRecords();
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
 }
 
-async function quickRecord(kind) {
+async function quickRecord(kind, grade = 0) {
   const asset = $('asset').value.trim();
   if (!asset) {
     note('quickNote', lang === 'et' ? 'Puuduta kleepsu või kirjuta masina nimi.' : 'Tap the sticker or type the machine name.', true);
     return;
   }
+  const isGrade = kind === 'grade';
+  if (audioBusy('quickNote')) return;
   const isDefault = kind === 'default';
-  const isClean = kind === 'clean' || isDefault;
+  const isClean = kind === 'clean' || isDefault || (isGrade && grade === 3);
   const previous = photoState ? reusedPhoto(photoState.hash) : null;
-  const tier = isDefault ? 'C' : !isClean && photoState?.usable && !previous ? 'B' : 'C';
-  const transcript = isClean ? WORDS[lang].quick_prompt : $('faultType').value;
+  const tier = isDefault || isGrade ? 'C' : !isClean && photoState?.usable && !previous ? 'B' : 'C';
+  const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
+  const transcript = isGrade ? gradeReason : isClean ? WORDS[lang].quick_prompt : $('faultType').value;
+  const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : isClean ? 'clean' : 'not clean';
   const record = await appendRecord({
     asset,
     tag_sig: currentTag,
     source: currentSource,
     checkpoint: $('checkpoint').value,
-    method: isClean ? 'Declared' : 'Visual',
-    verdict: isClean ? 'clean' : 'not clean',
+    method: isGrade ? 'Rated' : isClean ? 'Declared' : 'Visual',
+    verdict,
+    grade: isGrade ? grade : null,
     transcript,
     tier,
-    reason: isDefault ? WORDS[lang].default_reason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
+    reason: isGrade ? gradeReason : isDefault ? WORDS[lang].default_reason : isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
     supervisor: '',
     instrument: '',
     photo_hash: photoState?.hash || '',
     photo_thumb: photoState?.thumb || '',
     photo_usable: photoState?.usable || false,
     photo_reuse_of: previous?.seq || null,
-    language: $('voiceLang').value,
+    language: speechLang,
     default_assessment: isDefault,
-    quick: true
+    quick: true,
+    ...mediaPayload()
   });
+  await persistMedia(record);
   $('faultField').hidden = true;
   $('faultSaveBtn').hidden = true;
-  const done = isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
+  const done = isGrade ? WORDS[lang].grade_done.replace('N', grade) : isDefault ? WORDS[lang].default_done : WORDS[lang].quick_done;
   await finishRecord(record, 'quickNote', `${done} ${record.seq}.`);
 }
 
@@ -534,6 +721,7 @@ function renderRecords(records) {
   const shown = records.filter((r) => !query || `${r.asset} ${r.checkpoint} ${r.transcript}`.toLowerCase().includes(query));
   if (!shown.length) {
     host.innerHTML = `<div class="empty-row">${WORDS[lang].empty_records}</div>`;
+    void hydrateMedia(host).catch(() => {});
     return;
   }
   host.innerHTML = shown.map((r) => {
@@ -543,14 +731,38 @@ function renderRecords(records) {
     const origin = r.source || 'typed';
     const card = r.tag_sig ? ` · ${origin} ${escapeHtml(r.tag_sig)}` : '';
     const defaultMark = r.default_assessment ? ` · <em class="default-flag">${WORDS[lang].default_done}</em>` : '';
+    const gradeMark = r.grade ? ` · <em class="default-flag">${WORDS[lang].grade_short} ${r.grade}</em>` : '';
     const reason = r.reason ? ` · ${escapeHtml(r.reason)}` : '';
+    const speech = r.speech_lang ? ` · ${escapeHtml(r.speech_lang)}` : '';
+    const attachments = [
+      r.media_kind ? `<a class="media-link" href="#" data-media-key="${r.seq}:media">${WORDS[lang].media_badge}: ${escapeHtml(r.media_kind)}</a>` : '',
+      r.audio_hash ? `<a class="media-link" href="#" data-media-key="${r.seq}:audio">${WORDS[lang].audio_badge}</a>` : ''
+    ].join('');
     return `<div class="record-row">
       <span class="seq">#${r.seq}</span>
       <span class="main"><strong>${escapeHtml(r.asset)} · ${escapeHtml(r.checkpoint)}</strong>
-      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${defaultMark}${reason} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}</small></span>
+      <small>${escapeHtml(r.verdict)} · tier ${r.tier}${card}${gradeMark}${defaultMark}${reason}${speech} · ${escapeHtml(new Date(r.created_at).toLocaleString())} ${thumb}${reuse}${attachments}</small></span>
       <span class="hash ${broken ? 'broken' : ''}">${r.hash.slice(0, 8)}<br>${broken ? 'BROKEN' : 'ok'}</span>
     </div>`;
   }).join('');
+  void hydrateMedia(host).catch(() => {});
+}
+
+async function hydrateMedia(host) {
+  for (const url of mediaUrls) URL.revokeObjectURL(url);
+  mediaUrls = new Set();
+  for (const link of host.querySelectorAll('[data-media-key]')) {
+    const item = await getMedia(link.dataset.mediaKey);
+    if (!item?.blob) {
+      link.hidden = true;
+      continue;
+    }
+    const url = URL.createObjectURL(item.blob);
+    mediaUrls.add(url);
+    link.href = url;
+    const ext = (item.blob.type.split('/')[1] || 'bin').split(';')[0];
+    link.download = `${link.dataset.mediaKey.replace(':', '-')}.${ext}`;
+  }
 }
 
 function escapeHtml(value) {
@@ -574,10 +786,11 @@ function runQuestion(kind) {
   const started = performance.now();
   const today = new Date().toISOString().slice(0, 10);
   let found = [];
-  if (kind === 'unsigned') found = allRecordsCache.filter((r) => r.verdict === 'clean' && r.tier === 'C' && !r.supervisor);
-  if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C' && !r.supervisor);
+  if (kind === 'unsigned') found = allRecordsCache.filter((r) => r.verdict === 'clean' && r.tier === 'C');
+  if (kind === 'tierc') found = allRecordsCache.filter((r) => r.tier === 'C');
   if (kind === 'today') found = allRecordsCache.filter((r) => r.created_at.slice(0, 10) === today);
   if (kind === 'defaults') found = allRecordsCache.filter((r) => r.default_assessment);
+  if (kind === 'media') found = allRecordsCache.filter((r) => r.media_hash || r.audio_hash);
   const elapsed = (performance.now() - started).toFixed(1);
   note('answerNote', `${found.length} ${WORDS[lang].answer_note} ${elapsed} ${WORDS[lang].ms_from_device}`);
   $('filter').value = '';
@@ -650,7 +863,7 @@ async function writeTag() {
     note('nfcNote', WORDS[lang].nfc_write_no_asset, true);
     return;
   }
-  const url = `https://taptoprove.ee/?asset=${encodeURIComponent(name)}&tag=MANUAL&via=nfc`;
+  const url = `https://nfc.arle.top/?asset=${encodeURIComponent(name)}&tag=MANUAL&via=nfc`;
   try {
     await ndefReader.write({ records: [
       { recordType: 'url', data: url },
@@ -696,7 +909,7 @@ function saveTags() {
 }
 
 function tagUrl(tag) {
-  return `https://taptoprove.ee/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}&via=nfc`;
+  return `https://nfc.arle.top/?asset=${encodeURIComponent(tag.name)}&tag=${encodeURIComponent(tag.sig)}&via=nfc`;
 }
 
 function renderTagSlots() {
@@ -745,39 +958,144 @@ async function writeTagSlot(index) {
   }
 }
 
+function appendSpoken(text, langCode) {
+  const field = $('transcript');
+  const paragraph = String(text || '').trim();
+  if (!paragraph) return;
+  field.value = field.value.trim() ? `${field.value.trim()}\n${paragraph}` : paragraph;
+  field.focus({ preventScroll: true });
+  field.setSelectionRange(field.value.length, field.value.length);
+  const detected = detectSpokenLang(paragraph) || langCode;
+  spokenLangs.add(detected);
+  note('audioNote', `${t('spoken_saved')} ${detected.slice(0, 2).toUpperCase()}`);
+}
+
+function speechRecognition() {
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
 function toggleVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    note('saveNote', 'This browser has no speech recognition. Type the sentence instead.', true);
+  const Recognition = speechRecognition();
+  if (!Recognition) {
+    note('audioNote', t('speech_unsupported'), true);
     return;
   }
   if (recognition) {
     recognition.stop();
     recognition = null;
     $('voiceBtn').classList.remove('listening');
-    $('voiceBtn').textContent = WORDS[lang].speak;
+    $('voiceBtn').textContent = t('speak');
     return;
   }
-  recognition = new SpeechRecognition();
-  recognition.lang = $('voiceLang').value;
+  if (audioRecognition) {
+    audioRecognition.stop();
+    audioRecognition = null;
+  }
+  const langCode = speechLang;
+  recognition = new Recognition();
+  recognition.lang = langCode;
   recognition.interimResults = false;
+  recognition.continuous = false;
   recognition.onresult = (event) => {
-    const text = event.results[0][0].transcript;
-    $('transcript').value = ($('transcript').value.trim() + ' ' + text).trim();
+    const text = Array.from(event.results).map((result) => result[0].transcript).join(' ');
+    appendSpoken(text, langCode);
   };
   recognition.onerror = (event) => {
-    note('saveNote', `Voice stopped: ${event.error}`, true);
+    if (event.error === 'language-not-supported' || event.error === 'language-unavailable') {
+      note('audioNote', t('speech_lang_unsupported'), true);
+    } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      note('audioNote', t('audio_denied'), true);
+    } else {
+      note('audioNote', `${t('speech_stopped')}: ${event.error}`, true);
+    }
     recognition = null;
     $('voiceBtn').classList.remove('listening');
+    $('voiceBtn').textContent = t('speak');
   };
   recognition.onend = () => {
     recognition = null;
     $('voiceBtn').classList.remove('listening');
-    $('voiceBtn').textContent = WORDS[lang].speak;
+    $('voiceBtn').textContent = t('speak');
   };
   recognition.start();
   $('voiceBtn').classList.add('listening');
-  $('voiceBtn').textContent = 'Listening...';
+  $('voiceBtn').textContent = t('listening');
+}
+
+async function toggleAudio() {
+  if (audioRecorder) {
+    audioRecorder.stop();
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+    note('audioNote', t('audio_unsupported'), true);
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const langCode = speechLang;
+    const Recognition = speechRecognition();
+    if (Recognition) {
+      audioRecognition = new Recognition();
+      audioRecognition.lang = langCode;
+      audioRecognition.interimResults = false;
+      audioRecognition.continuous = false;
+      audioRecognition.onresult = (event) => {
+        const text = Array.from(event.results).map((result) => result[0].transcript).join(' ');
+        appendSpoken(text, langCode);
+      };
+      audioRecognition.onerror = () => {
+        audioRecognition = null;
+      };
+      audioRecognition.onend = () => {
+        audioRecognition = null;
+      };
+      audioRecognition.start();
+    }
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']
+      .find((candidate) => MediaRecorder.isTypeSupported(candidate)) || '';
+    const chunks = [];
+    const started = Date.now();
+    audioState = null;
+    audioRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    audioRecorder.ondataavailable = (event) => {
+      if (event.data.size) chunks.push(event.data);
+    };
+    audioRecorder.onstop = async () => {
+      if (audioRecognition) {
+        audioRecognition.stop();
+        audioRecognition = null;
+      }
+      const blob = new Blob(chunks, { type: audioRecorder.mimeType || 'audio/webm' });
+      stream.getTracks().forEach((track) => track.stop());
+      audioRecorder = null;
+      $('audioBtn').classList.remove('recording');
+      $('audioBtn').textContent = t('record_audio');
+      if (!blob.size) {
+        note('audioNote', t('audio_unsupported'), true);
+        return;
+      }
+      audioState = {
+        blob,
+        hash: await hashBlob(blob),
+        mime: blob.type,
+        size: blob.size,
+        duration: Math.round((Date.now() - started) / 1000)
+      };
+      note('audioNote', `${t('audio_saved')} ${audioState.duration}s`);
+    };
+    audioRecorder.start();
+    $('audioBtn').classList.add('recording');
+    $('audioBtn').textContent = t('record_audio_stop');
+    note('audioNote', t('audio_recording'));
+  } catch (error) {
+    if (audioRecognition) {
+      audioRecognition.stop();
+      audioRecognition = null;
+    }
+    audioRecorder = null;
+    note('audioNote', `${t('audio_denied')}: ${error.message}`, true);
+  }
 }
 
 function updateNetwork() {
@@ -836,17 +1154,37 @@ function bind() {
   });
   $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
   $('defaultBtn').addEventListener('click', () => quickRecord('default'));
+  document.querySelectorAll('.grade-btn').forEach((btn) => {
+    btn.addEventListener('click', () => quickRecord('grade', Number(btn.dataset.grade)));
+  });
   $('faultBtn').addEventListener('click', () => {
     $('faultField').hidden = false;
     $('faultSaveBtn').hidden = false;
     $('faultType').focus();
   });
   $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      setSpeechLang(button.dataset.lang);
+      if (recognition) toggleVoice();
+      if (audioRecognition) {
+        audioRecognition.stop();
+        audioRecognition = null;
+      }
+      if (audioRecorder) {
+        note('audioNote', t('audio_stop_first'), true);
+        return;
+      }
+      toggleVoice();
+    });
+  });
   $('voiceBtn').addEventListener('click', toggleVoice);
+  $('audioBtn').addEventListener('click', toggleAudio);
   $('photo').addEventListener('change', async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    photoState = await analysePhoto(file);
+    photoState = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
+    note('photoNote', photoState.reason, !photoState.usable);
     updateTier();
   });
   for (const id of ['instrument', 'method', 'verdict']) $(id).addEventListener('change', updateTier);
@@ -863,25 +1201,34 @@ function bind() {
 
 async function start() {
   tags = loadTags();
-  populateSelects();
-  applyLanguage();
-  renderTagSlots();
-  bind();
-  updateTier();
-  updateNetwork();
-  await refreshRecords();
-  await loadCip();
-  await registerServiceWorker();
   const params = new URLSearchParams(location.search);
   const asset = params.get('asset');
   const tag = params.get('tag');
   const via = params.get('via');
+  gradeMode = Boolean(asset && (via === 'nfc' || via === 'link'));
+  populateSelects();
+  applyLanguage();
+  renderTagSlots();
+  bind();
+  setSpeechLang(speechLang);
+  updateTier();
+  updateNetwork();
+  if (gradeMode) {
+    $('gradeRow').hidden = false;
+    document.querySelector('.pad-actions').hidden = true;
+    $('defaultBtn').hidden = true;
+    note('quickNote', WORDS[lang].grade_note);
+  }
   if (asset) {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : tag ? 'link' : 'typed');
     document.querySelector('.proof-pad')?.scrollIntoView({ block: 'center' });
-    $('cleanBtn').focus({ preventScroll: true });
+    if (gradeMode) $('grade3').focus({ preventScroll: true });
+    else $('cleanBtn').focus({ preventScroll: true });
   }
   initNfc();
+  await refreshRecords();
+  await loadCip();
+  await registerServiceWorker();
 }
 
 start().catch((error) => note('saveNote', `Startup failed: ${error.message}`, true));

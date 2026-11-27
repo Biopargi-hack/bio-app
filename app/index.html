@@ -69,6 +69,11 @@
             <button id="faultBtn" class="flag" type="button" data-i18n="fault">Problem</button>
           </div>
             <button id="defaultBtn" class="default-assessment" type="button" data-i18n="default_cta">No photo? Use fixed default</button>
+          <div class="grade-row" id="gradeRow" hidden aria-label="Grade">
+            <button id="grade3" class="grade-btn" type="button" data-grade="3" data-i18n="grade3_label">3 korras</button>
+            <button id="grade2" class="grade-btn" type="button" data-grade="2" data-i18n="grade2_label">2 must</button>
+            <button id="grade1" class="grade-btn" type="button" data-grade="1" data-i18n="grade1_label">1 tõsine</button>
+          </div>
           <label class="field fault-field" id="faultField" hidden>
             <span data-i18n="fault_type">What is wrong</span>
             <select id="faultType">
@@ -105,14 +110,14 @@
         </div>
 
         <div class="field-grid">
-          <label class="field">
-            <span data-i18n="voice_lang">Voice language</span>
-            <select id="voiceLang">
-              <option value="et-EE">Eesti</option>
-              <option value="ru-RU">Русский</option>
-              <option value="en-US" selected>English</option>
-            </select>
-          </label>
+          <div class="field">
+            <span data-i18n="voice_lang">Speech language</span>
+            <div class="lang-buttons" role="group" aria-label="Speech language">
+              <button type="button" class="lang-btn active" data-lang="et-EE" aria-pressed="true">ET</button>
+              <button type="button" class="lang-btn" data-lang="ru-RU" aria-pressed="false">RU</button>
+              <button type="button" class="lang-btn" data-lang="en-US" aria-pressed="false">EN</button>
+            </div>
+          </div>
           <label class="field">
             <span data-i18n="verdict">Verdict</span>
             <select id="verdict">
@@ -123,17 +128,22 @@
           </label>
         </div>
 
-        <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Hold to speak</button>
-        <label class="field">
-          <span data-i18n="what_happened">What happened</span>
-          <textarea id="transcript" rows="3" placeholder="cleaned, filler head, 14:20, residue on the seal"></textarea>
+        <div class="voice-controls">
+          <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Speak to write</button>
+          <button id="audioBtn" class="voice audio" type="button" data-i18n="record_audio">Record voice note</button>
+          <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Use the microphone to speak or record a clip. The clip and text are saved with the record.</p>
+        </div>
+        <label class="field text-field">
+          <span data-i18n="note_label">What happened — write or speak</span>
+          <textarea id="transcript" rows="5" placeholder="Type here, or press Speak to write. Each recording adds a new line." data-i18n-placeholder="note_ph"></textarea>
+          <small class="field-hint" data-i18n="note_hint">Tap ET, RU or EN to speak. The app writes the text in the language it hears.</small>
         </label>
 
         <label class="field file-field">
-          <span data-i18n="photo">Photo evidence</span>
-          <input id="photo" type="file" accept="image/*" capture="environment">
+          <span data-i18n="evidence">Photo or video evidence</span>
+          <input id="photo" type="file" accept="image/*,video/*" capture="environment">
         </label>
-        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo only counts as evidence if the app can read it.</p>
+        <p id="photoNote" class="note" role="status" data-i18n="photo_hint">A photo or video only counts as evidence if the app can read it.</p>
 
         <div class="field-grid">
           <label class="field">
@@ -145,15 +155,6 @@
             <output id="tier" class="tier" aria-live="polite">C</output>
           </label>
         </div>
-
-        <label class="field">
-          <span data-i18n="reason">Reason when there is no hard evidence</span>
-          <input id="reason" type="text" placeholder="machine closed, no photo possible">
-        </label>
-        <label class="field">
-          <span data-i18n="supervisor">Supervisor signature</span>
-          <input id="supervisor" type="text" placeholder="name, for tier C">
-        </label>
 
         <div class="row save-row">
           <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>
@@ -174,6 +175,7 @@
           <button type="button" data-question="tierc" data-i18n="q_tierc">Tier C without signature</button>
           <button type="button" data-question="today" data-i18n="q_today">Everything today</button>
           <button type="button" data-question="defaults" data-i18n="q_defaults">Fixed defaults</button>
+          <button type="button" data-question="media" data-i18n="q_media">Records with media</button>
         </div>
         <p id="answerNote" class="note" role="status"></p>
 
@@ -202,7 +204,7 @@
 
   <footer>
     <span data-i18n="footer">Hack the Future of Food 2026. Tap to prove.</span>
-    <a href="showcase.html" id="showcaseLink">Vaata näidet ja NFC linki</a>
+    <a href="/showcase" id="showcaseLink">Vaata näidet ja NFC linki</a>
   </footer>
 
   <script type="module" src="app.js"></script>
