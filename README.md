@@ -10,7 +10,7 @@ Kujuta ette, et töötad A. Le Coq'i tehases. Sinu ülesanne on iga natukese aja
 
 Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid tabeleid. See võtab kaua aega, tüütab ära ja vahel ununeb üldse ära. Lisaks ei saa igas kohas telefoniga pilti teha, aga kuidagi peab ikkagi tõestama, et kontroll on tehtud.
 
-Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti ja saab eeltäidetud vaate "Kõik on puhas ja korras". Üks nupp KINNITA PUHAS salvestab kontrolli kahe sekundiga. Kui pilti ei saa teha, kasutatakse nuppu "Pilti ei saa? Kasuta fikseeritud hinnangut". Kirje saab fikseeritud põhjuse ja tase C, aga andmed jäävad täielikuks ja jälgitavaks. Kui midagi on must, valitakse viga listist ja tehakse võimalusel pilt.
+Lahendus on NFC kaardid. Igale tähtsale masinale kleebitakse veekindel NFC kaart. Töötaja paneb telefoni korraks vastu kaarti ja saab eeltäidetud vaate "Kõik on puhas ja korras". Kiirnupud 3, 2 ja 1 salvestavad hinnangu mõne sekundiga. Kui pilti ei saa, kasutatakse nuppu "Pilti ei saa? Kasuta fikseeritud hinnangut". Kirje saab fikseeritud põhjuse ja tase C, aga andmed jäävad täielikuks ja jälgitavaks. Kui midagi on must, valitakse viga listist ja tehakse võimalusel pilt.
 
 Kaardid kirjutatakse eraldi NFC tööriistaga. Kaart kannab URL-i `https://nfc.arle.top/?asset=...&tag=...&via=nfc`. Puudutamine avab selle URL-i otse. Rakendus ei kirjuta NFC silti. Kirjete andmebaas on Supabase, ühenduse lisab meeskond.
 
@@ -95,9 +95,9 @@ handoffs use the issue template. PR comments are the async conversation.
 
 ## Demo in five beats
 
-1. Give a judge an NFC sticker written with your own tool. Tap it and the URL opens the app with the asset and card ID prefilled. If NFC is unavailable, use the asset field or a QR link. iPhone background reading is not device tested.
-2. They press **Hold to speak** and say a check. The transcript fills the structured field. If the browser has no speech recognition, they type it.
-3. They take a deliberately bad photo of a shiny surface. The photo check refuses it and the tier stays C until a usable photo or instrument reading exists.
+1. Give a judge an NFC sticker written with your own NFC tool. Tap it and the URL opens with the asset and card ID prefilled and grade buttons 3, 2 and 1 ready. If NFC is unavailable, use the asset field or a QR link. iPhone background reading is not device tested.
+2. They press grade 3, 2 or 1. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
+3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
 4. They ask an audit question from the console, then press **Show tamper break**. The edited copy breaks at the exact record. Stored records are untouched.
 5. Show the sample CIP month, labelled synthetic, then print the paper form and time five checks against the app.
 
