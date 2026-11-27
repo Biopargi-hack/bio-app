@@ -8,7 +8,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | @AARenor | omp | review | Landing: Hügieen-only workbook, no TAP-DEMO-01 card, fixed Estonian speech | `feat/hygiene-only` | none |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN voice buttons | `fix/restore_language_buttons` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
-| @stevenlaas123-pixel | omp | review | Remove speech language selector | `fix/remove-speech-selector` | device speech test |
+| @stevenlaas123-pixel | omp | review | Remove line selector from NFC view | `fix/remove-line-selector` | device test |
 
 ## Demo-critical path
 
