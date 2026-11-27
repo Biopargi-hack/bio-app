@@ -1,4 +1,4 @@
-const CACHE = 'tap-to-prove-v5';
+const CACHE = 'tap-to-prove-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './icon.svg',
   './illustration.svg',
+  './check-flow.svg',
   './icon_192.png',
   './icon_512.png',
   './paper.html',

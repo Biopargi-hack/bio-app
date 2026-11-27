@@ -48,6 +48,8 @@
           <h2 id="capture-title" data-i18n="capture_title">Tap station</h2>
         </div>
 
+        <div class="capture-layout">
+          <div class="capture-main">
         <div class="readout" id="assetStamp">
           <span id="assetStampName" data-i18n="untagged">Untagged asset</span>
           <small id="assetSource">No tag read yet</small>
@@ -159,6 +161,31 @@
         <div class="row save-row">
           <button id="saveBtn" class="action" type="button" data-i18n="save">Append record</button>
           <span id="saveNote" class="note" role="status"></span>
+        </div>
+          </div>
+
+          <aside class="capture-rail" aria-label="Check guidance">
+            <figure class="rail-figure">
+              <img src="check-flow.svg" alt="A production line with five checkpoints; the phone records a clean check." width="360" height="220">
+              <figcaption data-i18n="rail_caption">One tap, one record.</figcaption>
+            </figure>
+            <section class="info-card" aria-labelledby="flow-title">
+              <h3 id="flow-title" data-i18n="flow_title">How it works</h3>
+              <ol class="flow-list">
+                <li><b>01</b><span data-i18n="flow1">Pick a line or tap the sticker.</span></li>
+                <li><b>02</b><span data-i18n="flow2">Press Prove clean.</span></li>
+                <li><b>03</b><span data-i18n="flow3">The record saves on this device.</span></li>
+              </ol>
+            </section>
+            <section class="info-card" aria-labelledby="default-title">
+              <h3 id="default-title" data-i18n="default_title">No photo?</h3>
+              <p data-i18n="default_copy">Use the fixed default. It marks tier C with a reason and the record stays traceable.</p>
+            </section>
+            <section class="info-card" aria-labelledby="offline-title">
+              <h3 id="offline-title" data-i18n="offline_title">Works offline</h3>
+              <p data-i18n="offline_copy">Checks are written to the device first, even with no network.</p>
+            </section>
+          </aside>
         </div>
       </section>
 
