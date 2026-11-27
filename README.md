@@ -1,12 +1,18 @@
 # Tõend
 
-Prototype for A. Le Coq challenge 3 at Hack the Future of Food 2026, 27 to 28 November, Tartu.
+Prototype for A. Le Coq challenge 3 at Hack the Future of Food 2026, 27 and 28 November, Tartu.
 
-The idea: a sticker goes on every checked place, not only the wash. Tap it, say what you did, attach a photo when one exists, and the record writes itself with an evidence tier and a hash chain. The app does not decide whether hygiene is good. It makes the record complete and shows what it can prove.
+## Idee kirjeldus
+
+Kujuta ette, et töötad A. Le Coq'i tehases. Sinu ülesanne on iga natukese aja tagant kontrollida, kas limonaadi või õllemasinad on puhtad.
+
+Praegu peab töötaja iga kontrolli järel täitma paberil või arvutis igavaid tabeleid. See võtab kaua aega, tüütab ära ja vahel ununeb üldse ära. Lisaks ei saa igas kohas telefoniga pilti teha, aga kuidagi peab ikkagi tõestama, et kontroll on tehtud.
+
+Lahendus on NFC kleepsud. See on nagu viipemakse pangakaardiga, ainult et raha maksmise asemel kinnitad masina puhtuse. Igale tähtsale masinale kleebitakse veekindel NFC kleeps. Töötaja paneb telefoni korraks vastu kleepsu. Ekraanile hüppab eeltäidetud tekst "Kõik on puhas ja korras" ja töötaja vajutab ühte suurt rohelist nuppu KINNITA. Kogu tegevus võtab 2 sekundit. Kui midagi on must, vajutab töötaja punast nuppu, valib listist vea, näiteks "vaht maas", ja teeb võimalusel pildi.
 
 ## Live site
 
-Production: https://toend.arle.top
+Production: https://nfc.arle.top
 
 Every push to `main` deploys automatically. No build step, no manual publish. A push starts a GitHub Action that uploads the `app/` folder to Cloudflare Pages, usually in under a minute. Newer pushes cancel older deploys, so the newest commit always wins. The app shell is network first: a reload fetches the newest files, and an offline device falls back to the cached shell.
 
@@ -68,7 +74,7 @@ There is no server yet. Everything stays on the device until a backend is connec
 
 ## Deployment details
 
-Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `toend.arle.top`.
+Cloudflare Pages project name: `toend`. Production branch: `main`. Custom domain: `nfc.arle.top`.
 
 Secrets are stored in the GitHub repo as `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, set from the machine's `~/.config/opencode/api-keys.env` without printing values. If a secret is ever rotated, update the repo secret too.
 

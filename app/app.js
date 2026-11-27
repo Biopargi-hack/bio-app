@@ -10,13 +10,13 @@ const WORDS = {
   en: {
     subtitle: 'Production line flight recorder',
     intro_kicker: 'Live demo, records stay on this device',
-    intro_title: 'Make a record with your own hands.',
-    intro_body: 'Tap a sticker, say what you did, attach a photo when one exists. The record shows what it can prove, and whether anyone changed it later.',
-    beat1: 'Stick it on anything, tap it',
-    beat2: 'Speak the check',
-    beat3: 'Bad photo gets refused',
-    beat4: 'Audit, then break the chain',
-    beat5: 'Sample month, paper timer',
+    intro_title: 'Cleanliness confirmed in two seconds.',
+    intro_body: 'Imagine a lemonade or beer line at A. Le Coq. Today every check ends in a paper form. We put a waterproof NFC sticker on each important machine. Tap it, press one green button, and the check is recorded.',
+    beat1: 'Tap the sticker',
+    beat2: 'Green button, done in 2 seconds',
+    beat3: 'Red button and a fault from the list',
+    beat4: 'Photo when one is possible',
+    beat5: 'Audit the record later',
     capture_title: 'New check',
     untagged: 'Untagged asset',
     no_tag: 'No tag read yet',
@@ -48,18 +48,32 @@ const WORDS = {
     sample_label: 'Sample data, synthetic, not A. Le Coq',
     cip_note: 'Three cycles short of temperature. One record cannot be signed.',
     paper: 'Print the paper form',
-    footer: 'Built for Hack the Future of Food 2026. Tap, speak, keep the record.'
+    quick_title: 'One tap confirmation',
+    quick_prompt: 'Everything is clean and in order',
+    confirm: 'CONFIRM',
+    fault: 'Problem',
+    fault_type: 'What is wrong',
+    fault_foam: 'foam on the floor',
+    fault_seal: 'residue on the seal',
+    fault_floor: 'dirt on the floor',
+    fault_nophoto: 'photo not possible',
+    fault_save: 'Save fault',
+    quick_reason: 'NFC quick confirmation',
+    quick_fault_reason: 'Fault chosen from the NFC quick list',
+    quick_done: 'Quick record',
+    record_added: 'Record',
+    footer: 'Built for Hack the Future of Food 2026. Tap the sticker, confirm, keep the record.'
   },
   et: {
     subtitle: 'Tootmisliini lennuregistraator',
     intro_kicker: 'Otse demo, kirjed jäävad seadmesse',
-    intro_title: 'Tee kirje oma kätega.',
-    intro_body: 'Puuduta kleepsi, ütle mida tegid, lisa foto kui see on olemas. Kirje näitab, mida see tõestab ja kas keegi on seda hiljem muutnud.',
-    beat1: 'Kleebi kuhu tahes, puuduta',
-    beat2: 'Ütle kontroll ette',
-    beat3: 'Kehv foto lükatakse tagasi',
-    beat4: 'Kontrolli, siis murra ahel',
-    beat5: 'Näidis kuu, paber ja taimer',
+    intro_title: 'Puhtus kinnitatakse kahe sekundiga.',
+    intro_body: 'Kujuta ette limonaadi või õlleliini A. Le Coqis. Praegu lõppeb iga kontroll pabervormiga. Paneme igale olulisele masinale veekindla NFC-kleepsu. Puuduta seda, vajuta ühte rohelist nuppu ja kontroll on kirjas.',
+    beat1: 'Puuduta kleepsu',
+    beat2: 'Roheline nupp, valmis 2 sekundiga',
+    beat3: 'Punane nupp ja viga listist',
+    beat4: 'Foto kui võimalik',
+    beat5: 'Kontrolli kirjet hiljem',
     capture_title: 'Uus kontroll',
     untagged: 'Märgistamata koht',
     no_tag: 'Silti veel loetud pole',
@@ -91,11 +105,25 @@ const WORDS = {
     sample_label: 'Näidisandmed, sünteetilised, mitte A. Le Coq',
     cip_note: 'Kolm tsüklit jäid temperatuurist lühemaks. Ühte kirjet ei saa allkirjastada.',
     paper: 'Prindi pabervorm',
-    footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta silti, ütle kontroll ette, hoia kirje alles.'
+    quick_title: 'Ühe puudutusega kinnitus',
+    quick_prompt: 'Kõik on puhas ja korras',
+    confirm: 'KINNITA',
+    fault: 'Probleem',
+    fault_type: 'Mis viga on',
+    fault_foam: 'vaht maas',
+    fault_seal: 'jäägid tihendil',
+    fault_floor: 'mustus põrandal',
+    fault_nophoto: 'foto ei ole võimalik',
+    fault_save: 'Salvesta viga',
+    quick_reason: 'NFC kiirkinnitus',
+    quick_fault_reason: 'Viga valitud NFC kiirlistist',
+    quick_done: 'Kiirkirje',
+    record_added: 'Kirje',
+    footer: 'Loodud Hack the Future of Food 2026 jaoks. Puuduta kleepsu, kinnita puhtus, hoia kirje alles.'
   }
 };
 
-let lang = 'en';
+let lang = 'et';
 let ndefReader = null;
 let recognition = null;
 let photoState = null;
@@ -361,8 +389,12 @@ async function saveRecord() {
     language: $('voiceLang').value
   });
 
+  await finishRecord(record, 'saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
+}
+
+async function finishRecord(record, noteId, message) {
   demoBreak = null;
-  note('saveNote', `Record ${record.seq} appended. Hash ${record.hash.slice(0, 12)}.`);
+  note(noteId, message || `${WORDS[lang].record_added} ${record.seq}.`);
   $('transcript').value = '';
   $('reason').value = '';
   $('supervisor').value = '';
@@ -374,6 +406,38 @@ async function saveRecord() {
   await refreshRecords();
   $('assetStamp').classList.add('flash');
   setTimeout(() => $('assetStamp').classList.remove('flash'), 350);
+}
+
+async function quickRecord(kind) {
+  const asset = $('asset').value.trim();
+  if (!asset) {
+    note('quickNote', lang === 'et' ? 'Puuduta kleepsu või kirjuta masina nimi.' : 'Tap the sticker or type the machine name.', true);
+    return;
+  }
+  const isClean = kind === 'clean';
+  const previous = photoState ? reusedPhoto(photoState.hash) : null;
+  const tier = !isClean && photoState?.usable && !previous ? 'B' : 'C';
+  const transcript = isClean ? WORDS[lang].quick_prompt : $('faultType').value;
+  const record = await appendRecord({
+    asset,
+    checkpoint: $('checkpoint').value,
+    method: isClean ? 'Declared' : 'Visual',
+    verdict: isClean ? 'clean' : 'not clean',
+    transcript,
+    tier,
+    reason: isClean ? WORDS[lang].quick_reason : WORDS[lang].quick_fault_reason,
+    supervisor: '',
+    instrument: '',
+    photo_hash: photoState?.hash || '',
+    photo_thumb: photoState?.thumb || '',
+    photo_usable: photoState?.usable || false,
+    photo_reuse_of: previous?.seq || null,
+    language: $('voiceLang').value,
+    quick: true
+  });
+  $('faultField').hidden = true;
+  $('faultSaveBtn').hidden = true;
+  await finishRecord(record, 'quickNote', `${WORDS[lang].quick_done} ${record.seq}.`);
 }
 
 function renderRecords(records) {
@@ -592,6 +656,13 @@ function bind() {
     else note('nfcNote', 'Reader armed. Tap a sticker.');
   });
   $('writeBtn').addEventListener('click', writeTag);
+  $('cleanBtn').addEventListener('click', () => quickRecord('clean'));
+  $('faultBtn').addEventListener('click', () => {
+    $('faultField').hidden = false;
+    $('faultSaveBtn').hidden = false;
+    $('faultType').focus();
+  });
+  $('faultSaveBtn').addEventListener('click', () => quickRecord('fault'));
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('photo').addEventListener('change', async (event) => {
     const file = event.target.files?.[0];

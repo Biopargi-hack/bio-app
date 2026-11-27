@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="et">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Tõend, production line flight recorder</title>
-  <meta name="description" content="Tap a tag, speak a check, attach evidence, and keep an append only record you can audit.">
+  <meta name="description" content="NFC-kleepsud masinatele. Puuduta kleepsu, kinnita puhtus ühe nupuga või vali viga listist.">
   <meta name="theme-color" content="#121712">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -30,15 +30,15 @@
 
   <main>
     <section class="intro" aria-labelledby="intro-title">
-      <p class="kicker" data-i18n="intro_kicker">Live demo, records stay on this device</p>
-      <h2 id="intro-title" data-i18n="intro_title">Make a record with your own hands.</h2>
-      <p class="intro-body" data-i18n="intro_body">Tap a sticker, say what you did, attach a photo when one exists. The record shows what it can prove, and whether anyone changed it later.</p>
+      <p class="kicker" data-i18n="intro_kicker">Otse demo, kirjed jäävad seadmesse</p>
+      <h2 id="intro-title" data-i18n="intro_title">Puhtus kinnitatakse kahe sekundiga.</h2>
+      <p class="intro-body" data-i18n="intro_body">Kujuta ette limonaadi või õlleliini A. Le Coqis. Praegu lõppeb iga kontroll pabervormiga. Paneme igale olulisele masinale veekindla NFC-kleepsu. Puuduta seda, vajuta ühte rohelist nuppu ja kontroll on kirjas.</p>
       <ol class="beats" aria-label="Demo sequence">
-        <li><b>1</b><span data-i18n="beat1">Stick it on anything, tap it</span></li>
-        <li><b>2</b><span data-i18n="beat2">Speak the check</span></li>
-        <li><b>3</b><span data-i18n="beat3">Bad photo gets refused</span></li>
-        <li><b>4</b><span data-i18n="beat4">Audit, then break the chain</span></li>
-        <li><b>5</b><span data-i18n="beat5">Sample month, paper timer</span></li>
+        <li><b>1</b><span data-i18n="beat1">Puuduta kleepsu</span></li>
+        <li><b>2</b><span data-i18n="beat2">Roheline nupp, valmis 2 sekundiga</span></li>
+        <li><b>3</b><span data-i18n="beat3">Punane nupp ja viga listist</span></li>
+        <li><b>4</b><span data-i18n="beat4">Foto kui võimalik</span></li>
+        <li><b>5</b><span data-i18n="beat5">Kontrolli kirjet hiljem</span></li>
       </ol>
     </section>
 
@@ -59,6 +59,25 @@
           <button id="writeBtn" class="ghost" type="button" data-i18n="write_tag">Write tag</button>
         </div>
         <p id="nfcNote" class="note" role="status"></p>
+        <div class="quick" aria-labelledby="quick-title">
+          <p id="quick-title" class="quick-title" data-i18n="quick_title">Ühe puudutusega kinnitus</p>
+          <p id="quickPrompt" class="quick-prompt" data-i18n="quick_prompt">Kõik on puhas ja korras</p>
+          <div class="quick-actions">
+            <button id="cleanBtn" class="confirm" type="button" data-i18n="confirm">KINNITA</button>
+            <button id="faultBtn" class="fault" type="button" data-i18n="fault">Probleem</button>
+          </div>
+          <label class="field fault-field" id="faultField" hidden>
+            <span data-i18n="fault_type">Mis viga on</span>
+            <select id="faultType">
+              <option value="vaht maas" data-i18n="fault_foam">vaht maas</option>
+              <option value="jäägid tihendil" data-i18n="fault_seal">jäägid tihendil</option>
+              <option value="mustus põrandal" data-i18n="fault_floor">mustus põrandal</option>
+              <option value="foto ei ole võimalik" data-i18n="fault_nophoto">foto ei ole võimalik</option>
+            </select>
+          </label>
+          <button id="faultSaveBtn" class="fault-save" type="button" data-i18n="fault_save" hidden>Salvesta viga</button>
+          <p id="quickNote" class="note" role="status"></p>
+        </div>
 
         <label class="field">
           <span data-i18n="asset">Asset</span>
