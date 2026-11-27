@@ -144,3 +144,5 @@ Format:
 - **2026-11-28 00:30** — Verified the voice change with `node scripts/verify.mjs` at 57 passed and a headless Chrome test using a mocked recogniser. A `no-speech` error restarted the session, an unexpected end restarted while held, the button was still listening after 4 seconds, two spoken phrases both reached the note, and the second press stopped it. No console errors. Real microphone still untested.
 
 - **2026-11-27 22:02** — Brändilingid nii NFC kui ka landing vaates viivad nüüd https://taptoprove.ee/ lehele. Kirje saatmise olek ja Google Sheetsi ühendus olid juba mainis olemas.
+
+- **2026-11-27 22:18** — Kirje saatmisel kirjutab Worker kohe Live, Kirjed ja Hügieen vahekaardile. Tõendite lingid ja äpi hash lähevad Kirjed ritta muutmata, ahel märgitakse kontrollimata, mitte võltsitud. Vanalt kaheminutiliselt ümbersigneerivalt taimerilt loobuti.
