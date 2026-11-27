@@ -159,7 +159,7 @@ const WORDS = {
     speak: 'Räägi',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta „Räägi ja kirjuta“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.',
+    audio_hint: 'Vajuta „Räägi“ ning räägi. Rakendus tuvastab keele esimestest sõnadest.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
