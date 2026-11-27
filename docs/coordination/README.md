@@ -55,6 +55,12 @@ Paste that into the *Handoff* issue, and link the branch or PR.
 See `AGENT-BRIEF.md`. Give it to the agent at the start of a session; it points
 at this folder and the rules in `AGENTS.md`.
 
+## Quiet Gmail
+
+GitHub email is per account. `NOTIFICATIONS.md` has the one-time settings and a
+Gmail filter. Team-wide review requests were removed on 27 November; a PR still
+needs one approval, but only the chosen reviewer is notified.
+
 ## Cadence during the hackathon
 
 - **Every 45 minutes:** update your `STATUS.md` row.
