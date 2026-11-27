@@ -101,6 +101,15 @@ if (speechCopyWired) {
   fail("app/app.js: speech language detection copy is missing in et or en");
 }
 
+const speechUnlimited = appSource.includes("const SPEECH_CHUNK_CHARS = 160")
+  && appSource.includes("onMicFree")
+  && !/transcript[^;\n]{0,80}slice\(0,\s*300\)/.test(appSource);
+if (speechUnlimited) {
+  ok("voice mode keeps a long note instead of cutting it near 300 characters");
+} else {
+  fail("app/app.js: voice mode still caps a spoken note");
+}
+
 // NFC and QR links must open a grade 1 to 3 rating view.
 const indexSource = existsSync(join(appDir, "index.html")) ? readFileSync(join(appDir, "index.html"), "utf8") : "";
 if (appSource.includes("kind === 'grade'") && indexSource.includes('id="gradeRow"')) {
