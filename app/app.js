@@ -56,9 +56,10 @@ const WORDS = {
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
     speak: 'Speak',
+    voice_lang: 'Speech language',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Press Speak, then talk. A long note is kept in full. Spelling is corrected when you are online.',
+    audio_hint: 'Tap ET, RU or EN, then Speak. A long note is kept in full. Spelling is corrected when you are online.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
@@ -215,9 +216,10 @@ const WORDS = {
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
     speak: 'Räägi',
+    voice_lang: 'Kõne keel',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
+    audio_hint: 'Vali ET, RU või EN ja vajuta Räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -347,6 +349,15 @@ const WORDS = {
 
 const SPEECH_FALLBACK = 'en-US';
 
+function setSpeechLang(code) {
+  speechLang = code;
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    const active = button.dataset.lang === code;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
 // One recogniser accepts one language, so the first words choose it.
 function detectSpokenLang(text) {
   const value = String(text || '');
@@ -407,6 +418,7 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
+  setSpeechLang(speechLang);
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
@@ -1802,6 +1814,17 @@ function bind() {
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));
+  });
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      setSpeechLang(button.dataset.lang);
+      if (speechSession || voiceHold) {
+        voiceHold = false;
+        if (speechSession && !speechSession.finished) speechSession.stop();
+        else resetVoiceUI();
+      }
+      toggleVoice();
+    });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('transcript').addEventListener('input', (event) => {
