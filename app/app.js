@@ -1129,15 +1129,33 @@ async function refreshCount() {
    filled from this device's records. */
 const WORKBOOK_GRADE = { clean: 3, 'not clean': 2, serious: 1, 'cannot sign': 2 };
 const HYGIENE_ROWS = [
-  ['Pesu', 'Pesu'],
   ['Täitepea', 'Täitepea'],
-  ['Klapp', 'Klapp'],
-  ['Drenaaž', 'Drenaaž'],
-  ['Uks', 'Uks'],
-  ['Kätepesu', 'Kätepesu'],
-  ['Kastipesu', 'Kastipesu'],
-  ['Siirupituba', 'Siirupituba']
+  ['Villija uksed ja villija alune', 'Villija uksed ja villija alune'],
+  ['Villijast väljuvad pleksiklaasid. Alates maist on seal plastikkardinad.', 'Villijast väljuvad pleksiklaasid. Alates maist on seal plastikkardinad.'],
+  ['Villijast väljuv liin', 'Villijast väljuv liin'],
+  ['Villija esine põrand', 'Villija esine põrand'],
+  ['Villija lagi ja klaasseinte kohal olevad plekkseinad', 'Villija lagi ja klaasseinte kohal olevad plekkseinad'],
+  ['Pudeli kuivataja', 'Pudeli kuivataja'],
+  ['Torustikud (mix, vill, past)', 'Torustikud (mix, vill, past)'],
+  ['Mixer + põrand', 'Mixer + põrand'],
+  ['VP keskuse lähiümbruse põrand', 'VP keskuse lähiümbruse põrand'],
+  ['Õhuliinid', 'Õhuliinid'],
+  ['Õhuliinide alune põrand', 'Õhuliinide alune põrand'],
+  ['Pudelipress', 'Pudelipress'],
+  ['Pudelipressi ruumi uks-puhas', 'Pudelipressi ruumi uks-puhas'],
+  ['Pudelipressi välissein', 'Pudelipressi välissein'],
+  ['Preformi etteanne', 'Preformi etteanne'],
+  ['Pressi alune', 'Pressi alune'],
+  ['Pressi jahutuse alune', 'Pressi jahutuse alune'],
+  ['Pressikapi sahtlid', 'Pressikapi sahtlid'],
+  ['Korkide ladustamise ala laos', 'Korkide ladustamise ala laos'],
+  ['Alumine korgikolu', 'Alumine korgikolu'],
+  ['Ülemine korgikolu', 'Ülemine korgikolu'],
+  ['Ülemise platvormi käepiirded', 'Ülemise platvormi käepiirded'],
+  ['Korgilift', 'Korgilift'],
+  ['Liin villijast Spectrumini', 'Liin villijast Spectrumini']
 ];
+const HYGIENE_SECTIONS = ['HÜGIEN - hindamine 3-2-1', 'VILLIA/PRESS- hindamine 3-2-1'];
 const HYGIENE_LEGEND = 'Hinded: 3 korras, 2 must, 1 tõsine';
 /* Longest name first, so Kätepesu is not read as Pesu. */
 const CHECKPOINT_NAMES = [
@@ -1205,15 +1223,24 @@ function hygieneSheet(records) {
     monday: isoMonday(year, bucket)
   }));
   const grades = new Map();
+  const workers = new Map();
   const times = new Map();
   for (const record of records) {
     const iso = isoWeekOf(record.created_at);
     if (!iso) continue;
     const grade = [1, 2, 3].includes(record.grade) ? record.grade : WORKBOOK_GRADE[record.verdict];
-    if (!record.checkpoint || !grade) continue;
-    const key = `${record.checkpoint}|${iso.year}-${hygieneBucket(iso.week)}`;
+    const checkpoint = checkpointFor(record.checkpoint) || checkpointFor(record.asset);
+    if (!checkpoint || !grade) continue;
+    const key = `${checkpoint}|${iso.year}-${hygieneBucket(iso.week)}`;
     const previous = grades.get(key);
     grades.set(key, previous === undefined ? grade : Math.min(previous, grade));
+    const worker = record.supervisor || record.device_id || '';
+    if (worker) {
+      const weekKey = `${iso.year}-${hygieneBucket(iso.week)}`;
+      const names = workers.get(weekKey) || new Set();
+      names.add(String(worker));
+      workers.set(weekKey, names);
+    }
   }
   for (const record of records) {
     const iso = isoWeekOf(record.created_at);
@@ -1226,12 +1253,15 @@ function hygieneSheet(records) {
     times.set(key, list);
   }
   return {
+    year,
     header: ['Kontrollpunktid', ...columns.map((column) => `N${String(column.bucket).padStart(2, '0')}`)],
     dates: ['Kuupäev', ...columns.map((column) => (column.monday ? excelDate(column.monday) : 'kuupäev puudub'))],
+    workers: ['Teostaja', ...columns.map((column) => [...(workers.get(`${year}-${column.bucket}`) || [])].sort().join(', '))],
     times: ['Töö aeg', ...columns.map((column) => {
       const list = times.get(`${year}-${column.bucket}`) || [];
       return list.length ? `${list[0]} kuni ${list[list.length - 1]}` : '';
     })],
+    sections: HYGIENE_SECTIONS,
     rows: HYGIENE_ROWS.map(([label, checkpoint]) => [
       label,
       ...columns.map((column) => grades.get(`${checkpoint}|${year}-${column.bucket}`) ?? '')
@@ -1266,41 +1296,30 @@ function workbookColgroup(widths) {
   return group;
 }
 
-/* Hügieen: header, dates, the eight checkpoints and the legend row. */
+/* Hügieen: the workbook legend, year, checklist and legend row. */
 function renderHygieneSheet(records) {
   const host = $('wbHygieneScroll');
   if (!host) return;
   const sheet = hygieneSheet(records);
   const table = document.createElement('table');
   table.className = 'wb-sheet wb-hygiene';
-  table.append(workbookColgroup(['3.5ch', '28ch', ...sheet.header.slice(1).map(() => '14ch')]));
+  table.append(workbookColgroup(['3.5ch', '42ch', ...sheet.header.slice(1).map(() => '14ch')]));
 
   const head = document.createElement('thead');
   const letters = document.createElement('tr');
   letters.className = 'wb-letters';
   letters.append(workbookCell('th', '', 'wb-corner'));
   sheet.header.forEach((_, index) => letters.append(workbookCell('th', workbookLetter(index), index === 0 ? 'wb-pin' : '')));
-  const heading = document.createElement('tr');
-  heading.className = 'wb-header';
-  heading.append(workbookCell('th', '1', 'wb-rowhead'));
-  sheet.header.forEach((text, index) => heading.append(workbookCell('th', text, index === 0 ? 'wb-head wb-pin' : 'wb-head')));
-  const dates = document.createElement('tr');
-  dates.className = 'wb-dates';
-  dates.append(workbookCell('th', '2', 'wb-rowhead'));
-  sheet.dates.forEach((text, index) => dates.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
-  const timesRow = document.createElement('tr');
-  timesRow.className = 'wb-dates';
-  timesRow.append(workbookCell('th', '3', 'wb-rowhead'));
-  sheet.times.forEach((text, index) => timesRow.append(workbookCell('td', text, index === 0 ? 'wb-pin' : '')));
-  head.append(letters, heading, dates, timesRow);
+  head.append(letters);
   table.append(head);
 
   const body = document.createElement('tbody');
-  sheet.rows.forEach((values, index) => {
+  const addRow = (number, cells, rowClass = '') => {
     const row = document.createElement('tr');
-    row.append(workbookCell('th', String(index + 4), 'wb-rowhead'));
-    values.forEach((value, column) => {
-      if (column === 0) {
+    if (rowClass) row.className = rowClass;
+    row.append(workbookCell('th', String(number), 'wb-rowhead'));
+    cells.forEach((value, column) => {
+      if (column === 0 && typeof value === 'string' && !rowClass) {
         row.append(workbookCell('th', value, 'wb-label wb-pin'));
         return;
       }
@@ -1311,14 +1330,21 @@ function renderHygieneSheet(records) {
       row.append(cell);
     });
     body.append(row);
-  });
-  const legend = document.createElement('tr');
-  legend.className = 'wb-legend-row';
-  legend.append(workbookCell('th', String(sheet.rows.length + 4), 'wb-rowhead'));
-  const legendCell = workbookCell('td', HYGIENE_LEGEND, 'wb-legend');
-  legendCell.colSpan = sheet.header.length;
-  legend.append(legendCell);
-  body.append(legend);
+    return row;
+  };
+  const blanks = sheet.header.length - 2;
+  addRow(1, ['', 'Hindamissüsteem: 3-2-1', ...Array(blanks).fill('')]);
+  addRow(2, ['', 'Kirjuta tabelisse ainult number. Hinde 2 ja 1 korral lisatakse kommentaar', ...Array(blanks).fill('')]);
+  addRow(3, ['', '', 3, 'korras, ok', 2, 'vajab ülevaatamist', 1, 'ei ole korras', ...Array(Math.max(0, sheet.header.length - 8)).fill('')]);
+  const yearRow = addRow(4, [String(sheet.year), ...Array(sheet.header.length - 1).fill('')], 'wb-year-row');
+  yearRow.querySelector('td')?.setAttribute('colspan', String(sheet.header.length - 1));
+  addRow(5, sheet.header, 'wb-header-row');
+  addRow(6, sheet.dates, 'wb-dates');
+  addRow(7, sheet.workers, 'wb-dates');
+  addRow(8, sheet.times, 'wb-dates');
+  sheet.sections.forEach((title, index) => addRow(9 + index, [title, ...Array(sheet.header.length - 1).fill('')], 'wb-section'));
+  sheet.rows.forEach((values, index) => addRow(11 + index, values));
+  addRow(11 + sheet.rows.length, [HYGIENE_LEGEND, ...Array(sheet.header.length - 1).fill('')], 'wb-legend-row');
   table.append(body);
   host.replaceChildren(table);
 }

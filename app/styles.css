@@ -882,6 +882,10 @@ main {
 .wb-hygiene .g3 { background: #c6efce; }
 .wb-hygiene .g2 { background: #ffeb9c; }
 .wb-hygiene .g1 { background: #ffc7ce; }
+.wb-hygiene .wb-header-row td { background: #1f4e78; color: #fff; font-weight: 700; text-align: center; }
+.wb-hygiene .wb-year-row td { font-size: 28px; font-weight: 700; text-align: center; }
+.wb-hygiene .wb-section td { background: #fff2cc; font-weight: 700; text-align: left; }
+.wb-hygiene .wb-legend-row td { background: #fff2cc; font-weight: 700; text-align: left; }
 .wb-hygiene .wb-legend { border: 1px solid #b7b7b7; background: #fff2cc; font-weight: 700; text-align: left; }
 @media (max-width: 720px) {
   .workbook-scroll { max-height: 52vh; }
