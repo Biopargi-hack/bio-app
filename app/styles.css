@@ -824,7 +824,7 @@ main {
 .lang-btn:hover { background: var(--wash); }
 .lang-btn.active { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 .field > span { margin-bottom: 8px; color: var(--ink); font: 700 13px/1.4 var(--sans); letter-spacing: 0; text-transform: none; }
-.text-field textarea { min-height: 100px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 400 14px/1.5 var(--sans); }
+.text-field textarea { min-height: 100px; max-height: 70vh; overflow: auto; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 400 14px/1.5 var(--sans); }
 .quiet { min-height: 44px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 8px; font: 700 13px/1 var(--sans); text-transform: none; }
 .evidence-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .media-preview { margin: 14px 0 0; padding: 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--wash); }
@@ -869,6 +869,7 @@ main {
 #workbookTable th:first-child, #workbookTable td:first-child { position: sticky; left: 0; z-index: 2; background: var(--paper); }
 #workbookTable tbody tr.fresh td { background-color: var(--paper); background-image: linear-gradient(var(--accent-tint), var(--accent-tint)); }
 #workbookTable td.long { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+#workbookTable td.transcript { max-width: 36rem; white-space: pre-wrap; overflow: visible; overflow-wrap: anywhere; }
 #workbookTable td.chain-ok { color: var(--mint); font-weight: 600; }
 #workbookTable td.chain-bad { color: var(--accent); font-weight: 700; }
 #workbookEmpty { margin-top: 16px; }

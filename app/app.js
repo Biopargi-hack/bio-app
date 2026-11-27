@@ -57,7 +57,7 @@ const WORDS = {
     voice_lang: 'Speech language',
     record_audio: 'Record voice note',
     record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Tap ET, RU or EN, then speak. The mic closes after about 3 seconds of quiet.',
+    audio_hint: 'Tap ET, RU or EN, then speak. A long note is kept in full. The mic closes after about 3 seconds of quiet.',
     audio_recording: 'Recording... tap to stop and save',
     audio_saved: 'Voice note saved',
     spoken_saved: 'Spoken text added',
@@ -67,12 +67,12 @@ const WORDS = {
     speech_detected: 'Speech language detected',
     speech_fallback: 'Your browser language is unavailable for speech. Listening in English.',
     speech_stopped: 'Voice stopped',
-    listening: 'Listening... pause 2-3s to stop',
+    listening: 'Listening',
     audio_denied: 'Microphone permission was denied.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
     note_ph: 'Type here, or press Speak. Each recording adds a new line.',
-    note_hint: 'Pick ET, RU or EN above. The recognised text is written here; speech may need an internet connection.',
+    note_hint: 'The recognised text is written here with no length limit. Speech may need an internet connection.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     take_photo: 'Take photo',
@@ -202,7 +202,7 @@ const WORDS = {
     voice_lang: 'Kõne keel',
     record_audio: 'Salvesta häälmärkus',
     record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta ET, RU või EN ja räägi. Mikrofon sulgub umbes 3 sekundi vaikuse järel.',
+    audio_hint: 'Vajuta ET, RU või EN ja räägi. Pikk jutt jääb tervenisti alles. Mikrofon sulgub umbes 3 sekundi vaikuse järel.',
     audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
     audio_saved: 'Häälmärkus salvestatud',
     spoken_saved: 'Räägitud tekst lisatud',
@@ -212,12 +212,12 @@ const WORDS = {
     speech_detected: 'Tuvastatud kõne keel',
     speech_fallback: 'Brauseri keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
     speech_stopped: 'Kõnetuvastus peatus',
-    listening: 'Kuulan… 2–3 s vaikust ja mikrofon sulgub',
+    listening: 'Kuulan',
     audio_denied: 'Mikrofoni luba keelati.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
     note_ph: 'Kirjuta siia või vajuta „Räägi“. Iga salvestus lisab uue rea.',
-    note_hint: 'Vali ülal ET, RU või EN. Äratuntud tekst ilmub siia; kõnetuvastus võib vajada internetiühendust.',
+    note_hint: 'Äratuntud tekst ilmub siia ilma pikkuse piirita. Kõnetuvastus võib vajada internetiühendust.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     take_photo: 'Tee foto',
@@ -356,6 +356,14 @@ let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
 let speechLang = speechLocale(navigator.language);
 let spokenLangs = new Set();
 const SILENCE_MS = 2500;
+// Chrome stops growing one speech hypothesis near a few hundred characters.
+// Flush and open the next session before that, so a spoken note has no length cap.
+const SPEECH_CHUNK_CHARS = 160;
+const SPEECH_CHUNK_MS = 8000;
+let voiceHold = false;
+let voiceRestartLang = '';
+let speechBase = '';
+let speechGraceUntil = 0;
 let speechSession = null;
 let audioSpeechSession = null;
 let mediaItems = [];
@@ -1023,10 +1031,13 @@ async function guardedWrite(noteId, work) {
 }
 
 function resetCaptureInputs() {
+  voiceHold = false;
+  voiceRestartLang = '';
   if (speechSession) {
     speechSession.stop();
     speechSession = null;
   }
+  speechBase = '';
   $('transcript').value = '';
   setGrade(0);
   spokenLangs = new Set();
@@ -1206,7 +1217,8 @@ function renderWorkbook() {
         cell.className = ok ? 'chain-ok' : 'chain-bad';
       } else {
         cell.textContent = String(workbookValue(record, field));
-        if (WORKBOOK_LONG.has(field) || field === 'hash') cell.className = 'long';
+        if (field === 'transcript') cell.className = 'transcript';
+        else if (WORKBOOK_LONG.has(field) || field === 'hash') cell.className = 'long';
         if (cell.textContent.length > 40) cell.title = cell.textContent;
       }
       row.append(cell);
@@ -1226,16 +1238,26 @@ function setAsset(name, tagId = '', origin = 'typed') {
 }
 
 
-function appendSpoken(text) {
+function growTranscript(field) {
+  if (!field) return;
+  field.style.height = 'auto';
+  const cap = Math.round(window.innerHeight * 0.7);
+  field.style.height = `${Math.min(Math.max(field.scrollHeight, 100), cap)}px`;
+}
+
+function writeSpeech(extra, commit) {
   const field = $('transcript');
-  const paragraph = String(text || '').trim();
-  if (!paragraph) return;
-  const detected = detectSpokenLang(paragraph);
-  field.value = field.value.trim() ? `${field.value.trim()}\n${paragraph}` : paragraph;
-  field.focus({ preventScroll: true });
-  field.setSelectionRange(field.value.length, field.value.length);
-  spokenLangs.add(detected);
-  note('audioNote', `${t('spoken_saved')} ${speechLabel(detected)}`);
+  if (!field) return;
+  const base = speechBase.trim();
+  const tail = String(extra || '').trim();
+  field.value = tail ? (base ? `${base}\n${tail}` : tail) : base;
+  if (commit) {
+    speechBase = field.value;
+    if (tail) spokenLangs.add(detectSpokenLang(tail));
+  }
+  growTranscript(field);
+  const end = field.value.length;
+  field.setSelectionRange(end, end);
 }
 
 function speechRecognition() {
@@ -1266,28 +1288,46 @@ function startSpeechSession(langCode, handlers) {
     interim: '',
     finalIndices: new Set(),
     timer: null,
-    finished: false
+    restartTimer: null,
+    startedAt: Date.now(),
+    heardAt: 0,
+    finished: false,
+    restart: false
   };
-  const stopRecognition = () => {
-    session.finished = true;
-    clearTimeout(session.timer);
-    try { recognition.stop(); } catch { /* already stopped */ }
+  const releaseMic = () => {
+    if (!session.restart) return;
+    session.restart = false;
+    clearTimeout(session.restartTimer);
+    if (handlers.onMicFree) handlers.onMicFree();
   };
-  const finish = () => {
+  const finish = ({ restart = false } = {}) => {
     if (session.finished) return;
-    stopRecognition();
+    session.finished = true;
+    session.restart = restart;
+    clearTimeout(session.timer);
     // Interim words are all some browsers ever deliver before the mic closes.
     const text = [...session.texts, session.interim].join(' ').trim();
     if (text && handlers.onText) handlers.onText(text, langCode);
-    if (handlers.onDone) handlers.onDone();
+    if (handlers.onDone) handlers.onDone({ restart });
+    try { recognition.stop(); } catch { /* already stopped */ }
+    if (restart) session.restartTimer = setTimeout(releaseMic, 400);
   };
   const scheduleStop = () => {
     clearTimeout(session.timer);
-    session.timer = setTimeout(finish, SILENCE_MS);
+    session.timer = setTimeout(() => {
+      if (handlers.onSilence) handlers.onSilence();
+      finish();
+    }, SILENCE_MS);
   };
-  session.stop = finish;
+  session.stop = () => finish();
   // Dropping the first guess when the language changes must not append text.
-  session.cancel = stopRecognition;
+  session.cancel = () => {
+    session.finished = true;
+    session.restart = false;
+    clearTimeout(session.timer);
+    clearTimeout(session.restartTimer);
+    try { recognition.stop(); } catch { /* already stopped */ }
+  };
   recognition.onresult = (event) => {
     if (session.finished) return;
     let heard = false;
@@ -1307,22 +1347,51 @@ function startSpeechSession(langCode, handlers) {
       }
     }
     session.interim = interim;
+    if (heard) session.heardAt = Date.now();
+    const text = [...session.texts, session.interim].join(' ').trim();
     if (interim && handlers.onInterim) handlers.onInterim(interim, langCode);
+    if (handlers.onProgress) handlers.onProgress(text, langCode);
     if (heard) scheduleStop();
+    const aged = Date.now() - session.startedAt >= SPEECH_CHUNK_MS;
+    if (heard && text && handlers.onChunkFull && (text.length >= SPEECH_CHUNK_CHARS || aged)) {
+      handlers.onChunkFull(text, langCode);
+      finish({ restart: true });
+    }
   };
   recognition.onerror = (event) => {
     if (session.finished) return;
-    const retried = handlers.onUnsupported?.(event.error) ?? false;
+    const error = event.error;
+    const retried = handlers.onUnsupported?.(error) ?? false;
     if (retried) {
-      stopRecognition();
+      session.cancel();
+      if (handlers.onMicFree) handlers.onMicFree();
       return;
     }
+    const denied = error === 'not-allowed' || error === 'service-not-allowed' || error === 'audio-capture';
+    const quiet = error === 'no-speech' || error === 'aborted';
+    if (quiet && handlers.onChunkFull && Date.now() < speechGraceUntil) {
+      finish({ restart: true });
+      return;
+    }
+    if (quiet) {
+      if (handlers.onSilence) handlers.onSilence();
+      finish();
+      return;
+    }
+    if (!denied && handlers.onChunkFull) {
+      finish({ restart: true });
+      return;
+    }
+    if (handlers.onSilence) handlers.onSilence();
     finish();
-    speechErrorNote(event.error);
+    speechErrorNote(error);
   };
   recognition.onend = () => {
-    if (session.finished) return;
-    finish();
+    if (!session.finished) {
+      const recent = session.heardAt && Date.now() - session.heardAt < SILENCE_MS;
+      finish({ restart: Boolean(handlers.onChunkFull) && recent });
+    }
+    releaseMic();
   };
   try {
     recognition.start();
@@ -1395,41 +1464,78 @@ function startAutoSpeechSession(handlers) {
   return auto;
 }
 
+function resetVoiceUI() {
+  speechSession = null;
+  voiceHold = false;
+  const field = $('transcript');
+  if (field) {
+    speechBase = field.value;
+    growTranscript(field);
+  }
+  note('audioNote', t('audio_hint'));
+  const button = $('voiceBtn');
+  if (!button) return;
+  button.classList.remove('listening');
+  button.textContent = t('speak');
+}
+
+function afterVoiceStop() {
+  const next = voiceRestartLang;
+  voiceRestartLang = '';
+  resetVoiceUI();
+  if (next) toggleVoice();
+}
+
+function beginHeldSpeech(langCode, attempt = 0) {
+  const session = startSpeechSession(langCode, {
+    onProgress: (text) => writeSpeech(text, false),
+    onText: (text) => writeSpeech(text, true),
+    onSilence: () => { voiceHold = false; },
+    onChunkFull: () => { voiceHold = true; },
+    onUnsupported: (error) => {
+      if (langCode === SPEECH_FALLBACK) return false;
+      if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
+      speechLang = SPEECH_FALLBACK;
+      note('audioNote', t('speech_fallback'));
+      voiceHold = true;
+      return true;
+    },
+    onDone: ({ restart } = {}) => {
+      if (restart) return;
+      afterVoiceStop();
+    },
+    onMicFree: () => {
+      if (!voiceHold) return;
+      speechGraceUntil = Date.now() + 1500;
+      beginHeldSpeech(speechLang);
+    }
+  });
+  if (!session && voiceHold && attempt < 2) {
+    setTimeout(() => beginHeldSpeech(langCode, attempt + 1), 300);
+    return;
+  }
+  speechSession = session;
+  if (!session) resetVoiceUI();
+}
+
 function toggleVoice() {
-  const resetVoiceUI = () => {
-    speechSession = null;
-    $('voiceBtn').classList.remove('listening');
-    $('voiceBtn').textContent = t('speak');
-  };
-  if (speechSession) {
-    speechSession.stop();
+  if (speechSession || voiceHold) {
+    voiceHold = false;
+    voiceRestartLang = '';
+    if (speechSession && !speechSession.finished) speechSession.stop();
+    else resetVoiceUI();
     return;
   }
   if (!speechRecognition()) {
     note('audioNote', t('speech_unsupported'), true);
     return;
   }
-  const langCode = speechLang;
-  speechSession = startSpeechSession(langCode, {
-    onText: (text) => appendSpoken(text),
-    onUnsupported: (error) => {
-      if (langCode === SPEECH_FALLBACK) return false;
-      if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
-      speechLang = SPEECH_FALLBACK;
-      note('audioNote', t('speech_fallback'));
-      speechSession = startSpeechSession(SPEECH_FALLBACK, {
-        onText: (text) => appendSpoken(text),
-        onDone: resetVoiceUI
-      });
-      if (!speechSession) resetVoiceUI();
-      return true;
-    },
-    onDone: resetVoiceUI
-  });
-  if (!speechSession) return;
+  voiceHold = true;
+  speechBase = $('transcript').value;
   $('voiceBtn').classList.add('listening');
   $('voiceBtn').textContent = t('listening');
   note('audioNote', t('listening'));
+  beginHeldSpeech(speechLang);
 }
 
 
@@ -1497,8 +1603,14 @@ function bind() {
   document.querySelectorAll('.lang-btn').forEach((button) => {
     button.addEventListener('click', () => {
       setSpeechLang(button.dataset.lang);
-      if (speechSession) speechSession.stop();
-      toggleVoice();
+      if (!speechSession && !voiceHold) {
+        toggleVoice();
+        return;
+      }
+      voiceRestartLang = button.dataset.lang;
+      voiceHold = false;
+      if (speechSession && !speechSession.finished) speechSession.stop();
+      else afterVoiceStop();
     });
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
