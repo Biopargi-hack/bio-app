@@ -179,7 +179,7 @@ function gradeFor(record) {
 const CHECKPOINT_PAIRS = [
   ['Kätepesu', 'Hand wash sink'], ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'], ['Täitepea', 'Filler head'],
-  ['Äravool', 'Drain'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
+  ['Äravool', 'Drain'], ['Äravool', 'Drenaaž'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
 ];
 
 const HYGIENE_LABELS = [
@@ -334,7 +334,7 @@ async function onRequestPost({ request, env }) {
     ];
     await insertLedgerRow(token, env.SHEET_ID, ledgerRow);
     let hygieneUpdated = false;
-    const target = record.auto_default === true ? null : hygieneTarget(record);
+    const target = hygieneTarget(record);
     if (target) {
       const current = await readCell(token, env.SHEET_ID, target.range);
       const next = current === null ? target.grade : Math.min(current, target.grade);
