@@ -164,3 +164,5 @@ Format:
 - **2026-11-28 10:38** — Landing value proposition tekstina, disain ja elemendid puutumata. Hero ja benefits räägivad ajakulust, Exceli täitmise kadumisest, automaatsest hindest 3, hügieenipunktidest ja Inspectle'i kogemusest. ET ja EN i18n uuendatud. Brauserikontroll: 222 elementi nii enne kui pärast, 0 overflow, 0 viga.
 
 - **2026-11-28 10:23** — fix/et_voice_fast: phones (iPhone and Android) always record the clip for the TalTech server; a desktop note whose server pass cannot run still gets a capital and a full stop. Speech server now pads the encoder window to the clip length plus 1 s: a 5 s note takes 1.3 s instead of 7 s, pooled WER 10.0% (was 10.4%). Will merge with admin bypass, no second reviewer.
+
+- **2026-11-28 10:57** — Hinne on nüüd kohustuslik kõigil kontrollikirjetel. Taastatud tõendite kirjed saavad hinna 3 ja uue põhjenduse. Ülevaatuse lõpetamine jääb ilma hindeta, töövoog säilib. Ka Hügieeni lehel eemaldati kinnistatud read 1-7, et need ei kataks tabelit.
