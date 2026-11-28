@@ -463,6 +463,11 @@ if (readme.includes("Automatic deploy happens on every push") && !readme.include
 } else {
   fail("README.md: deployment or demo wording is stale");
 }
+if (!indexSource.includes('id="line"') && !indexSource.includes('Prindi pabervorm') && !appSource.includes("place_prompt: 'Vali koht'") && !appSource.includes("paper: 'Prindi pabervorm'")) {
+  ok("line picker and paper form link copy are removed");
+} else {
+  fail("line picker or paper form link copy is still present");
+}
 // Report.
 console.log(`Tap to Prove verify — ${passed.length} passed, ${failed.length} failed\n`);
 

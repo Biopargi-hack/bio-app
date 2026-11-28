@@ -13,16 +13,8 @@ const WORDS = {
     default_copy: 'Use the fixed default. It records a fixed reason and stays traceable.',
     offline_title: 'Works offline',
     offline_copy: 'Checks are written to the device first, even with no network.',
-    line: 'Line',
     worker: 'Worker',
-    line_all: 'All lines',
-    place_prompt: 'Choose a place',
-    place_required: 'Choose a place or tap the NFC card.',
-    line_1: 'Line 1',
-    line_2: 'Line 2',
-    line_3: 'Line 3',
-    line_4: 'Line 4',
-    line_5: 'Line 5',
+    asset_required: 'Tap the NFC card.',
     skip: 'Skip to capture',
     hero_note: 'An NFC card and a phone app for recording production line checks. Tap the card, pick a grade and the record is there.',
     intro_title: 'Hygiene checks in one tap.',
@@ -146,7 +138,7 @@ const WORDS = {
     sync_done: 'Sent to Google Sheets',
     sync_failed: 'Waiting to send, check connection',
     landing_table: 'View table',
-    paper: 'Print the paper form',
+
     grade_short: 'grade',
     grade3_word: 'clean',
     grade2_word: 'dirty',
@@ -172,16 +164,8 @@ const WORDS = {
     default_copy: 'Kasuta fikseeritud hinnangut. See salvestab fikseeritud põhjuse ja kirje jääb jälgitavaks.',
     offline_title: 'Töötab võrguta',
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
-    line: 'Liin',
     worker: 'Teostaja',
-    line_all: 'Kõik liinid',
-    place_prompt: 'Vali koht',
-    place_required: 'Vali koht või puuduta NFC-kaarti.',
-    line_1: 'Liin 1',
-    line_2: 'Liin 2',
-    line_3: 'Liin 3',
-    line_4: 'Liin 4',
-    line_5: 'Liin 5',
+    asset_required: 'Puuduta NFC-kaarti.',
     skip: 'Liigu salvestamise juurde',
     hero_note: 'NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.',
     intro_title: 'Hügieenikontroll ühe puudutusega.',
@@ -272,7 +256,7 @@ const WORDS = {
     demo_idle: 'Hoia telefoni kaardi vastas',
     demo_saved: 'Kirje salvestatud',
     demo_place: 'Koht',
-    paper: 'Prindi pabervorm',
+
     quick_title: 'Dokumenteeri kontroll',
     quick_prompt: 'Kõik on puhas ja korras',
     confirm: 'KINNITA PUHAS',
@@ -1178,7 +1162,7 @@ function quickRecord(kind, grade = 0) {
   return guardedWrite('quickNote', async () => {
     const asset = $('asset').value.trim();
     if (!asset) {
-      note('quickNote', t('place_required'), true);
+      note('quickNote', t('asset_required'), true);
       return;
     }
     const isGrade = kind === 'grade';
@@ -1747,10 +1731,6 @@ function bind() {
     currentTag = '';
     currentSource = 'typed';
     $('assetStampName').textContent = $('asset').value.trim() || t('untagged');
-  });
-  $('line').addEventListener('change', () => {
-    const value = $('line').value;
-    setAsset(value ? t(`line_${value}`) : '', '', 'typed');
   });
   document.querySelectorAll('.grade-btn').forEach((btn) => {
     btn.addEventListener('click', () => setGrade(Number(btn.dataset.grade)));

@@ -562,8 +562,7 @@ footer { background: var(--paper); }
 .grade-btn.selected { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 .grade-btn[data-grade="1"].selected { background: var(--accent-dark); border-color: var(--accent-dark); }
 
-/* Clearer capture: a place picker, roomy rating and two large evidence actions */
-.place-field { margin-bottom: 14px; }
+/* Clearer capture: roomy rating and two large evidence actions */
 .capture-main .readout { margin-bottom: 24px; }
 .evidence-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .evidence-actions .quiet {
