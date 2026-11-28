@@ -304,3 +304,23 @@ are cleared from the live sheet. Records already sent to Kirjed stay in the
 append-only log. A record outside the two weeks still lands in Kirjed and does
 not touch Hügieen.
 
+
+## 2026-11-28 — Visible rows, video evidence, inspection summary
+
+**Decision.** A saved record is inserted directly under the Kirjed header. The
+blank rows stay in the sheet only as empty grid space. A video file counts as
+evidence when it has bytes, even if a preview frame cannot be decoded. The
+start card asks for the line name and inspector name. The end card lists what
+was scanned and what was not scanned, and the finish step writes an explicit
+unverified grade 3 for every missing checkpoint.
+
+**Why.** The owner reported that new records looked missing because they landed
+below the blank rows, and that a video was rejected as evidence when decoding
+a preview frame failed. The first and last cards are inspection markers, so
+they should frame the run instead of acting as graded checkpoints.
+
+**Consequences.** The writer reads the Kirjed sheet id once and inserts a row
+before writing it, so every save needs one extra Sheets call. A video with no
+decodable frame has no thumbnail but still counts. A completed session adds
+grade 3 defaults only for checkpoints with no real saved grade.
+

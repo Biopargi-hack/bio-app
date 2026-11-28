@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | demo | Eestikeelne häälmärkus TalTechi mudeliga | #142, `feat/et_voice_estonian` | real phone voice test |
+| @AARenor | omp | doing | Usable video evidence, visible ledger rows, start and end summary | `feat/session_start_end_links`, #55 | real phone NFC test |
 | @linnudtonisted | OpenCode | review | UI copy: visual hygiene / visuaalne hügieen | `fix/visual_hygiene_copy` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Fix media uploads and signed completion sync | `fix/media-and-confirmation` | physical phone test |

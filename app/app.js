@@ -14,6 +14,7 @@ const WORDS = {
     offline_title: 'Works offline',
     offline_copy: 'Checks are written to the device first, even with no network.',
     worker: 'Worker',
+    session_line: 'Line name',
     session_name: 'Inspector name',
     session_start: 'Start inspection',
     session_signature: 'Signature: type your name again',
@@ -166,6 +167,7 @@ const WORDS = {
     offline_title: 'Töötab võrguta',
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
     worker: 'Teostaja',
+    session_line: 'Liini nimi',
     session_name: 'Inspektori nimi',
     session_start: 'Alusta inspektsiooni',
     session_signature: 'Allkiri: kirjuta oma nimi uuesti',
@@ -403,7 +405,11 @@ const SESSION_TEXT = {
     changed: 'Kontroll või kirjed muutusid. Vaata ülevaade uuesti üle ja kinnita uuesti.',
     other: 'See koht ei kuulu viie näidispunkti hulka ega täida ühtegi neist.',
     line: 'Liin',
-    inspector: 'Kontrollija'
+    inspector: 'Kontrollija',
+    grade: 'hinne',
+    scanned: 'Skännitud',
+    not_scanned: 'Skännimata',
+    auto_default_note: 'Skännimata kohad saavad automaatse kontrollimata hinde 3.'
   },
   en: {
     start: 'Start',
@@ -424,7 +430,11 @@ const SESSION_TEXT = {
     changed: 'The inspection or its records changed. Review again and confirm again.',
     other: 'This place is not one of the five example checkpoints and does not satisfy any of them.',
     line: 'Line',
-    inspector: 'Inspector'
+    inspector: 'Inspector',
+    grade: 'grade',
+    scanned: 'Scanned',
+    not_scanned: 'Not scanned',
+    auto_default_note: 'Not scanned checkpoints receive an automatic unverified grade 3.'
   }
 };
 function st(key) { return SESSION_TEXT[lang][key]; }
@@ -1056,6 +1066,7 @@ async function analysePhoto(file) {
 async function analyseVideo(file) {
   const byteHash = await hashBlob(file);
   const meta = { kind: 'video', media_hash: byteHash, file, name: file.name, mime: file.type, size: file.size };
+  let thumb = '';
   const url = URL.createObjectURL(file);
   try {
     const video = document.createElement('video');
@@ -1064,37 +1075,36 @@ async function analyseVideo(file) {
     video.playsInline = true;
     video.src = url;
     await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('video decode timeout')), 3000);
+      const timer = setTimeout(() => reject(new Error('video decode timeout')), 5000);
       video.onloadeddata = () => { clearTimeout(timer); resolve(); };
       video.onerror = () => { clearTimeout(timer); reject(new Error('video decode failed')); };
     });
-    // A frame at time zero is often black, so seek into the clip before drawing.
     await new Promise((resolve) => {
       let settled = false;
-      const done = () => {
+      const finish = () => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        video.removeEventListener('seeked', done);
+        video.removeEventListener('seeked', finish);
         resolve();
       };
-      const timer = setTimeout(done, 1200);
-      video.addEventListener('seeked', done);
+      const timer = setTimeout(finish, 1500);
+      video.addEventListener('seeked', finish);
       const target = Math.min(0.2, (video.duration || 0) / 2);
       if (target > 0) video.currentTime = target;
-      else done();
+      else finish();
     });
     const canvas = document.createElement('canvas');
     canvas.width = 72;
     canvas.height = 72;
     canvas.getContext('2d').drawImage(video, 0, 0, 72, 72);
-    const thumb = canvas.toDataURL('image/png');
+    thumb = canvas.toDataURL('image/png');
+  } catch (_) {
+    /* The file itself is evidence; a preview frame is optional. */
+  } finally {
     URL.revokeObjectURL(url);
-    return { ...meta, usable: file.size > 0, hash: byteHash, thumb, reason: 'ok', detail: `${file.type} ${formatBytes(file.size)}` };
-  } catch (error) {
-    URL.revokeObjectURL(url);
-    return { ...meta, usable: false, hash: byteHash, thumb: '', reason: 'unreadable', detail: error.message };
   }
+  return { ...meta, usable: file.size > 0, hash: byteHash, thumb, reason: 'ok', detail: `${file.type} ${formatBytes(file.size)}` };
 }
 
 function formatBytes(bytes) {
@@ -1434,7 +1444,7 @@ const CHECKPOINT_NAMES = [
   ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'],
   ['Täitepea', 'Filler head'],
-  ['Äravool', 'Drain'],
+  ['Äravool', 'Drain'], ['Äravool', 'Drenaaž'],
   ['Klapp', 'Valve'],
   ['Pesu', 'Wash'],
   ['Uks', 'Door']
@@ -1493,19 +1503,23 @@ async function refreshSession() {
     return;
   }
   if (mode === 'start') {
+    if (!active && $('sessionLineInput') && !$('sessionLineInput').value) $('sessionLineInput').value = sessionLine;
     $('sessionDescription').textContent = active
-      ? `${session.line === sessionLine && session.start_tag === sessionTag ? st('started') : st('conflict')} ${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}.`
+      ? `${session.line_id && session.line_id !== sessionLine ? st('conflict') : st('started')} ${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}.`
       : `${st('line')}: ${sessionLine}. ${st('start_desc')}`;
     $('sessionStartFields').hidden = Boolean(active);
     return;
   }
   if (mode === 'end') {
-    if (!session || session.line !== sessionLine) {
+    if (!session || (session.line_id && session.line_id !== sessionLine)) {
       $('sessionDescription').textContent = st('no_session');
       return;
     }
-    $('sessionDescription').textContent = `${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}. ${session.status === 'completed' ? st('completed') : st('end_desc')}`;
     const entries = sessionRecords(records, session.id);
+    const missing = DEMO_CHECKPOINTS.filter(
+      (checkpoint) => !entries.some((record) => record.checkpoint === checkpoint && !record.auto_default)
+    );
+    $('sessionDescription').textContent = `${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}. ${st('scanned')}: ${DEMO_CHECKPOINTS.length - missing.length}/${DEMO_CHECKPOINTS.length}. ${st('not_scanned')}: ${missing.length}. ${session.status === 'completed' ? st('completed') : st('auto_default_note')}`;
     reviewSnapshot = sessionSnapshot(records, session.id);
     const list = $('sessionReview');
     list.replaceChildren();
@@ -1514,7 +1528,7 @@ async function refreshSession() {
       const matching = entries.filter((record) => record.checkpoint === checkpoint);
       const last = matching.at(-1);
       const grades = matching.filter((record) => !record.auto_default).map((record) => record.grade).join(', ');
-      item.textContent = `${checkpoint}: ${grades ? `${st('saved')}: ${grades}` : st('missing')}`;
+      item.textContent = `${checkpoint}: ${grades ? `${st('scanned')} ${st('grade')} ${grades}` : `${st('not_scanned')} ${st('missing')}`}`;
       if (!last || last.auto_default) item.className = 'unverified';
       list.append(item);
     }
@@ -1569,7 +1583,7 @@ async function startInspection() {
   const supervisor = $('sessionName').value.trim();
   if (!supervisor) { note('sessionNote', st('name_required'), true); return; }
   const session = {
-    id: crypto.randomUUID(), line: sessionLine, supervisor, status: 'active',
+    id: crypto.randomUUID(), line_id: sessionLine, line: $('sessionLineInput')?.value.trim() || sessionLine, supervisor, status: 'active',
     start_tag: sessionTag, started_at: new Date().toISOString()
   };
   // Persist the explicit start synchronously before a later NFC navigation.
@@ -1600,7 +1614,7 @@ async function finishInspection() {
     let failure;
     request.onsuccess = () => {
       const session = request.result?.session;
-      if (!session || session.id !== expectedId || session.line !== sessionLine) {
+      if (!session || session.id !== expectedId || (session.line_id && session.line_id !== sessionLine)) {
         failure = new Error(st('changed')); tx.abort(); return;
       }
       if (normalizeName(signature) !== normalizeName(session.supervisor)) {
@@ -1689,8 +1703,9 @@ async function clearSessionPending(seq) {
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
   currentSource = origin;
-  $('asset').value = name;
-  $('assetStampName').textContent = name;
+  const checkpoint = checkpointFor(name) || name;
+  $('asset').value = checkpoint;
+  $('assetStampName').textContent = checkpoint;
 }
 
 

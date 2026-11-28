@@ -89,17 +89,50 @@ async function serviceToken(sa) {
 
 
 
-async function appendRow(token, sheetId, sheetName, row) {
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(sheetName + '!A:A')}:append`;
-  const response = await fetch(`${url}?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
+const ledgerTabIds = new Map();
+const FORMULA = Symbol('formula');
+
+async function ledgerTab(token, sheetId) {
+  if (ledgerTabIds.has(sheetId)) return ledgerTabIds.get(sheetId);
+  const response = await fetch(
+    `${SHEETS_URL}/${encodeURIComponent(sheetId)}?fields=sheets(properties(title,sheetId))`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!response.ok) throw new Error(`sheet metadata ${response.status}: ${await response.text()}`);
+  const info = await response.json();
+  const tab = (info.sheets || []).find((item) => item.properties?.title === 'Kirjed')?.properties?.sheetId;
+  if (tab === undefined) throw new Error('Kirjed tab is missing');
+  ledgerTabIds.set(sheetId, tab);
+  return tab;
+}
+
+async function insertLedgerRow(token, sheetId, row) {
+  const tab = await ledgerTab(token, sheetId);
+  const response = await fetch(`${SHEETS_URL}/${encodeURIComponent(sheetId)}:batchUpdate`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({ values: [row] })
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      requests: [
+        {
+          insertDimension: {
+            range: { sheetId: tab, dimension: 'ROWS', startIndex: 1, endIndex: 2 },
+            inheritFromBefore: false,
+          }
+        },
+        {
+          updateCells: {
+            start: { sheetId: tab, rowIndex: 1, columnIndex: 0 },
+            rows: [{ values: row.map((value) => ({
+              userEnteredValue: typeof value === 'number' ? { numberValue: value } :
+                value && typeof value === 'object' && FORMULA in value ? { formulaValue: value[FORMULA] } : { stringValue: String(value ?? '') }
+            })) }],
+            fields: 'userEnteredValue'
+          }
+        }
+      ]
+    })
   });
-  if (!response.ok) throw new Error(`sheet append ${sheetName} ${response.status}: ${await response.text()}`);
+  if (!response.ok) throw new Error(`sheet insert Kirjed ${response.status}: ${await response.text()}`);
   return response.json();
 }
 
@@ -254,14 +287,13 @@ async function onRequestGet({ request, env }) {
 }
 
 function plain(value) {
-  const text = String(value ?? '').replace(/[\r\n\t]+/g, ' ').trim();
-  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+  return String(value ?? '').replace(/[\r\n\t]+/g, ' ').trim();
 }
 
 
 function hyperlink(url, label) {
   const safeLabel = String(label || 'tõend').replace(/"/g, '""').replace(/[\r\n\t]+/g, ' ');
-  return `=HYPERLINK("${url}","${safeLabel}")`;
+  return { [FORMULA]: `=HYPERLINK("${url}","${safeLabel}")` };
 }
 
 function gradeFor(record) {
@@ -273,7 +305,7 @@ function gradeFor(record) {
 const CHECKPOINT_PAIRS = [
   ['Kätepesu', 'Hand wash sink'], ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'], ['Täitepea', 'Filler head'],
-  ['Äravool', 'Drain'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
+  ['Äravool', 'Drain'], ['Äravool', 'Drenaaž'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
 ];
 
 const HYGIENE_LABELS = [
@@ -418,7 +450,7 @@ async function onRequestPost({ request, env }) {
     }).format(safeStamp);
     const ledgerRow = [
       dateText,
-      `'${timeText}`,
+      timeText,
       record.record_type === 'inspection_completion' ? `Ülevaatuse kinnitamine / Inspection completion${record.inspection_line ? ` — ${plain(record.inspection_line)}` : ''}` : plain(displayCheckpoint(record)),
       record.record_type === 'inspection_completion' || (payload.recovery === true && record.auto_default !== true) ? '' : record.auto_default === true ? '3 — automaatne, kontrollimata / automatic, unverified' : gradeFor(record),
       record.record_type === 'inspection_completion' ? (record.signed_by ? 'Allkirjastatud, enda kinnitus / Signed, self-declared confirmation' : 'Lõpetatud, allkiri puudub / Completed, no signature') : payload.recovery === true && record.auto_default === true ? 'Taastatud automaatne kontrollimata hinnang / Recovered automatic unverified default' : payload.recovery === true ? 'Taastatud varasema kirje tõendid / Recovered attachments from an earlier record; not a new inspection' : record.auto_default === true ? 'Automaatne kontrollimata vaikimisi hinnang / Automatic unverified default assessment' : plain(record.transcript),
@@ -429,7 +461,7 @@ async function onRequestPost({ request, env }) {
       ...extraCells,
       ...(record.record_type === 'inspection_completion' ? [plain(record.created_at)] : []),
     ];
-    await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
+    await insertLedgerRow(token, env.SHEET_ID, ledgerRow);
     let hygieneUpdated = false;
     const target = record.auto_default === true || record.record_type === 'inspection_completion' || payload.recovery === true ? null : hygieneTarget(record);
     if (target) {
