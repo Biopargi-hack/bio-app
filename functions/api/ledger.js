@@ -299,13 +299,10 @@ async function onRequestPost({ request, env }) {
     const ledgerRow = [
       dateText,
       `'${timeText}`,
-      plain(record.asset || record.checkpoint),
       plain(displayCheckpoint(record)),
-      localized(record.method, DISPLAY_METHOD),
       localized(record.verdict, DISPLAY_VERDICT),
       gradeFor(record),
       plain(record.reason),
-      plain(record.transcript),
       localized(record.source, DISPLAY_SOURCE),
       plain(record.supervisor || record.device_id),
       evidence,
