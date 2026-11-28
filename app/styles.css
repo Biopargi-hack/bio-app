@@ -746,13 +746,6 @@ input::selection, textarea::selection { background: var(--accent-tint); color: v
   .net, .queue, .tagpill { font-size: 11px; }
 }
 
-.sample-sheet { padding: clamp(32px, 5vw, 56px) 0; border-bottom: 1px solid var(--line); }
-.sample-sheet .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 0; }
-.sample-sheet .section-head h2 {
-  margin: 0;
-  font: 800 clamp(26px, 3vw, 40px)/1.05 var(--display);
-  letter-spacing: -.02em;
-}
 .sample-label { margin: 8px 0 0; font: 400 12px/1.5 var(--mono); color: var(--muted); }
 /* A compact work surface: capture first, supporting information below. */
 :root { --sans: system-ui, -apple-system, 'Segoe UI', sans-serif; }
@@ -846,11 +839,8 @@ main {
 }
 .save-row { margin-top: 16px; padding-top: 20px; border-top: 1px solid var(--line); }
 .save-row .action { min-height: 48px; padding: 0 24px; border-radius: 8px; font: 700 14px/1 var(--sans); text-transform: none; }
-.sample-sheet, .explainer, .how, .benefits { grid-column: 1 / -1; padding: clamp(24px, 3.5vw, 40px); text-align: left; }
-.sample-sheet .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 12px; padding: 0; border: 0; }
-.sample-sheet .eyebrow { margin: 0; }
-.sample-sheet h2, .explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
-.sample-sheet .note { margin: 0; font-size: 13px; }
+.explainer, .how, .benefits { grid-column: 1 / -1; padding: clamp(24px, 3.5vw, 40px); text-align: left; }
+.explainer h2, .how h2, .benefits h2 { margin: 0; color: var(--ink); font: 700 clamp(24px, 2.5vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; text-transform: none; }
 .explainer .section-head { max-width: 760px; margin: 0; padding: 0; border: 0; }
 .explainer .section-head p:not(.eyebrow) { max-width: 70ch; margin: 14px 0 0; color: var(--muted); font: 400 15px/1.65 var(--sans); }
 .step-grid, .benefit-grid { display: grid; gap: 16px; margin-top: 24px; }
@@ -869,7 +859,7 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   .nav-links { display: none; }
   .nav-meta { margin-left: auto; }
   main { grid-template-columns: 1fr; }
-  .sample-sheet, .explainer, .how, .benefits { grid-column: auto; }
+  .explainer, .how, .benefits { grid-column: auto; }
 }
 @media (max-width: 720px) {
   .topbar { position: static; }
@@ -885,7 +875,6 @@ footer { padding: 0 clamp(16px, 4vw, 40px) 28px; border: 0; background: transpar
   .hero h1 { font-size: clamp(34px, 10vw, 44px); }
   .hero-note { font-size: 15px; }
   .step-grid, .benefit-grid { grid-template-columns: 1fr; gap: 8px; }
-  .sample-sheet .section-head { align-items: flex-start; flex-direction: column; }
   .hero-quiet { margin-left: 10px; }
 }
 
@@ -895,7 +884,6 @@ html[data-mode="landing"] #sheetLink { display: none !important; }
 html[data-mode="record"] .hero,
 html[data-mode="record"] #explainer,
 html[data-mode="record"] #how,
-html[data-mode="record"] #hygieen,
 html[data-mode="record"] .benefits,
 html[data-mode="record"] .band,
 html[data-mode="record"] .try,
