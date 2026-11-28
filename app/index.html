@@ -154,12 +154,16 @@
         <p id="sessionIdentity" class="note"></p>
         <div id="sessionStartFields" hidden>
           <label class="field">
-            <span data-i18n="session_name">Kontrollija nimi</span>
+            <span data-i18n="session_name">Inspektori nimi</span>
             <input id="sessionName" type="text" autocomplete="name" maxlength="60">
           </label>
-          <button id="sessionStart" class="action" type="button" data-i18n="session_start">Alusta kontrolli</button>
+          <button id="sessionStart" class="action" type="button" data-i18n="session_start">Alusta inspektsiooni</button>
         </div>
         <ol id="sessionReview" class="session-review" hidden></ol>
+        <label id="sessionSignatureField" class="field" hidden>
+          <span data-i18n="session_signature">Allkiri: kirjuta oma nimi uuesti</span>
+          <input id="sessionSignature" type="text" autocomplete="off" maxlength="60">
+        </label>
         <button id="sessionFinish" class="action" type="button" data-i18n="session_finish" hidden>Kinnita ja lõpeta kontroll</button>
         <p id="sessionNote" class="note" role="status" aria-live="polite"></p>
       </section>

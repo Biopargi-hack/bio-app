@@ -28,3 +28,5 @@ Format:
 - **2026-11-27** — Removed six requested fields from Excel CSV only; original records remain intact. Publishing via admin merge without review at the user's request; the owner previously bypassed review twice to ship faster.
 - **2026-11-28** — Implementing start/end line sessions with a self-declared inspector and five example checkpoints; untouched checkpoints are explicitly unverified automatic grade 3 defaults. Physical NFC needs device testing.
 - **2026-11-28** — Publishing line sessions via admin merge without review; the owner previously bypassed review twice to ship faster. The five checkpoints are examples, not a validated production roster.
+- **2026-11-28** — Fixing existing Algus/Lõpp tag links and requiring the inspector to re-enter their name to confirm completion; unvisited defaults remain marked unverified. Physical NFC needs testing.
+- **2026-11-28** — Publishing the Algus/Lõpp fix via admin merge without review; the owner previously bypassed review twice to ship faster. The signature is self-declared.

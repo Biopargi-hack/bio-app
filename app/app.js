@@ -16,6 +16,7 @@ const WORDS = {
     worker: 'Worker',
     session_name: 'Inspector name',
     session_start: 'Start inspection',
+    session_signature: 'Signature: type your name again',
     session_finish: 'Confirm and finish inspection',
     asset_required: 'Tap the NFC card.',
     skip: 'Skip to capture',
@@ -168,8 +169,9 @@ const WORDS = {
     offline_title: 'Töötab võrguta',
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
     worker: 'Teostaja',
-    session_name: 'Kontrollija nimi',
-    session_start: 'Alusta kontrolli',
+    session_name: 'Inspektori nimi',
+    session_start: 'Alusta inspektsiooni',
+    session_signature: 'Allkiri: kirjuta oma nimi uuesti',
     session_finish: 'Kinnita ja lõpeta kontroll',
     asset_required: 'Puuduta NFC-kaarti.',
     skip: 'Liigu salvestamise juurde',
@@ -384,9 +386,14 @@ const SESSION_PENDING = 'inspection:pending:';
 const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Äravool', 'Uks'];
 const AUTO_DEFAULT_TEXT = 'Automaatne kontrollimata vaikimisi hinnang';
 const sessionParams = new URLSearchParams(location.search);
-const sessionMode = sessionParams.get('session') || '';
-const sessionLine = (sessionParams.get('line') || '').trim();
-const sessionTag = (sessionParams.get('tag') || '').trim();
+const sessionAsset = (sessionParams.get('asset') || '').trim();
+const sessionNames = [sessionAsset, sessionParams.get('tag') || '']
+  .map((value) => value.trim().normalize('NFC').toLocaleLowerCase('et'));
+const namedSessionMode = sessionNames.includes('algus') ? 'start'
+  : sessionNames.some((value) => value === 'lõpp' || value === 'lopp') ? 'end' : '';
+const sessionMode = sessionParams.get('session') || namedSessionMode;
+const sessionLine = (sessionParams.get('line') || (namedSessionMode ? 'demo' : '')).trim();
+const sessionTag = (sessionParams.get('tag') || (namedSessionMode ? sessionAsset : '')).trim();
 let activeSession = null;
 let reviewSnapshot = '';
 const SESSION_TEXT = {
@@ -403,6 +410,7 @@ const SESSION_TEXT = {
     conflict: 'Aktiivset kontrolli ei asendata. Lõpeta see esmalt selle liini lõppkaardiga.',
     started: 'Kontroll on alustatud. Puuduta kontrollpunkti kaarti ja salvesta hinnang.',
     name_required: 'Sisesta kontrollija nimi.',
+    signature_required: 'Kirjuta allkirjaks sama nimi, mille sisestasid alguses.',
     missing: 'Hinne 3 — automaatne, KONTROLLIMATA vaikimisi hinnang',
     saved: 'Salvestatud hinne',
     changed: 'Kontroll või kirjed muutusid. Vaata ülevaade uuesti üle ja kinnita uuesti.',
@@ -423,6 +431,7 @@ const SESSION_TEXT = {
     conflict: 'The active inspection will not be replaced. Finish it first with its line’s end card.',
     started: 'Inspection started. Tap a checkpoint card and save its grade.',
     name_required: 'Enter the inspector name.',
+    signature_required: 'For your signature, enter the same name you used at the start.',
     missing: 'Grade 3 — automatic UNVERIFIED default',
     saved: 'Saved grade',
     changed: 'The inspection or its records changed. Review again and confirm again.',
@@ -1354,9 +1363,11 @@ async function refreshSession() {
   $('sessionStartFields').hidden = true;
   $('sessionReview').hidden = true;
   $('sessionFinish').hidden = true;
+  $('sessionSignatureField').hidden = true;
   $('sessionIdentity').textContent = st('identity');
-  const valid = (mode === 'start' || mode === 'end') && sessionLine && sessionTag && sessionParams.get('via') === 'nfc';
+  const valid = (mode === 'start' || mode === 'end') && sessionLine && sessionTag && (sessionParams.get('via') === 'nfc' || Boolean(namedSessionMode));
   $('sessionTitle').textContent = mode === 'start' ? st('start') : mode === 'end' ? st('end') : st('active');
+  if (mode) $('capture-title').textContent = mode === 'start' ? st('start') : st('end');
   if (mode && !valid) {
     $('sessionDescription').textContent = st('invalid');
     return;
@@ -1388,6 +1399,7 @@ async function refreshSession() {
       list.append(item);
     }
     list.hidden = false;
+    $('sessionSignatureField').hidden = session.status !== 'active';
     $('sessionFinish').hidden = session.status !== 'active';
     return;
   }
@@ -1425,6 +1437,12 @@ async function startInspection() {
 }
 
 async function finishInspection() {
+  const signature = $('sessionSignature').value.trim();
+  const normalizeName = (value) => value.normalize('NFC').replace(/\s+/g, ' ').trim().toLocaleLowerCase('et');
+  if (!signature || !activeSession || normalizeName(signature) !== normalizeName(activeSession.supervisor)) {
+    note('sessionNote', st('signature_required'), true);
+    return;
+  }
   const expectedId = activeSession?.id;
   const expectedSnapshot = reviewSnapshot;
   const db = await openDb();
@@ -1439,6 +1457,9 @@ async function finishInspection() {
       const session = request.result?.session;
       if (!session || session.id !== expectedId || session.line !== sessionLine) {
         failure = new Error(st('changed')); tx.abort(); return;
+      }
+      if (normalizeName(signature) !== normalizeName(session.supervisor)) {
+        failure = new Error(st('signature_required')); tx.abort(); return;
       }
       if (session.status === 'completed') return;
       const read = store.getAll();
@@ -1472,7 +1493,7 @@ async function finishInspection() {
         const completion = {
           record_type: 'inspection_completion',
           inspection_session_id: session.id, inspection_line: session.line,
-          supervisor: session.supervisor, start_tag: session.start_tag, end_tag: sessionTag,
+          supervisor: session.supervisor, signed_by: signature, signature_method: 'typed_self_declared', start_tag: session.start_tag, end_tag: sessionTag,
           started_at: session.started_at, created_at: completedAt,
           seq, local_seq: seq, device_id: deviceId(),
           prev_hash: last ? last.hash : '0'.repeat(64)
@@ -1480,7 +1501,7 @@ async function finishInspection() {
         const marker = { ...completion, hash: sha256Sync(completion) };
         store.add(marker);
         created.push(marker);
-        const completed = { ...session, status: 'completed', end_tag: sessionTag, completed_at: completedAt };
+        const completed = { ...session, status: 'completed', signed_by: signature, signature_method: 'typed_self_declared', end_tag: sessionTag, completed_at: completedAt };
         media.put({ key: SESSION_KEY, session: completed });
         media.put({ key: `inspection:session:${session.id}`, session: completed });
       };
@@ -2104,7 +2125,7 @@ async function start() {
   bind();
   updateTier();
   updateNetwork();
-  if (asset && document.documentElement.dataset.mode === 'record') {
+  if (asset && !sessionMode && document.documentElement.dataset.mode === 'record') {
     setAsset(asset, tag || '', via === 'nfc' ? 'nfc' : 'link');
     if (via === 'nfc') setGrade(3);
     document.getElementById('capture')?.scrollIntoView({ block: 'start' });
