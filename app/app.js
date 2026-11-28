@@ -1754,6 +1754,23 @@ function replaceSpoken(base, text) {
   growTranscript(field);
 }
 
+// Browser speech writes no capital and no full stop. When the server text is
+// not coming, the spoken part still gets both, so the note reads as a sentence.
+function tidySpoken(base) {
+  const field = $('transcript');
+  if (!field || userOwned) return;
+  const prefix = String(base || '').trim();
+  const value = field.value;
+  const start = prefix && value.startsWith(prefix) ? prefix.length : 0;
+  let spoken = value.slice(start).trim();
+  if (!spoken) return;
+  spoken = spoken.charAt(0).toLocaleUpperCase('et') + spoken.slice(1);
+  if (/[\p{L}\p{N}]$/u.test(spoken)) spoken += '.';
+  field.value = start ? `${prefix} ${spoken}` : spoken;
+  speechBase = field.value;
+  growTranscript(field);
+}
+
 let recorder = null;
 let recordChunks = [];
 let recordStream = null;
@@ -1794,10 +1811,13 @@ function canRecordAudio() {
   return Boolean(navigator.mediaDevices?.getUserMedia) && typeof MediaRecorder !== 'undefined';
 }
 
-// iPhone Safari exposes a speech service that can refuse after the mic is
-// granted, so the phone uses the microphone and Whisper directly.
-function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+// Phones record the clip and let the Estonian server write it. iPhone's speech
+// service refuses after the mic is granted. Android's can hold the microphone,
+// so the parallel recording stays empty and only browser text without capitals
+// or punctuation is left (a phone note on 2026-11-28 never reached the server).
+function isPhone() {
+  if (navigator.userAgentData?.mobile) return true;
+  return /Android|iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
@@ -2020,9 +2040,10 @@ async function switchToRecording() {
 
 async function polishUtterance(base, owned, token) {
   const blob = await stopRecorder();
-  // Offline, owned by the user, or too short: the browser text stays as it is.
+  // Offline, owned by the user, or too short: the browser text stays, tidied.
   if (owned || token !== polishToken || !blob || blob.size < 400 || !navigator.onLine) {
     if (token === polishToken) {
+      if (!owned) tidySpoken(base);
       polishing = false;
       note('audioNote', t('audio_hint'));
       flushPendingClip();
@@ -2030,19 +2051,20 @@ async function polishUtterance(base, owned, token) {
     return;
   }
   note('audioNote', t('polishing'));
+  let text = '';
   try {
-    const text = await transcribeRecording(blob);
-    if (token !== polishToken || userOwned) return;
-    if (text) replaceSpoken(base, text);
+    text = await transcribeRecording(blob);
   } catch {
     // The browser text stays when the clean-up cannot run.
-  } finally {
-    if (token === polishToken) {
-      polishing = false;
-      note('audioNote', t('text_ready'));
-      flushPendingClip();
-    }
   }
+  if (token !== polishToken) return;
+  if (!userOwned) {
+    if (text) replaceSpoken(base, text);
+    else tidySpoken(base);
+  }
+  polishing = false;
+  note('audioNote', t('text_ready'));
+  flushPendingClip();
 }
 
 function speechRecognition() {
@@ -2297,7 +2319,7 @@ function toggleVoice() {
     else resetVoiceUI();
     return;
   }
-  if (canRecordAudio() && isIOS()) {
+  if (canRecordAudio() && isPhone()) {
     toggleRecordOnly();
     return;
   }
