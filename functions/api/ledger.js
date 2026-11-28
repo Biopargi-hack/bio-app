@@ -137,19 +137,6 @@ function plain(value) {
   return /^[=+\-@]/.test(text) ? `'${text}` : text;
 }
 
-const DISPLAY_VERDICT = {
-  clean: 'puhas',
-  'not clean': 'ei ole puhas',
-  serious: 'tõsine',
-  'cannot sign': 'ei saa allkirjastada'
-};
-const DISPLAY_METHOD = { Rated: 'Hinnatud', Declared: 'Deklareeritud', Visual: 'Visuaalne' };
-const DISPLAY_SOURCE = { link: 'Veebilink', nfc: 'NFC', qr: 'QR-kood' };
-const DISPLAY_LANGUAGE = { 'en-US': 'EN', 'et-EE': 'ET', 'ru-RU': 'RU' };
-function localized(value, map) {
-  const text = plain(value);
-  return map[text] || text;
-}
 
 function hyperlink(url, label) {
   const safeLabel = String(label || 'tõend').replace(/"/g, '""').replace(/[\r\n\t]+/g, ' ');
@@ -302,7 +289,6 @@ async function onRequestPost({ request, env }) {
       plain(displayCheckpoint(record)),
       gradeFor(record),
       plain(record.transcript),
-      localized(record.source, DISPLAY_SOURCE),
       plain(record.supervisor || record.device_id),
       evidence,
       ...photoCells,
