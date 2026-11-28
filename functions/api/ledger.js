@@ -140,7 +140,7 @@ async function insertLedgerRow(token, sheetId, row) {
     })
   });
   if (!response.ok) throw new Error(`sheet insert Kirjed ${response.status}: ${await response.text()}`);
-  return response.json();
+  return insertIndex + 1;
 }
 
 
@@ -471,13 +471,19 @@ async function onRequestPost({ request, env }) {
       ...extraCells,
       ...(record.record_type === 'inspection_completion' ? [plain(record.created_at)] : []),
     ];
-    await insertLedgerRow(token, env.SHEET_ID, ledgerRow);
+    const ledgerRowNumber = await insertLedgerRow(token, env.SHEET_ID, ledgerRow);
     let hygieneUpdated = false;
     const target = record.auto_default === true || record.record_type === 'inspection_completion' || payload.recovery === true ? null : hygieneTarget(record);
     if (target) {
       const current = await readCell(token, env.SHEET_ID, target.range);
       const next = current === null ? target.grade : Math.min(current, target.grade);
-      await updateCell(token, env.SHEET_ID, target.range, next);
+      const changed = current === null || next < current;
+      let cellValue = next;
+      if (changed && [1, 2].includes(Number(next))) {
+        const gid = await ledgerTab(token, env.SHEET_ID);
+        cellValue = `=HYPERLINK("#gid=${gid}&range=A${ledgerRowNumber}", "${next}")`;
+      }
+      await updateCell(token, env.SHEET_ID, target.range, cellValue);
       hygieneUpdated = true;
     }
     return Response.json({ ok: true, seq: record.seq, files: links.length, hygieneUpdated });
