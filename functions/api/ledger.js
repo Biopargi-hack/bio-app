@@ -108,6 +108,13 @@ async function ledgerTab(token, sheetId) {
 
 async function insertLedgerRow(token, sheetId, row) {
   const tab = await ledgerTab(token, sheetId);
+  const lookupUrl = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Kirjed!A2:A')}`;
+  const lookup = await fetch(lookupUrl, { headers: { Authorization: `Bearer ${token}` } });
+  if (!lookup.ok) throw new Error(`sheet lookup ${lookup.status}: ${await lookup.text()}`);
+  const used = (await lookup.json()).values || [];
+  const insertIndex = 1 + used.length;
+  // Concurrent lookups may choose the same position, changing relative order,
+  // but inserting and writing in one batch preserves both rows.
   const response = await fetch(`${SHEETS_URL}/${encodeURIComponent(sheetId)}:batchUpdate`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
@@ -115,13 +122,13 @@ async function insertLedgerRow(token, sheetId, row) {
       requests: [
         {
           insertDimension: {
-            range: { sheetId: tab, dimension: 'ROWS', startIndex: 1, endIndex: 2 },
+            range: { sheetId: tab, dimension: 'ROWS', startIndex: insertIndex, endIndex: insertIndex + 1 },
             inheritFromBefore: false,
           }
         },
         {
           updateCells: {
-            start: { sheetId: tab, rowIndex: 1, columnIndex: 0 },
+            start: { sheetId: tab, rowIndex: insertIndex, columnIndex: 0 },
             rows: [{ values: row.map((value) => ({
               userEnteredValue: typeof value === 'number' ? { numberValue: value } :
                 value && typeof value === 'object' && FORMULA in value ? { formulaValue: value[FORMULA] } : { stringValue: String(value ?? '') }
