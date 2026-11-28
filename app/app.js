@@ -20,8 +20,8 @@ const WORDS = {
     asset_required: 'Tap the NFC card.',
     skip: 'Skip to capture',
     hero_note: 'An NFC card and a phone app for recording production line checks. Tap the card, pick a grade and the record is there.',
-    intro_title: 'Hygiene checks in one tap.',
-    what_body: 'Tap to Prove is an NFC card and phone app for hygiene checks on a production line. A waterproof card sits on each place to check. Tapping it opens the right place on the phone and the checker can save a grade at once.',
+    intro_title: 'Visual hygiene checks in one tap.',
+    what_body: 'Tap to Prove is an NFC card and phone app for visual hygiene checks on a production line. A waterproof card sits on each place to check. Tapping it opens the right place on the phone and the checker can save a grade at once.',
     what_note: 'When a photo is not possible, a fixed grade keeps the record complete. It can still be reviewed later. The card replaces the paper form instead of adding another step.',
     nav_what: 'What it is',
     nav_how: 'How it works',
@@ -169,8 +169,8 @@ const WORDS = {
     asset_required: 'Puuduta NFC-kaarti.',
     skip: 'Liigu salvestamise juurde',
     hero_note: 'NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.',
-    intro_title: 'Hügieenikontroll ühe puudutusega.',
-    what_body: 'Tap to Prove on NFC-kaartide ja telefonirakenduse lahendus tootmisliini hügieenikontrolliks. Iga kontrollitava koha küljes on veekindel kaart. Selle puudutamisel avaneb telefonis õige koht ja kontrollija saab hinnangu kohe salvestada.',
+    intro_title: 'Visuaalne hügieenikontroll ühe puudutusega.',
+    what_body: 'Tap to Prove on NFC-kaartide ja telefonirakenduse lahendus tootmisliini visuaalse hügieeni kontrollimiseks. Iga kontrollitava koha küljes on veekindel kaart. Selle puudutamisel avaneb telefonis õige koht ja kontrollija saab hinnangu kohe salvestada.',
     what_note: 'Kui pilti teha ei saa, kasutatakse fikseeritud hinnangut. Kirje jääb ikkagi täielikuks ja selle saab hiljem üle vaadata. Kaart asendab pabervormi, mitte ei lisa uut sammu.',
     nav_what: 'Mis see on',
     nav_how: 'Kuidas töötab',
@@ -363,7 +363,7 @@ let selectedGrade = 0;
 let lastSavedRecord = null;
 const SESSION_KEY = 'inspection:active';
 const SESSION_PENDING = 'inspection:pending:';
-const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Drenaaž', 'Uks'];
+const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Äravool', 'Uks'];
 const AUTO_DEFAULT_TEXT = 'Automaatne kontrollimata vaikimisi hinnang';
 const sessionParams = new URLSearchParams(location.search);
 const sessionMode = sessionParams.get('session') || '';
@@ -377,7 +377,7 @@ const SESSION_TEXT = {
     end: 'Kontrolli ülevaade ja lõpetamine',
     active: 'Aktiivne kontroll',
     identity: 'Nimi on ise deklareeritud; isikut ei kontrollita. Kontroll jääb esmalt sellesse brauserisse ja seadmesse ning kirjed sünkroonitakse võrguühenduse olemasolul.',
-    start_desc: 'Näidisnimekiri: Pesu, Täitepea, Klapp, Drenaaž ja Uks. Sisesta nimi ning alusta selgesõnaliselt.',
+    start_desc: 'Näidisnimekiri: Pesu, Täitepea, Klapp, Äravool ja Uks. Sisesta nimi ning alusta selgesõnaliselt.',
     end_desc: 'Näidisnimekiri, mitte tegeliku liini täielik nimekiri. Kinnitamisel lisatakse puuduvatele punktidele automaatne kontrollimata hinne 3. See ei tõenda kontrollimist.',
     completed: 'Kontroll lõpetatud.',
     no_session: 'Selle liini aktiivset kontrolli ei leitud.',
@@ -397,7 +397,7 @@ const SESSION_TEXT = {
     end: 'Review and finish inspection',
     active: 'Active inspection',
     identity: 'Name is self-declared, not identity verified. The inspection is stored in this browser and device first; records sync when online.',
-    start_desc: 'Example roster: Pesu, Täitepea, Klapp, Drenaaž and Uks. Enter a name and explicitly start.',
+    start_desc: 'Example roster: Pesu, Täitepea, Klapp, Äravool and Uks. Enter a name and explicitly start.',
     end_desc: 'Example roster, not a complete real line roster. Confirmation adds automatic unverified grade 3 defaults for missing checkpoints. This does not prove an inspection.',
     completed: 'Inspection completed.',
     no_session: 'No inspection for this line was found.',
@@ -1300,7 +1300,7 @@ const CHECKPOINT_NAMES = [
   ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'],
   ['Täitepea', 'Filler head'],
-  ['Drenaaž', 'Drain'],
+  ['Äravool', 'Drain'],
   ['Klapp', 'Valve'],
   ['Pesu', 'Wash'],
   ['Uks', 'Door']

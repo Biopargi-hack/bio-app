@@ -150,6 +150,7 @@ Format:
 - **2026-11-27 22:18** — Kirje saatmisel kirjutab Worker kohe Live, Kirjed ja Hügieen vahekaardile. Tõendite lingid ja äpi hash lähevad Kirjed ritta muutmata, ahel märgitakse kontrollimata, mitte võltsitud. Vanalt kaheminutiliselt ümbersigneerivalt taimerilt loobuti.
 - **2026-11-28 00:55**: Live kontroll näitas, et Kirjed vahekaart sai endiselt inglise väärtused. Põhjus: eelmine parandus jäi merge'i ajal stage'ist välja. Lisatud nüüd eralda PR-ina.
 
+- **2026-11-28 09:37** — Hügieenileht ja kirjutaja: viis liinipunkti (Täitepea, Äravool, Klapp, Pesu, Uks), ainult eelmine ja praegune nädal, praeguse kuupäevaga veerg. Alustus ja Lõpp on märgid. Verify 60/0. Admin merge owneri loal.
 - **2026-11-28 09:34** — feat/et_voice_quality: Estonian only voice; /api/transcribe now asks TalTech whisper-large-v3-turbo-et-verbatim-2604 on the team server (asr.taptoprove.ee, home-apps tunnel) first, Groq whisper-large-v3 as fallback. Pages secrets ASR_URL and ASR_TOKEN were set through the Cloudflare API, not the deploy workflow (production and preview). Own benchmark on browser-shaped webm: TalTech 7 to 9% WER, Groq 18 to 24%.
 
 - **2026-11-28 09:51** — #142 preview end to end: headless Chrome with a recorded Estonian sentence as the mic, real /api/transcribe answered engine taltech with the exact sentence in 7 s, 0 errors. Merging #142 with admin bypass and no second reviewer, the same way earlier AARenor PRs were merged.
