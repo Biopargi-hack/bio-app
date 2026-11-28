@@ -90,9 +90,9 @@ No npm dependencies, no build command. Plain files go straight to Pages.
 
 ## Sheets connection
 
-Every save posts to `/api/ledger`. A Pages Function signs a Google service account token, appends one row to the `Live` tab of the ledger sheet and stores each usable photo or video in a KV namespace with a public view link in the sheet. A failed send stays in a local queue and retries on the next save or when the connection returns. Files over 8 MB are skipped; the record still lands in the sheet. IndexedDB keeps the full record and attachments for the hash chain, and JSONL remains a manual backup. There is no Excel download and no CSV export.
+Every save posts to `/api/ledger`. A Pages Function signs a Google service account token, appends one row to the `Kirjed` tab of the ledger sheet and stores each usable photo or video in a KV namespace with a public view link in the sheet. Duplicate checks read the same tab, using the device id in column X. A failed send stays in a local queue and retries on the next save or when the connection returns. Files over 8 MB are skipped; the record still lands in the sheet. IndexedDB keeps the full record and attachments for the hash chain, and JSONL remains a manual backup. There is no Excel download and no CSV export.
 
-Cloudflare Pages secrets `GOOGLE_SERVICE_ACCOUNT` and `SHEET_ID` hold the service account JSON and the sheet id. The account `tapprove-sheets@arleserver.iam.gserviceaccount.com` has writer access. Its private key stays outside the repo at `~/.config/secrets/taptoprove_sheets_sa.json`. `wrangler.toml` binds the `EVIDENCE` KV namespace. The old five minute sync job is paused; the legacy generator now preserves the `Live` tab.
+Cloudflare Pages secrets `GOOGLE_SERVICE_ACCOUNT` and `SHEET_ID` hold the service account JSON and the sheet id. The account `tapprove-sheets@arleserver.iam.gserviceaccount.com` has writer access. Its private key stays outside the repo at `~/.config/secrets/taptoprove_sheets_sa.json`. `wrangler.toml` binds the `EVIDENCE` KV namespace. The old five minute sync job is paused; the legacy generator now preserves the `Kirjed` tab.
 
 ## Checks
 
@@ -117,7 +117,7 @@ handoffs use the issue template. PR comments are the async conversation.
 2. They press grade 3, 2 or 1, then press Append record. The record appears with its card ID, source, checkpoint and grade. With no photo or instrument reading, grade 3 stores the fixed default reason and tier C.
 3. They tap another card, choose a grade, then show a fault from the list and a bad photo being refused as hard evidence.
 4. Tap a sticker or use a QR link, then append one record. Show the queued count on the device.
-5. Press a grade in the capture form, then press Append record. The check is stored on the device and sent to the `Live` tab of the Google Sheet. Tap the card named after a checkpoint (`Täitepea`, `Kastipesu`) and the phone mock plays the tap. Open `/sheet` for the record table of this device and the JSONL export, then time five checks against the app.
+5. Press a grade in the capture form, then press Append record. The check is stored on the device and sent to the `Kirjed` tab of the Google Sheet. Tap the card named after a checkpoint (`Täitepea`, `Kastipesu`) and the phone mock plays the tap. Open `/sheet` for the record table of this device and the JSONL export, then time five checks against the app.
 
 ## What is real and what is sample
 
@@ -125,7 +125,7 @@ Records, tags and photos the judge makes during the demo are live, stored in Ind
 
 The sample CSV is static demo data with a UTF-8 BOM, semicolon separators and comma decimals. It is not synced with the app. JSONL is the manual backup: it keeps the full records unchanged and adds an attachment line for each photo, video or voice note, with a `data_url` holding the original file. Export fails visibly if a referenced attachment is missing.
 
-The `Tabel` section on `taptoprove.ee` links the Google Sheet ledger at `https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371` in the nav, the hero button and the section button, and the link opens in a new tab. Only people the sheet is shared with can open it; there is no Excel download on the page. Every saved check goes to the `Live` tab, and a record keeps its `checkpoint` name because that is the column the sheet groups by. `/sheet` shows the records stored on this device.
+The `Tabel` section on `taptoprove.ee` links the Google Sheet ledger at `https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371` in the nav, the hero button and the section button, and the link opens in a new tab. Only people the sheet is shared with can open it; there is no Excel download on the page. Every saved check goes to the `Kirjed` tab, and a record keeps its `checkpoint` name because that is the column the sheet groups by. `/sheet` shows the records stored on this device.
 
 Dictation has two paths. Where the browser has a working Web Speech API (Chrome, Edge), words appear while you speak, and the same recording is sent to Whisper to correct the spelling. iPhone and iPad always use the microphone path: the `Räägi` button records a clip, sends it to `/api/transcribe` on the server, and writes the text into the note when you press the button again. The phone skips the speech service even where the browser exposes it, because the iPhone speech service refuses with a permission error after the microphone was already granted. The clip is plain `audio/webm` or `audio/mp4` depending on the browser, named `note.webm` or `note.m4a` to match, and a tap shorter than a word is ignored. This path needs a connection.
 

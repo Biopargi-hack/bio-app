@@ -88,11 +88,11 @@ async function serviceToken(sa) {
 }
 
 async function readKeys(token, sheetId) {
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Live!A2:J1000')}`;
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Kirjed!A2:X1000')}`;
   const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error(`sheet read ${response.status}: ${await response.text()}`);
   const data = await response.json();
-  return new Set((data.values || []).map((row) => `${String(row[9] ?? '')}|${String(row[0] ?? '')}`));
+  return new Set((data.values || []).map((row) => `${String(row[23] ?? '')}|${String(row[0] ?? '')}`));
 }
 
 async function appendRow(token, sheetId, sheetName, row) {
@@ -287,25 +287,6 @@ async function onRequestPost({ request, env }) {
       if (url) links.push(hyperlink(url, item.label || ((item.mime || '').startsWith('video/') ? 'video' : item.kind === 'audio' ? 'hääl' : 'foto')));
     }
     const evidence = links.length ? links.join(' ') : plain(record.media_name || record.photo_hash || '');
-    const row = [
-      record.seq,
-      plain(record.created_at),
-      plain(record.asset),
-      plain(record.checkpoint),
-      gradeFor(record),
-      localized(record.verdict, DISPLAY_VERDICT),
-      plain(record.reason),
-      plain(record.transcript),
-      localized(record.method, DISPLAY_METHOD),
-      plain(record.device_id),
-      plain(record.tag_sig),
-      evidence,
-      plain(record.hash),
-      new Date().toISOString(),
-      localized(record.source, DISPLAY_SOURCE),
-      localized(record.language || record.speech_lang, DISPLAY_LANGUAGE)
-    ];
-    await appendRow(token, env.SHEET_ID, 'Live', row);
     const stamp = new Date(record.created_at);
     const iso = Number.isNaN(stamp.getTime()) ? new Date().toISOString() : stamp.toISOString();
     const ledgerRow = [
@@ -325,7 +306,8 @@ async function onRequestPost({ request, env }) {
       evidence,
       '', '', '', '', '', '', '',
       'kontrollimata',
-      plain(record.hash)
+      plain(record.hash),
+      plain(record.device_id),
     ];
     await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
     let hygieneUpdated = false;

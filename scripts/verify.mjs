@@ -205,6 +205,13 @@ if (appSource.includes("fetch('/api/ledger'") && appSource.includes('toend-sync-
 } else {
   fail("app: the Google Sheets sync path is missing");
 }
+
+const ledgerWriter = existsSync(join(root, "functions/api/ledger.js")) ? readFileSync(join(root, "functions/api/ledger.js"), "utf8") : "";
+if (ledgerWriter.includes("Kirjed!A2:X1000") && ledgerWriter.includes("row[23]") && !ledgerWriter.includes("Live!A2:J1000") && !ledgerWriter.includes("appendRow(token, env.SHEET_ID, 'Live', row)")) {
+  ok("the Sheets writer uses one record tab for writes and duplicate checks");
+} else {
+  fail("functions/api/ledger.js still splits records between Live and Kirjed");
+}
 if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetJsonlBtn"') && !sheetSource.includes('sheetExcelBtn')) {
   ok("live sheet reads IndexedDB, listens for records and links to Google Sheets");
 } else {
