@@ -160,3 +160,5 @@ Format:
 - **2026-11-28 10:20** — Vanad Telegrami lingid töötavad nüüd ilma uuesti kirjutamata: Alustus ja Lõpp avavad sessiooni ning Drenaaž kaart normaliseerub Äravooluks. Cloud sync ei kustuta enam Kirjed lehte tühja eksporti korral. Automaatne hinne 3 jõuab ka Hügieeni ruudustikku. Verify 60/0 ja brauserikontroll puhtad. Admin merge owneri loal.
 
 - **2026-11-28 10:29** — Kirjed on nüüd kronoloogiline: vanem kirje üleval, uuem all. Writer otsib viimase päris kirje rea ja lisab uue kohe selle taha, mitte päise alla. Tühjad read tabeli lõpus ei takista. See asendab varasema otsuse 'insert under header'.
+
+- **2026-11-28 10:38** — Landing value proposition tekstina, disain ja elemendid puutumata. Hero ja benefits räägivad ajakulust, Exceli täitmise kadumisest, automaatsest hindest 3, hügieenipunktidest ja Inspectle'i kogemusest. ET ja EN i18n uuendatud. Brauserikontroll: 222 elementi nii enne kui pärast, 0 overflow, 0 viga.
