@@ -207,7 +207,7 @@ if (appSource.includes("fetch('/api/ledger'") && appSource.includes('toend-sync-
 }
 
 const ledgerWriter = existsSync(join(root, "functions/api/ledger.js")) ? readFileSync(join(root, "functions/api/ledger.js"), "utf8") : "";
-if (ledgerWriter.includes("appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow)") && ledgerWriter.includes("Europe/Tallinn") && ledgerWriter.includes("photoCells") && ledgerWriter.includes("audioCell") && ledgerWriter.includes("plain(record.reason)") && !ledgerWriter.includes("plain(record.transcript)") && ledgerWriter.includes("'Drenaaž', 'Klapp', 'Pesu', 'Uks'") && !ledgerWriter.includes("Live!") && !ledgerWriter.includes("plain(record.hash)") && !ledgerWriter.includes("plain(record.device_id)")) {
+if (ledgerWriter.includes("appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow)") && ledgerWriter.includes("Europe/Tallinn") && ledgerWriter.includes("photoCells") && ledgerWriter.includes("videoCell") && !ledgerWriter.includes("audioCell") && ledgerWriter.includes("plain(record.transcript)") && !ledgerWriter.includes("plain(record.reason)") && ledgerWriter.includes("'Drenaaž', 'Klapp', 'Pesu', 'Uks'") && !ledgerWriter.includes("Live!") && !ledgerWriter.includes("plain(record.hash)") && !ledgerWriter.includes("plain(record.device_id)")) {
   ok("the Sheets writer keeps one compact Estonian record tab");
 } else {
   fail("functions/api/ledger.js still splits records between Live and Kirjed");

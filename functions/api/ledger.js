@@ -269,25 +269,25 @@ async function onRequestPost({ request, env }) {
     const token = await serviceToken(sa);
 
     const links = [];
-    const labels = [];
     let total = 0;
     for (const item of media) {
+      if (item.kind === 'audio') continue;
       const size = typeof item.dataUrl === 'string' ? item.dataUrl.length * 0.75 : 0;
       if (total + size > MAX_TOTAL) break;
       total += size;
       const url = await storeEvidence(env, item, new URL(request.url).origin);
       if (!url) continue;
-      const label = item.label || ((item.mime || '').startsWith('video/') ? 'video' : item.kind === 'audio' ? 'hääl' : 'foto');
+      const label = item.label || ((item.mime || '').startsWith('video/') ? 'video' : 'foto');
       links.push({ url, label });
-      labels.push(label);
     }
-    const evidence = labels.join(', ');
+    const photos = links.filter((link) => link.label === 'foto' || link.label.startsWith('foto '));
+    const videos = links.filter((link) => link.label === 'video');
+    const evidence = photos.concat(videos).map((link) => link.label).join(', ');
     const photoCells = Array.from({ length: 6 }, (_, index) => {
-      const item = links.filter((link) => link.label !== 'hääl')[index];
+      const item = photos[index];
       return item ? hyperlink(item.url, item.label) : '';
     });
-    const audio = links.find((link) => link.label === 'hääl');
-    const audioCell = audio ? hyperlink(audio.url, audio.label) : '';
+    const videoCell = videos[0] ? hyperlink(videos[0].url, videos[0].label) : '';
     const stamp = new Date(record.created_at);
     const safeStamp = Number.isNaN(stamp.getTime()) ? new Date() : stamp;
     const dateText = new Intl.DateTimeFormat('et-EE', {
@@ -300,14 +300,13 @@ async function onRequestPost({ request, env }) {
       dateText,
       `'${timeText}`,
       plain(displayCheckpoint(record)),
-      localized(record.verdict, DISPLAY_VERDICT),
       gradeFor(record),
-      plain(record.reason),
+      plain(record.transcript),
       localized(record.source, DISPLAY_SOURCE),
       plain(record.supervisor || record.device_id),
       evidence,
       ...photoCells,
-      audioCell,
+      videoCell,
     ];
     await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
     let hygieneUpdated = false;
