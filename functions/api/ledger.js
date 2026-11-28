@@ -152,22 +152,11 @@ function gradeFor(record) {
 const CHECKPOINT_PAIRS = [
   ['Kätepesu', 'Hand wash sink'], ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'], ['Täitepea', 'Filler head'],
-  ['Drenaaž', 'Drain'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
+  ['Äravool', 'Drain'], ['Klapp', 'Valve'], ['Pesu', 'Wash'], ['Uks', 'Door']
 ];
 
 const HYGIENE_LABELS = [
-  'Täitepea', 'Villija uksed ja villija alune',
-  'Villijast väljuvad pleksiklaasid. Alates maist on seal plastikkardinad.',
-  'Villijast väljuv liin', 'Villija esine põrand',
-  'Villija lagi ja klaasseinte kohal olevad plekkseinad', 'Pudeli kuivataja',
-  'Torustikud (mix, vill, past)', 'Mixer + põrand',
-  'VP keskuse lähiümbruse põrand', 'Õhuliinid', 'Õhuliinide alune põrand',
-  'Pudelipress', 'Pudelipressi ruumi uks-puhas', 'Pudelipressi välissein',
-  'Preformi etteanne', 'Pressi alune', 'Pressi jahutuse alune',
-  'Pressikapi sahtlid', 'Korkide ladustamise ala laos', 'Alumine korgikolu',
-  'Ülemine korgikolu', 'Ülemise platvormi käepiirded', 'Korgilift',
-  'Liin villijast Spectrumini',
-  'Drenaaž', 'Klapp', 'Pesu', 'Uks'
+  'Täitepea', 'Äravool', 'Klapp', 'Pesu', 'Uks'
 ];
 
 function displayCheckpoint(record) {
@@ -189,11 +178,30 @@ function weekParts(value) {
   return { year: day.getUTCFullYear(), week };
 }
 
+function localDay(value) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Tallinn', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(value);
+  const valueFor = (type) => parts.find((part) => part.type === type).value;
+  return new Date(Date.UTC(Number(valueFor('year')), Number(valueFor('month')) - 1, Number(valueFor('day'))));
+}
+
+function weekKey(parts) {
+  return `${parts.year}-${parts.week}`;
+}
+
+function currentWeekKeys() {
+  const monday = localDay(new Date());
+  monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+  const previous = new Date(monday);
+  previous.setUTCDate(previous.getUTCDate() - 7);
+  return [previous, monday].map((day) => weekKey(weekParts(day.toISOString().slice(0, 10))));
+}
+
 function hygieneTarget(record) {
   const parts = weekParts(record.created_at);
   if (!parts) return null;
-  const bucket = Math.min(53, Math.max(1, Math.floor((parts.week + 4) / 5) * 5));
-  const columnIndex = [15, 20, 25, 30, 35, 40, 45, 50].indexOf(bucket);
+  const columnIndex = currentWeekKeys().indexOf(weekKey(parts));
   if (columnIndex < 0) return null;
   const rowIndex = HYGIENE_LABELS.indexOf(displayCheckpoint(record));
   if (rowIndex < 0) return null;
