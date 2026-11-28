@@ -46,6 +46,10 @@ test('unverified automatic defaults are labelled and do not overwrite hygiene re
     assert.equal(calls.filter((call) => call.url.includes('?fields=sheets(')).length, 2);
     let sheetCalls = batchCalls(calls);
     assert.equal(sheetCalls.length, 2);
+    const hygieneRequests = JSON.parse(sheetCalls[1].options.body).requests;
+    assert.equal(hygieneRequests.length, 2);
+    assert.equal(hygieneRequests[1].updateCells.start.rowIndex, 5);
+    assert.match(hygieneRequests[1].updateCells.rows[0].values[0].userEnteredValue.stringValue, /^\d{2}\.\d{2}\.\d{4}$/);
     let row = insertedRow(sheetCalls[0]);
     assert.match(String(row[3]), /kontrollimata/);
     assert.equal(row[5], 'Test');

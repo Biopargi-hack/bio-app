@@ -358,6 +358,17 @@ function currentWeekKeys() {
   return [previous, monday].map((day) => weekKey(weekParts(day.toISOString().slice(0, 10))));
 }
 
+function currentWeekDates() {
+  const monday = localDay(new Date());
+  monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+  const previous = new Date(monday);
+  previous.setUTCDate(previous.getUTCDate() - 7);
+  const format = (day) => new Intl.DateTimeFormat('et-EE', {
+    timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric'
+  }).format(day);
+  return [format(previous), format(monday)];
+}
+
 function hygieneTarget(record) {
   const parts = weekParts(record.created_at);
   if (!parts) return null;
@@ -419,13 +430,22 @@ async function colorHygieneCell(token, sheetId, range, grade) {
   const response = await fetch(`${SHEETS_URL}/${encodeURIComponent(sheetId)}:batchUpdate`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ requests: [{
-      repeatCell: {
-        range: { sheetId: tab, startRowIndex: row, endRowIndex: row + 1, startColumnIndex: column - 1, endColumnIndex: column },
-        cell: { userEnteredFormat: { backgroundColor: rgb } },
-        fields: 'userEnteredFormat.backgroundColor'
+    body: JSON.stringify({ requests: [
+      {
+        repeatCell: {
+          range: { sheetId: tab, startRowIndex: row, endRowIndex: row + 1, startColumnIndex: column - 1, endColumnIndex: column },
+          cell: { userEnteredFormat: { backgroundColor: rgb } },
+          fields: 'userEnteredFormat.backgroundColor'
+        }
+      },
+      {
+        updateCells: {
+          start: { sheetId: tab, rowIndex: 5, columnIndex: 1 },
+          rows: [{ values: currentWeekDates().map((value) => ({ userEnteredValue: { stringValue: value } })) }],
+          fields: 'userEnteredValue'
+        }
       }
-    }] })
+    ] })
   });
   if (!response.ok) throw new Error(`sheet color ${response.status}: ${await response.text()}`);
 }
