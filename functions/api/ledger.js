@@ -408,6 +408,9 @@ async function onRequestPost({ request, env }) {
     return Response.json({ error: 'bad record' }, { status: 400 });
   }
   if (payload.media !== undefined && !Array.isArray(payload.media)) return Response.json({ error: 'bad media' }, { status: 400 });
+  if (record.record_type !== 'inspection_completion' && payload.recovery !== true && ![1, 2, 3].includes(Number(gradeFor(record)))) {
+    return Response.json({ error: 'grade required' }, { status: 400 });
+  }
   const media = payload.media || [];
 
   try {
@@ -459,8 +462,8 @@ async function onRequestPost({ request, env }) {
       dateText,
       timeText,
       record.record_type === 'inspection_completion' ? `Ülevaatuse kinnitamine / Inspection completion${record.inspection_line ? ` — ${plain(record.inspection_line)}` : ''}` : plain(displayCheckpoint(record)),
-      record.record_type === 'inspection_completion' || (payload.recovery === true && record.auto_default !== true) ? '' : record.auto_default === true ? '3 — automaatne, kontrollimata / automatic, unverified' : gradeFor(record),
-      record.record_type === 'inspection_completion' ? (record.signed_by ? 'Allkirjastatud, enda kinnitus / Signed, self-declared confirmation' : 'Lõpetatud, allkiri puudub / Completed, no signature') : payload.recovery === true && record.auto_default === true ? 'Taastatud automaatne kontrollimata hinnang / Recovered automatic unverified default' : payload.recovery === true ? 'Taastatud varasema kirje tõendid / Recovered attachments from an earlier record; not a new inspection' : record.auto_default === true ? 'Automaatne kontrollimata vaikimisi hinnang / Automatic unverified default assessment' : plain(record.transcript),
+      record.record_type === 'inspection_completion' ? '' : payload.recovery === true && record.auto_default !== true ? '3 — taastatud, kontrollimata / recovered, unverified' : record.auto_default === true ? '3 — automaatne, kontrollimata / automatic, unverified' : gradeFor(record),
+      record.record_type === 'inspection_completion' ? (record.signed_by ? 'Allkirjastatud, enda kinnitus / Signed, self-declared confirmation' : 'Lõpetatud, allkiri puudub / Completed, no signature') : payload.recovery === true && record.auto_default === true ? 'Taastatud automaatne kontrollimata hinnang / Recovered automatic unverified default' : payload.recovery === true ? 'Taastatud varasema kirje tõendid, vaikimisi hinne 3 / Recovered attachments from an earlier record, grade set to 3' : record.auto_default === true ? 'Automaatne kontrollimata vaikimisi hinnang / Automatic unverified default assessment' : plain(record.transcript),
       plain(record.record_type === 'inspection_completion' ? record.signed_by || record.supervisor : record.supervisor || record.device_id),
       evidence,
       ...photoCells,
