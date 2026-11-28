@@ -388,6 +388,48 @@ async function updateCell(token, sheetId, range, value) {
   return response.json();
 }
 
+const hygieneTabIds = new Map();
+async function hygieneTab(token, sheetId) {
+  if (hygieneTabIds.has(sheetId)) return hygieneTabIds.get(sheetId);
+  const response = await fetch(
+    `${SHEETS_URL}/${encodeURIComponent(sheetId)}?fields=sheets(properties(title,sheetId))`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!response.ok) throw new Error(`sheet metadata ${response.status}: ${await response.text()}`);
+  const info = await response.json();
+  const tab = (info.sheets || []).find((item) => item.properties?.title === 'Hügieen')?.properties?.sheetId;
+  if (tab === undefined) throw new Error('Hügieen tab is missing');
+  hygieneTabIds.set(sheetId, tab);
+  return tab;
+}
+
+async function colorHygieneCell(token, sheetId, range, grade) {
+  const match = range.match(/^Hügieen!([A-Z]+)(\d+)$/);
+  if (!match) return;
+  let column = 0;
+  for (const letter of match[1]) column = column * 26 + letter.charCodeAt(0) - 64;
+  const row = Number(match[2]) - 1;
+  const rgb = {
+    3: { red: 198 / 255, green: 239 / 255, blue: 206 / 255 },
+    2: { red: 1, green: 235 / 255, blue: 156 / 255 },
+    1: { red: 1, green: 199 / 255, blue: 206 / 255 },
+  }[Number(grade)];
+  if (!rgb) return;
+  const tab = await hygieneTab(token, sheetId);
+  const response = await fetch(`${SHEETS_URL}/${encodeURIComponent(sheetId)}:batchUpdate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ requests: [{
+      repeatCell: {
+        range: { sheetId: tab, startRowIndex: row, endRowIndex: row + 1, startColumnIndex: column - 1, endColumnIndex: column },
+        cell: { userEnteredFormat: { backgroundColor: rgb } },
+        fields: 'userEnteredFormat.backgroundColor'
+      }
+    }] })
+  });
+  if (!response.ok) throw new Error(`sheet color ${response.status}: ${await response.text()}`);
+}
+
 async function onRequestPost({ request, env }) {
   if (!env.GOOGLE_SERVICE_ACCOUNT || !env.SHEET_ID) {
     return Response.json({ error: 'unavailable' }, { status: 503 });
@@ -473,7 +515,7 @@ async function onRequestPost({ request, env }) {
     ];
     const ledgerRowNumber = await insertLedgerRow(token, env.SHEET_ID, ledgerRow);
     let hygieneUpdated = false;
-    const target = record.auto_default === true || record.record_type === 'inspection_completion' || payload.recovery === true ? null : hygieneTarget(record);
+    const target = record.record_type === 'inspection_completion' ? null : hygieneTarget(record);
     if (target) {
       const current = await readCell(token, env.SHEET_ID, target.range);
       const next = current === null ? target.grade : Math.min(current, target.grade);
@@ -484,6 +526,7 @@ async function onRequestPost({ request, env }) {
         cellValue = `=HYPERLINK("#gid=${gid}&range=A${ledgerRowNumber}", "${next}")`;
       }
       await updateCell(token, env.SHEET_ID, target.range, cellValue);
+      await colorHygieneCell(token, env.SHEET_ID, target.range, next);
       hygieneUpdated = true;
     }
     return Response.json({ ok: true, seq: record.seq, files: links.length, hygieneUpdated });
