@@ -520,12 +520,14 @@ async function onRequestPost({ request, env }) {
       const current = await readCell(token, env.SHEET_ID, target.range);
       const next = current === null ? target.grade : Math.min(current, target.grade);
       const changed = current === null || next < current;
-      let cellValue = next;
-      if (changed && [1, 2].includes(Number(next))) {
-        const gid = await ledgerTab(token, env.SHEET_ID);
-        cellValue = `=HYPERLINK("#gid=${gid}&range=A${ledgerRowNumber}", "${next}")`;
+      if (changed) {
+        let cellValue = next;
+        if ([1, 2].includes(Number(next))) {
+          const gid = await ledgerTab(token, env.SHEET_ID);
+          cellValue = `=HYPERLINK("#gid=${gid}&range=A${ledgerRowNumber}", "${next}")`;
+        }
+        await updateCell(token, env.SHEET_ID, target.range, cellValue);
       }
-      await updateCell(token, env.SHEET_ID, target.range, cellValue);
       await colorHygieneCell(token, env.SHEET_ID, target.range, next);
       hygieneUpdated = true;
     }
