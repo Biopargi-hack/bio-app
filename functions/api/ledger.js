@@ -408,7 +408,7 @@ async function onRequestPost({ request, env }) {
     return Response.json({ error: 'bad record' }, { status: 400 });
   }
   if (payload.media !== undefined && !Array.isArray(payload.media)) return Response.json({ error: 'bad media' }, { status: 400 });
-  if (record.record_type !== 'inspection_completion' && payload.recovery !== true && ![1, 2, 3].includes(Number(gradeFor(record)))) {
+  if (record.record_type !== 'inspection_completion' && payload.recovery !== true && ![1, 2, 3].includes(Number(record.grade))) {
     return Response.json({ error: 'grade required' }, { status: 400 });
   }
   const media = payload.media || [];

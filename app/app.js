@@ -138,6 +138,7 @@ const WORDS = {
     sync_retry: 'Retry sending',
     sync_keep_open: 'Keep this page open and online until everything is sent. If a response is lost, a retry may create a duplicate row.',
     sync_done: 'Sent to Google Sheets',
+    record_sent: 'Record sent to Google Sheets.',
     sync_failed: 'Waiting to send, check connection',
     landing_table: 'View table',
 
@@ -245,6 +246,7 @@ const WORDS = {
     sync_retry: 'Proovi uuesti saata',
     sync_keep_open: 'Hoia leht avatuna ja võrguühendusega, kuni kõik on saadetud. Kadunud vastuse järel võib uuesti saatmine tekitada korduva rea.',
     sync_done: 'Saadetud Google Sheetsi',
+    record_sent: 'Kirje saadetud Google Sheetsi.',
     sync_failed: 'Ootab saatmist, kontrolli ühendust',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',
@@ -794,6 +796,11 @@ function setSyncStatus(state, detail = '') {
   el.title = detail;
   el.dataset.state = state;
 }
+function markSent() {
+  setSyncStatus('sync_done');
+  note('saveNote', t('record_sent'), false);
+  note('quickNote', t('record_sent'), false);
+}
 
 async function mediaBlob(key) {
   const db = await openDb();
@@ -955,7 +962,7 @@ async function flushQueueRecords() {
   await migrateOutbox();
   const pending = await pendingSessionSeqs();
   if (!pending.length) {
-    if (!queueDirty && $('syncStatus')?.dataset.state === 'sync_pending') setSyncStatus('sync_done');
+    if (!queueDirty && $('syncStatus')?.dataset.state === 'sync_pending') markSent();
     return;
   }
   setSyncStatus('sync_pending');
@@ -974,7 +981,7 @@ async function flushQueueRecords() {
   if (failure) throw failure;
   // Entries may have been added by another tab while this batch was sending.
   if ((await pendingSessionSeqs()).length) return flushQueueRecords();
-  if (!queueDirty) setSyncStatus('sync_done');
+  if (!queueDirty) markSent();
 }
 
 async function bitmapFor(file) {

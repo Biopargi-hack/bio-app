@@ -202,10 +202,15 @@ if (sheetLinks >= 3 && !indexSource.includes("taptoprove_ledger.xlsx") && !index
   fail(`app: the Google Sheet link is missing (${sheetLinks}) or the Excel workbook is still on the page`);
 }
 const ledgerWriter = existsSync(join(root, "functions/api/ledger.js")) ? readFileSync(join(root, "functions/api/ledger.js"), "utf8") : "";
-if (ledgerWriter.includes("payload.recovery !== true") && ledgerWriter.includes("grade required") && ledgerWriter.includes("recovered, unverified")) {
+if (ledgerWriter.includes("Number(record.grade)") && ledgerWriter.includes("grade required") && ledgerWriter.includes("recovered, unverified")) {
   ok("the Sheets writer requires a grade and recovers evidence with grade 3");
 } else {
   fail("functions/api/ledger.js no longer requires a grade on inspection records");
+}
+if (appSource.includes("record_sent: 'Kirje saadetud Google Sheetsi.'") && appSource.includes('function markSent()') && appSource.includes('if (!queueDirty) markSent();')) {
+  ok("a successful send opens a clear confirmation in the app");
+} else {
+  fail("app/app.js: no confirmation after a record reaches the sheet");
 }
 if (appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
   ok("a saved check still carries its checkpoint name");

@@ -166,3 +166,5 @@ Format:
 - **2026-11-28 10:23** — fix/et_voice_fast: phones (iPhone and Android) always record the clip for the TalTech server; a desktop note whose server pass cannot run still gets a capital and a full stop. Speech server now pads the encoder window to the clip length plus 1 s: a 5 s note takes 1.3 s instead of 7 s, pooled WER 10.0% (was 10.4%). Will merge with admin bypass, no second reviewer.
 
 - **2026-11-28 10:57** — Hinne on nüüd kohustuslik kõigil kontrollikirjetel. Taastatud tõendite kirjed saavad hinna 3 ja uue põhjenduse. Ülevaatuse lõpetamine jääb ilma hindeta, töövoog säilib. Ka Hügieeni lehel eemaldati kinnistatud read 1-7, et need ei kataks tabelit.
+
+- **2026-11-28 11:01** — Hinne nõutakse nüüd kirjes endas, mitte ainult verdictust tuletatuna. Pärast edukat saatmist näitab äpp nii salvestamise kui ka kiirmärkuse kohal 'Kirje saadetud Google Sheetsi'.
