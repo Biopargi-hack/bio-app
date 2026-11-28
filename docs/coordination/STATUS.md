@@ -8,7 +8,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | @AARenor | omp | doing | Eestikeelsed väärtused ka Kirjed vahekaardil | `fix/kirjed_estonian` | real NFC device test |
 | @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN selector after #122 | `fix/restore_lang_selector_again` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
-| @stevenlaas123-pixel | omp | review | Remove extra fields from Excel CSV | `fix/csv-extra-fields` | none |
+| @stevenlaas123-pixel | omp | review | Starter and ender NFC line inspection sessions | `feat/inspection-session` | real NFC device test |
 
 ## Demo-critical path
 

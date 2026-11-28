@@ -249,6 +249,9 @@ async function onRequestPost({ request, env }) {
   if (!record || !Number.isInteger(record.seq) || record.seq < 1 || !record.created_at) {
     return Response.json({ error: 'bad record' }, { status: 400 });
   }
+  if (record.record_type === 'inspection_completion') {
+    return Response.json({ ok: true, seq: record.seq, files: 0, hygieneUpdated: false });
+  }
   const media = Array.isArray(payload.media) ? payload.media.slice(0, 8) : [];
 
   try {
@@ -287,8 +290,8 @@ async function onRequestPost({ request, env }) {
       dateText,
       `'${timeText}`,
       plain(displayCheckpoint(record)),
-      gradeFor(record),
-      plain(record.transcript),
+      record.auto_default === true ? '3 — automaatne, kontrollimata / automatic, unverified' : gradeFor(record),
+      record.auto_default === true ? 'Automaatne kontrollimata vaikimisi hinnang / Automatic unverified default assessment' : plain(record.transcript),
       plain(record.supervisor || record.device_id),
       evidence,
       ...photoCells,
@@ -296,7 +299,7 @@ async function onRequestPost({ request, env }) {
     ];
     await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
     let hygieneUpdated = false;
-    const target = hygieneTarget(record);
+    const target = record.auto_default === true ? null : hygieneTarget(record);
     if (target) {
       const current = await readCell(token, env.SHEET_ID, target.range);
       const next = current === null ? target.grade : Math.min(current, target.grade);

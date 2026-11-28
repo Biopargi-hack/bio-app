@@ -91,6 +91,7 @@
             <th data-i18n="time">Aeg</th>
             <th data-i18n="asset">Seade</th>
             <th data-i18n="checkpoint">Kontrollpunkt</th>
+            <th data-i18n="inspector">Kontrollija (enda nimetatud) / Inspector (self-declared)</th>
             <th data-i18n="grade">Hinne</th>
             <th data-i18n="proof">Tõend</th>
             <th data-i18n="tag">Silt</th>
@@ -130,6 +131,8 @@
       title: 'Elavad kirjed', intro: 'See leht jälgib uusi kontrolle selles seadmes. Ava salvestusleht teises vahekaardis ja lisa kirje. Uus rida ilmub siia ilma lehte laadimata.',
       capture: 'Ava salvestus', sheet_link: 'Google Sheets', live: 'Otse', seq: '#', time: 'Aeg', asset: 'Seade',
       checkpoint: 'Kontrollpunkt', grade: 'Hinne', proof: 'Tõend', proof_close: 'Sulge', tag: 'Silt', note: 'Märkus',
+      inspector: 'Kontrollija (enda nimetatud) / Inspector (self-declared)',
+      automatic_grade: '3 — automaatne, kontrollimata / automatic, unverified',
       hash: 'Räsikood', empty: 'Kirjeid veel pole. Ava salvestusleht ja lisa kirje.',
       foot: 'Salvestatud kontrollid saadetakse Google Sheetsi kirjete lehele. Kirjed jäävad räsiahela jaoks ka sellesse brauserisse.',
       footer: 'Hack the Future of Food 2026. Tõenda ühe puudutusega.', onePager: 'Üheleht',
@@ -338,9 +341,10 @@
 
     function render(previousSeq = lastSeq) {
       $('recordsBody').replaceChildren();
-      $('emptyState').hidden = records.length > 0;
-      $('countText').textContent = t('count', records.length);
-      for (const record of records) {
+      const gradeRecords = records.filter((record) => record.record_type !== 'inspection_completion');
+      $('emptyState').hidden = gradeRecords.length > 0;
+      $('countText').textContent = t('count', gradeRecords.length);
+      for (const record of gradeRecords) {
         const row = document.createElement('tr');
         if (record.seq > previousSeq) row.className = 'fresh';
         row.append(
@@ -348,7 +352,8 @@
           cell(row, record.created_at ? new Date(record.created_at).toLocaleString('et-EE') : ''),
           cell(row, record.asset),
           cell(row, record.checkpoint),
-          cell(row, record.grade),
+          cell(row, record.supervisor),
+          cell(row, record.auto_default === true ? t('automatic_grade') : record.grade),
           proofCell(record),
           cell(row, record.tag_sig),
           cell(row, record.transcript),
