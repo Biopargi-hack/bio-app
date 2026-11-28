@@ -1172,7 +1172,7 @@ function quickRecord(kind, grade = 0) {
     const defaultAssessment = (isDefault || (isGrade && grade === 3)) && noEvidence;
     const gradeReason = isGrade ? WORDS[lang].grade_reason.replace('N', grade) : '';
     const typed = $('transcript').value.trim();
-    const transcript = isGrade ? (typed || gradeReason) : typed || WORDS[lang].default_reason;
+    const transcript = typed;
     const verdict = isGrade ? (grade === 1 ? 'serious' : grade === 2 ? 'not clean' : 'clean') : 'clean';
     const reason = defaultAssessment ? WORDS[lang].default_reason : isGrade ? gradeReason : WORDS[lang].quick_reason;
     const previous = reusedPhoto(mediaItems[0]);

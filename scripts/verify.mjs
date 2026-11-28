@@ -212,6 +212,11 @@ if (ledgerWriter.includes("appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow)")
 } else {
   fail("functions/api/ledger.js still splits records between Live and Kirjed");
 }
+if (appSource.includes("const transcript = typed;") && !appSource.includes("typed || gradeReason")) {
+  ok("an empty note stays empty instead of a fixed reason");
+} else {
+  fail("app: the note field is replaced by an automatic reason");
+}
 if (sheetSource.includes("new BroadcastChannel('toend-records')") && sheetSource.includes("indexedDB.open('toend'") && sheetSource.includes('id="sheetJsonlBtn"') && !sheetSource.includes('sheetExcelBtn')) {
   ok("live sheet reads IndexedDB, listens for records and links to Google Sheets");
 } else {
