@@ -161,16 +161,21 @@
             <span data-i18n="session_name">Inspektori nimi</span>
             <input id="sessionName" type="text" autocomplete="name" maxlength="60">
           </label>
-          <button id="sessionStart" class="action" type="button" data-i18n="session_start">Alusta inspektsiooni</button>
+          <button id="sessionStart" class="action" type="button" data-i18n="session_start" disabled>Alusta inspektsiooni</button>
         </div>
         <ol id="sessionReview" class="session-review" hidden></ol>
         <label id="sessionSignatureField" class="field" hidden>
           <span data-i18n="session_signature">Allkiri: kirjuta oma nimi uuesti</span>
           <input id="sessionSignature" type="text" autocomplete="off" maxlength="60">
         </label>
-        <button id="sessionFinish" class="action" type="button" data-i18n="session_finish" hidden>Kinnita ja lõpeta kontroll</button>
+        <button id="sessionFinish" class="action" type="button" data-i18n="session_finish" hidden disabled>Kinnita ja lõpeta kontroll</button>
         <p id="sessionNote" class="note" role="status" aria-live="polite"></p>
       </section>
+      <div class="sync-controls">
+        <span id="syncStatus" class="sync-status" data-state="sync_idle" role="status" aria-live="polite">Salvestatud selles seadmes</span>
+        <button id="syncRetry" class="quiet small" type="button" data-i18n="sync_retry">Proovi uuesti saata</button>
+        <p class="note" data-i18n="sync_keep_open">Hoia leht avatuna ja võrguühendusega, kuni kõik on saadetud. Kadunud vastuse järel võib uuesti saatmine tekitada korduva rea.</p>
+      </div>
       <div class="capture-layout">
         <div class="capture-main">
           <div class="readout" id="assetStamp">
@@ -225,7 +230,7 @@
           <p id="photoNote" class="note" role="status"></p>
 
           <div class="row save-row">
-            <button id="saveBtn" class="action" type="button" data-i18n="save">Lisa kirje</button>
+            <button id="saveBtn" class="action" type="button" data-i18n="save" disabled>Lisa kirje</button>
             <span id="saveNote" class="note" role="status"></span>
           </div>
 
@@ -237,7 +242,6 @@
             </div>
             <div class="last-record-actions">
               <a class="link-button ghost small" href="/sheet" data-i18n="open_sheet">Vaata kirjeid</a>
-              <span id="syncStatus" class="sync-status" data-state="idle" data-i18n="sync_idle" role="status">Salvestatud selles seadmes</span>
             </div>
           </div>
         </div>

@@ -55,11 +55,11 @@ for (const file of ["app/app.js", "app/sw.js"]) {
 }
 
 try {
-  execFileSync(process.execPath, ["--test", join(root, "scripts/data_flow_test.mjs")], { stdio: "pipe" });
-  ok("data flow tests pass");
+  execFileSync(process.execPath, ["--test", join(root, "scripts/data_flow_test.mjs"), join(root, "scripts/session_sheet_test.mjs")], { stdio: "pipe" });
+  ok("data and spreadsheet tests pass");
 } catch (error) {
   const detail = error.stderr?.toString().trim() || error.message;
-  fail(`data flow tests failed:\n${detail}`);
+  fail(`data or spreadsheet tests failed:\n${detail}`);
 }
 
 // Card ID must survive from the tap into every appended record.
@@ -207,18 +207,7 @@ if (appSource.includes("function checkpointFor(asset)") && appSource.includes("c
 }
 
 const sheetSource = existsSync(join(appDir, "sheet.html")) ? readFileSync(join(appDir, "sheet.html"), "utf8") : "";
-if (appSource.includes("fetch('/api/ledger'") && appSource.includes('toend-sync-queue') && existsSync(join(root, 'functions/api/ledger.js'))) {
-  ok("saved records queue and post to the Sheets writer");
-} else {
-  fail("app: the Google Sheets sync path is missing");
-}
 
-const ledgerWriter = existsSync(join(root, "functions/api/ledger.js")) ? readFileSync(join(root, "functions/api/ledger.js"), "utf8") : "";
-if (ledgerWriter.includes("insertLedgerRow(token, env.SHEET_ID, ledgerRow)") && ledgerWriter.includes("'Kirjed!A2:A1000'") && ledgerWriter.includes('Kirjed!A${insertIndex + 1}') && ledgerWriter.includes("Europe/Tallinn") && ledgerWriter.includes("photoCells") && ledgerWriter.includes("videoCell") && !ledgerWriter.includes("audioCell") && ledgerWriter.includes("plain(record.transcript)") && !ledgerWriter.includes("plain(record.reason)") && !ledgerWriter.includes("localized(record.source, DISPLAY_SOURCE)") && ledgerWriter.includes("'Äravool', 'Klapp', 'Pesu', 'Uks'") && !ledgerWriter.includes("Live!") && !ledgerWriter.includes("plain(record.hash)") && !ledgerWriter.includes("plain(record.device_id)")) {
-  ok("the Sheets writer keeps one compact Estonian record tab");
-} else {
-  fail("functions/api/ledger.js still splits records between Live and Kirjed");
-}
 if (appSource.includes("const transcript = typed;") && !appSource.includes("typed || gradeReason")) {
   ok("an empty note stays empty instead of a fixed reason");
 } else {

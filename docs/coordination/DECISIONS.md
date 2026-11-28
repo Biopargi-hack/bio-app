@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-28 — Recover media and signed completions
+
+**Decision.** Keep files and completion records on the device until synchronization succeeds; upload media in chunks and include a clearly labelled signed completion in the shared ledger. Previously acknowledged media and unverified-default records are retried as labelled recovery rows. Unverified defaults stay in `Kirjed` and do not change the `Hügieen` grade grid.
+
+**Why.** The old writer silently skipped oversized or unavailable attachments and acknowledged completion without writing it. Recovery must not turn an old inspection into a new grade.
+
+**Consequences.** Reopen the same browser and device online to recover data that remains there. The typed signature is self-declared. A lost response after a successful Sheets append can lead to a duplicate on retry; cross-service exactly-once delivery is not guaranteed.
+
+---
+
 ## 2026-11-28 — Line sessions and unverified defaults
 
 **Decision.** A starter tag opens a line session with a self-declared inspector. An ender tag opens a review; only explicit confirmation creates grade 3 defaults for untouched demo checkpoints. Those defaults are marked unverified and do not count as observed clean in the hygiene aggregate.
