@@ -154,3 +154,5 @@ Format:
 - **2026-11-28 09:34** — feat/et_voice_quality: Estonian only voice; /api/transcribe now asks TalTech whisper-large-v3-turbo-et-verbatim-2604 on the team server (asr.taptoprove.ee, home-apps tunnel) first, Groq whisper-large-v3 as fallback. Pages secrets ASR_URL and ASR_TOKEN were set through the Cloudflare API, not the deploy workflow (production and preview). Own benchmark on browser-shaped webm: TalTech 7 to 9% WER, Groq 18 to 24%.
 
 - **2026-11-28 09:51** — #142 preview end to end: headless Chrome with a recorded Estonian sentence as the mic, real /api/transcribe answered engine taltech with the exact sentence in 7 s, 0 errors. Merging #142 with admin bypass and no second reviewer, the same way earlier AARenor PRs were merged.
+
+- **2026-11-28 10:09** — Algus-kaart küsib nüüd liini nime ja kontrollija nime. Lõpp-kaart näitab skännitud ja skännimata punkte ning lisab puuduvatele automaatse kontrollimata hinde 3. Video loeb tõendina ka siis, kui eelvaate kaader ei õnnestu. Uued kirjed lähevad nüüd vahetult päise alla, mitte tühjade ridade taha. Verify ja mõlemad brauserivaated puhtad. Admin merge owneri loal.

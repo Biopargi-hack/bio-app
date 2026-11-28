@@ -89,17 +89,44 @@ async function serviceToken(sa) {
 
 
 
-async function appendRow(token, sheetId, sheetName, row) {
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(sheetName + '!A:A')}:append`;
-  const response = await fetch(`${url}?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
+let ledgerTabId = null;
+
+async function ledgerTab(token, sheetId) {
+  if (ledgerTabId !== null) return ledgerTabId;
+  const response = await fetch(
+    `${SHEETS_URL}/${encodeURIComponent(sheetId)}?fields=sheets(properties(title,sheetId))`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!response.ok) throw new Error(`sheet metadata ${response.status}: ${await response.text()}`);
+  const info = await response.json();
+  const tab = (info.sheets || []).find((item) => item.properties?.title === 'Kirjed')?.properties?.sheetId;
+  if (tab === undefined) throw new Error('Kirjed tab is missing');
+  ledgerTabId = tab;
+  return tab;
+}
+
+async function insertLedgerRow(token, sheetId, row) {
+  const tab = await ledgerTab(token, sheetId);
+  const batch = await fetch(`${SHEETS_URL}/${encodeURIComponent(sheetId)}:batchUpdate`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({ values: [row] })
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      requests: [{
+        insertDimension: {
+          range: { sheetId: tab, dimension: 'ROWS', startIndex: 1, endIndex: 2 },
+          inheritFromBefore: false,
+        }
+      }]
+    })
   });
-  if (!response.ok) throw new Error(`sheet append ${sheetName} ${response.status}: ${await response.text()}`);
+  if (!batch.ok) throw new Error(`sheet insert ${batch.status}: ${await batch.text()}`);
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Kirjed!A2')}?valueInputOption=USER_ENTERED`;
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ values: [row], majorDimension: 'ROWS' })
+  });
+  if (!response.ok) throw new Error(`sheet write Kirjed ${response.status}: ${await response.text()}`);
   return response.json();
 }
 
@@ -305,7 +332,7 @@ async function onRequestPost({ request, env }) {
       ...photoCells,
       videoCell,
     ];
-    await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
+    await insertLedgerRow(token, env.SHEET_ID, ledgerRow);
     let hygieneUpdated = false;
     const target = record.auto_default === true ? null : hygieneTarget(record);
     if (target) {
