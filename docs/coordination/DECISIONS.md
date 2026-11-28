@@ -277,3 +277,20 @@ detection) touch the same files; this branch is their integration point and the
 merge order needs care. The original audit/tamper demo beat is still out of scope,
 as in the earlier minimal-app decision. NFC, camera and microphone are unchanged
 and still not device-tested.
+
+## 2026-11-28 — Five line points, previous and current week
+
+**Decision.** The Hügieen tab and the live writer keep five line points only:
+Täitepea, Äravool, Klapp, Pesu and Uks. The two week columns are the previous
+ISO week and the current ISO week, dated from Europe/Tallinn. The Alustus and
+Lõpp cards are inspection markers and do not create a grade cell.
+
+**Why.** The owner asked for those five points in the table and no older weeks.
+The first and last cards mark the start and end of an inspection line, so a
+grade on them has no hygiene checkbox to fill.
+
+**Consequences.** Old week columns and the twenty four removed checkpoint rows
+are cleared from the live sheet. Records already sent to Kirjed stay in the
+append-only log. A record outside the two weeks still lands in Kirjed and does
+not touch Hügieen.
+

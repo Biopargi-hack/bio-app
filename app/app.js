@@ -381,7 +381,7 @@ let selectedGrade = 0;
 let lastSavedRecord = null;
 const SESSION_KEY = 'inspection:active';
 const SESSION_PENDING = 'inspection:pending:';
-const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Drenaaž', 'Uks'];
+const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Äravool', 'Uks'];
 const AUTO_DEFAULT_TEXT = 'Automaatne kontrollimata vaikimisi hinnang';
 const sessionParams = new URLSearchParams(location.search);
 const sessionMode = sessionParams.get('session') || '';
@@ -395,7 +395,7 @@ const SESSION_TEXT = {
     end: 'Kontrolli ülevaade ja lõpetamine',
     active: 'Aktiivne kontroll',
     identity: 'Nimi on ise deklareeritud; isikut ei kontrollita. Kontroll jääb esmalt sellesse brauserisse ja seadmesse ning kirjed sünkroonitakse võrguühenduse olemasolul.',
-    start_desc: 'Näidisnimekiri: Pesu, Täitepea, Klapp, Drenaaž ja Uks. Sisesta nimi ning alusta selgesõnaliselt.',
+    start_desc: 'Näidisnimekiri: Pesu, Täitepea, Klapp, Äravool ja Uks. Sisesta nimi ning alusta selgesõnaliselt.',
     end_desc: 'Näidisnimekiri, mitte tegeliku liini täielik nimekiri. Kinnitamisel lisatakse puuduvatele punktidele automaatne kontrollimata hinne 3. See ei tõenda kontrollimist.',
     completed: 'Kontroll lõpetatud.',
     no_session: 'Selle liini aktiivset kontrolli ei leitud.',
@@ -415,7 +415,7 @@ const SESSION_TEXT = {
     end: 'Review and finish inspection',
     active: 'Active inspection',
     identity: 'Name is self-declared, not identity verified. The inspection is stored in this browser and device first; records sync when online.',
-    start_desc: 'Example roster: Pesu, Täitepea, Klapp, Drenaaž and Uks. Enter a name and explicitly start.',
+    start_desc: 'Example roster: Pesu, Täitepea, Klapp, Äravool and Uks. Enter a name and explicitly start.',
     end_desc: 'Example roster, not a complete real line roster. Confirmation adds automatic unverified grade 3 defaults for missing checkpoints. This does not prove an inspection.',
     completed: 'Inspection completed.',
     no_session: 'No inspection for this line was found.',
@@ -1304,7 +1304,7 @@ const CHECKPOINT_NAMES = [
   ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'],
   ['Täitepea', 'Filler head'],
-  ['Drenaaž', 'Drain'],
+  ['Äravool', 'Drain'],
   ['Klapp', 'Valve'],
   ['Pesu', 'Wash'],
   ['Uks', 'Door']
