@@ -3,9 +3,24 @@ import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { onRequestPost, onRequestGet, onRequestEvidencePost } from '../functions/api/ledger.js';
 
+function insertedRow(call, sheetId = 42) {
+  const requests = JSON.parse(call.options.body).requests;
+  assert.equal(requests.length, 2);
+  assert.deepEqual(requests[0].insertDimension.range, { sheetId, dimension: 'ROWS', startIndex: 1, endIndex: 2 });
+  const update = requests[1].updateCells;
+  assert.deepEqual(update.start, { sheetId, rowIndex: 1, columnIndex: 0 });
+  assert.equal(update.fields, 'userEnteredValue');
+  return update.rows[0].values.map(({ userEnteredValue }) =>
+    userEnteredValue.formulaValue ?? userEnteredValue.numberValue ?? userEnteredValue.stringValue);
+}
+
+function batchCalls(calls) {
+  return calls.filter((call) => call.url.includes(':batchUpdate'));
+}
+
 test('unverified automatic defaults are labelled and do not overwrite hygiene results', async () => {
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
-  const env = { SHEET_ID: 'test', GOOGLE_SERVICE_ACCOUNT: JSON.stringify({
+  const env = { SHEET_ID: 'test-default', GOOGLE_SERVICE_ACCOUNT: JSON.stringify({
     client_email: 'test@example.invalid', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' })
   }) };
   const calls = [];
@@ -13,6 +28,7 @@ test('unverified automatic defaults are labelled and do not overwrite hygiene re
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).includes('oauth2.googleapis.com')) return Response.json({ access_token: 'test', expires_in: 3600 });
+    if (String(url).includes('?fields=sheets(')) return Response.json({ sheets: [{ properties: { title: 'Kirjed', sheetId: 42 } }] });
     if ((options.method || 'GET') === 'GET') return Response.json({ values: [[2]] });
     return Response.json({});
   };
@@ -25,18 +41,22 @@ test('unverified automatic defaults are labelled and do not overwrite hygiene re
     let response = await post({ ...base, auto_default: true });
     assert.equal(response.status, 200);
     assert.equal((await response.json()).hygieneUpdated, false);
-    let sheetCalls = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
+    assert.equal(calls.filter((call) => call.url.includes('?fields=sheets(')).length, 1);
+    let sheetCalls = batchCalls(calls);
     assert.equal(sheetCalls.length, 1);
-    let row = JSON.parse(sheetCalls[0].options.body).values[0];
+    let row = insertedRow(sheetCalls[0]);
     assert.match(String(row[3]), /kontrollimata/);
     assert.equal(row[5], 'Test');
+    assert.match(row[1], /^\d{2}:\d{2}$/);
     calls.length = 0;
     response = await post({ ...base, seq: 2, auto_default: false });
     assert.equal((await response.json()).hygieneUpdated, true);
     sheetCalls = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
     assert.equal(sheetCalls.length, 3);
-    row = JSON.parse(sheetCalls[0].options.body).values[0];
+    row = insertedRow(batchCalls(calls)[0]);
     assert.equal(row[3], 3);
+    const numericCell = JSON.parse(batchCalls(calls)[0].options.body).requests[1].updateCells.rows[0].values[3];
+    assert.deepEqual(numericCell.userEnteredValue, { numberValue: 3 });
     assert.equal(JSON.parse(sheetCalls[2].options.body).values[0][0], 2);
   } finally {
     globalThis.fetch = originalFetch;
@@ -118,14 +138,17 @@ test('chunked video supports retry, complete retrieval and byte ranges', async (
 
 test('ledger stores all media, rejects missing evidence and records signed completion and recovery', async () => {
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
-  const env = { EVIDENCE: memoryKV(), SHEET_ID: 'test', GOOGLE_SERVICE_ACCOUNT: JSON.stringify({
+  const env = { EVIDENCE: memoryKV(), SHEET_ID: 'test-media', GOOGLE_SERVICE_ACCOUNT: JSON.stringify({
     client_email: 'test@example.invalid', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' })
   }) };
   const calls = [];
   const originalFetch = globalThis.fetch;
+  let failBatch = false;
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).includes('oauth2.googleapis.com')) return Response.json({ access_token: 'test', expires_in: 3600 });
+    if (String(url).includes('?fields=sheets(')) return Response.json({ sheets: [{ properties: { title: 'Kirjed', sheetId: 42 } }] });
+    if (String(url).includes(':batchUpdate') && failBatch) return new Response('failure', { status: 500 });
     if ((options.method || 'GET') === 'GET') return Response.json({ values: [[2]] });
     return Response.json({});
   };
@@ -146,27 +169,31 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     let response = await post({ record: base, media });
     assert.equal(response.status, 200);
     assert.equal((await response.json()).files, 4);
-    let rows = calls.filter((call) => call.url.includes(':append'));
-    let row = JSON.parse(rows[0].options.body).values[0];
+    assert.equal(calls.filter((call) => call.url.includes('?fields=sheets(')).length, 1);
+    let rows = batchCalls(calls);
+    let row = insertedRow(rows[0]);
     assert.equal(row.filter((cell) => String(cell).startsWith('=HYPERLINK')).length, 4);
+    const cells = JSON.parse(rows[0].options.body).requests[1].updateCells.rows[0].values;
+    assert.equal(cells.filter((cell) => cell.userEnteredValue.formulaValue?.startsWith('=HYPERLINK')).length, 4);
+    assert.equal(cells[1].userEnteredValue.stringValue, row[1]);
     calls.length = 0;
     response = await post({ record: base, media: [{ ...media[0], url: `https://example.invalid/api/evidence/${'d'.repeat(64)}-0` }] });
     assert.notEqual(response.status, 200);
-    assert.equal(calls.filter((call) => call.url.includes(':append')).length, 0);
+    assert.equal(batchCalls(calls).length, 0);
     const originalGetWithMetadata = env.EVIDENCE.getWithMetadata;
     env.EVIDENCE.getWithMetadata = async () => ({ value: null, metadata: null });
     response = await post({ record: base, media: [media[0]] });
     assert.notEqual(response.status, 200);
-    assert.equal(calls.filter((call) => call.url.includes(':append')).length, 0);
+    assert.equal(batchCalls(calls).length, 0);
     env.EVIDENCE.getWithMetadata = originalGetWithMetadata;
     response = await post({ record: base, media: [{ ...media[0], url: 'https://evil.invalid/api/evidence/file' }] });
     assert.notEqual(response.status, 200);
     calls.length = 0;
     response = await post({ record: { ...base, record_type: 'inspection_completion', signed_by: 'Signer' } });
     assert.equal((await response.json()).hygieneUpdated, false);
-    rows = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
+    rows = batchCalls(calls);
     assert.equal(rows.length, 1);
-    row = JSON.parse(rows[0].options.body).values[0];
+    row = insertedRow(rows[0]);
     assert.match(row[2], /Inspection completion/);
     assert.equal(row[3], '');
     assert.equal(row[5], 'Signer');
@@ -174,28 +201,34 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     calls.length = 0;
     response = await post({ record: { ...base, record_type: 'inspection_completion' } });
     assert.equal((await response.json()).hygieneUpdated, false);
-    rows = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
-    row = JSON.parse(rows[0].options.body).values[0];
+    rows = batchCalls(calls);
+    row = insertedRow(rows[0]);
     assert.match(row[4], /allkiri puudub/);
     assert.equal(row[5], 'Inspector');
     calls.length = 0;
     response = await post({ record: { ...base, auto_default: true }, recovery: true });
     assert.equal((await response.json()).hygieneUpdated, false);
-    rows = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
+    rows = batchCalls(calls);
     assert.equal(rows.length, 1);
-    row = JSON.parse(rows[0].options.body).values[0];
+    row = insertedRow(rows[0]);
     assert.match(row[3], /kontrollimata/);
     assert.match(row[4], /Taastatud automaatne/);
     calls.length = 0;
     response = await post({ record: base, recovery: true, media });
     assert.equal((await response.json()).hygieneUpdated, false);
-    rows = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
+    rows = batchCalls(calls);
     assert.equal(rows.length, 1);
-    row = JSON.parse(rows[0].options.body).values[0];
+    row = insertedRow(rows[0]);
     assert.match(row[4], /Recovered attachments/);
     assert.equal(row[2], 'Pesu');
     assert.equal(row[5], 'Inspector');
     assert.equal(row.filter((cell) => String(cell).startsWith('=HYPERLINK')).length, 4);
+    calls.length = 0;
+    failBatch = true;
+    response = await post({ record: base });
+    assert.notEqual(response.status, 200);
+    assert.equal(batchCalls(calls).length, 1);
+    assert.equal(calls.filter((call) => call.url.includes('/values/')).length, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }
