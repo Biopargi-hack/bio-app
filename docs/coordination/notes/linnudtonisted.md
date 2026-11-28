@@ -55,3 +55,7 @@ Format:
 - **2026-11-27 20:09** — Issue #112: QA found PR 108 removed the language selector and live taptoprove.ee had no ET/RU/EN buttons. Restored buttons that set the recognition locale and start listening; updated bilingual copy and cache hash. verify 50/50.
 
 - **2026-11-27 21:23** — Issue #125: QA found PR 122 removed ET/RU/EN picker and hardcoded et-EE. Restored selector with ET default, kept iPhone Safari record fallback and spelling worker, updated verify gate and cache hash. verify 57/57.
+
+- **2026-11-28 08:08** — Started fix/remove_table_note off origin/main (8da0d91): owner asked to remove the Table note field from the landing; running a QA pass on the rest.
+
+- **2026-11-28 08:19** — Owner asked to remove the Table note field from the landing. Deleted the #hygieen section and its ET/EN copy, cleaned the dead .sample-sheet and #hygieen CSS, moved the capture bottom margin onto #capture so spacing stays, updated the sheet-link gate and added a regression check, restamped SW cache. verify 60/60; Playwright at 1280 and 390: target text gone in ET and EN, 2 sheet links remain, no duplicate IDs, no broken anchors, no overflow or console errors, demo tap and a real save work, /?view=record and sheet/showcase/paper load, offline reload serves the shell without the field. EN dictionary still says Filmi video for the video button, left as set in #90. NFC, camera and mic not device-tested.

@@ -188,10 +188,15 @@ if (cipRaw.slice(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && cipRaw.include
 }
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs/edit?gid=221436371#gid=221436371";
 const sheetLinks = (indexSource.match(/https:\/\/docs\.google\.com\/spreadsheets\/d\/1xJlTBxqQoqIPhtNeUEm9Dq-ydR0xiJecWLwK_fbSnYs\/edit\?gid=221436371#gid=221436371/g) || []).length;
-if (sheetLinks >= 3 && !indexSource.includes("taptoprove_ledger.xlsx") && !indexSource.includes("wbHygieneScroll") && !appSource.includes("renderHygieneSheet")) {
+if (sheetLinks >= 2 && !indexSource.includes("taptoprove_ledger.xlsx") && !indexSource.includes("wbHygieneScroll") && !appSource.includes("renderHygieneSheet")) {
   ok("the landing links the Google Sheet and does not embed the Excel workbook");
 } else {
   fail(`app: the Google Sheet link is missing (${sheetLinks}) or the Excel workbook is still on the page`);
+}
+if (!indexSource.includes('id="hygieen"') && !indexSource.includes('data-i18n="sheet_note"') && !appSource.includes("sheet_note:")) {
+  ok("the Table note field is gone from the landing");
+} else {
+  fail("app: the Table note field is still on the landing");
 }
 if (appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
   ok("a saved check still carries its checkpoint name");

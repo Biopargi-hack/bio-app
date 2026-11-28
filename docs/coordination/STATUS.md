@@ -6,7 +6,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
 | @AARenor | omp | doing | Eestikeelsed väärtused ka Kirjed vahekaardil | `fix/kirjed_estonian` | real NFC device test |
-| @linnudtonisted | OpenCode | review | QA: restore ET/RU/EN selector after #122 | `fix/restore_lang_selector_again` | none |
+| @linnudtonisted | OpenCode | review | removed landing Table note; QA pass done | `fix/remove_table_note` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Remove extra fields from Excel CSV | `fix/csv-extra-fields` | none |
 
