@@ -149,3 +149,5 @@ Format:
 
 - **2026-11-27 22:18** — Kirje saatmisel kirjutab Worker kohe Live, Kirjed ja Hügieen vahekaardile. Tõendite lingid ja äpi hash lähevad Kirjed ritta muutmata, ahel märgitakse kontrollimata, mitte võltsitud. Vanalt kaheminutiliselt ümbersigneerivalt taimerilt loobuti.
 - **2026-11-28 00:55**: Live kontroll näitas, et Kirjed vahekaart sai endiselt inglise väärtused. Põhjus: eelmine parandus jäi merge'i ajal stage'ist välja. Lisatud nüüd eralda PR-ina.
+
+- **2026-11-28 09:37** — Hügieenileht ja kirjutaja: viis liinipunkti (Täitepea, Äravool, Klapp, Pesu, Uks), ainult eelmine ja praegune nädal, praeguse kuupäevaga veerg. Alustus ja Lõpp on märgid. Verify 60/0. Admin merge owneri loal.
