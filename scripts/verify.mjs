@@ -207,8 +207,8 @@ if (appSource.includes("fetch('/api/ledger'") && appSource.includes('toend-sync-
 }
 
 const ledgerWriter = existsSync(join(root, "functions/api/ledger.js")) ? readFileSync(join(root, "functions/api/ledger.js"), "utf8") : "";
-if (ledgerWriter.includes("Kirjed!A2:X1000") && ledgerWriter.includes("row[23]") && !ledgerWriter.includes("Live!A2:J1000") && !ledgerWriter.includes("appendRow(token, env.SHEET_ID, 'Live', row)")) {
-  ok("the Sheets writer uses one record tab for writes and duplicate checks");
+if (ledgerWriter.includes("Kirjed!A2:V1000") && ledgerWriter.includes("row[21]") && ledgerWriter.includes("Europe/Tallinn") && !ledgerWriter.includes("Live!A2:J1000") && !ledgerWriter.includes("appendRow(token, env.SHEET_ID, 'Live', row)")) {
+  ok("the Sheets writer keeps one compact Estonian record tab");
 } else {
   fail("functions/api/ledger.js still splits records between Live and Kirjed");
 }

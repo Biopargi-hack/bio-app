@@ -87,13 +87,7 @@ async function serviceToken(sa) {
   return tokenCache.value;
 }
 
-async function readKeys(token, sheetId) {
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Kirjed!A2:X1000')}`;
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  if (!response.ok) throw new Error(`sheet read ${response.status}: ${await response.text()}`);
-  const data = await response.json();
-  return new Set((data.values || []).map((row) => `${String(row[23] ?? '')}|${String(row[0] ?? '')}`));
-}
+
 
 async function appendRow(token, sheetId, sheetName, row) {
   const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(sheetName + '!A:A')}:append`;
@@ -272,11 +266,7 @@ async function onRequestPost({ request, env }) {
   try {
     const sa = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT);
     const token = await serviceToken(sa);
-    const seen = await readKeys(token, env.SHEET_ID);
-    const key = `${String(record.device_id || '')}|${String(record.seq)}`;
-    if (seen.has(key)) {
-      return Response.json({ ok: true, duplicate: true, seq: record.seq });
-    }
+
     const links = [];
     let total = 0;
     for (const item of media) {
@@ -286,14 +276,18 @@ async function onRequestPost({ request, env }) {
       const url = await storeEvidence(env, item, new URL(request.url).origin);
       if (url) links.push(hyperlink(url, item.label || ((item.mime || '').startsWith('video/') ? 'video' : item.kind === 'audio' ? 'hääl' : 'foto')));
     }
-    const evidence = links.length ? links.join(' ') : plain(record.media_name || record.photo_hash || '');
+    const evidence = links.join(' ');
     const stamp = new Date(record.created_at);
-    const iso = Number.isNaN(stamp.getTime()) ? new Date().toISOString() : stamp.toISOString();
+    const safeStamp = Number.isNaN(stamp.getTime()) ? new Date() : stamp;
+    const dateText = new Intl.DateTimeFormat('et-EE', {
+      timeZone: 'Europe/Tallinn', day: '2-digit', month: '2-digit', year: 'numeric'
+    }).format(safeStamp);
+    const timeText = new Intl.DateTimeFormat('et-EE', {
+      timeZone: 'Europe/Tallinn', hour: '2-digit', minute: '2-digit', hour12: false
+    }).format(safeStamp);
     const ledgerRow = [
-      record.seq,
-      plain(record.created_at),
-      iso.slice(0, 10).split('-').reverse().join('.'),
-      iso.slice(11, 16),
+      dateText,
+      `'${timeText}`,
       plain(record.asset || record.checkpoint),
       plain(displayCheckpoint(record)),
       localized(record.method, DISPLAY_METHOD),
@@ -304,10 +298,6 @@ async function onRequestPost({ request, env }) {
       localized(record.source, DISPLAY_SOURCE),
       plain(record.supervisor || record.device_id),
       evidence,
-      '', '', '', '', '', '', '',
-      'kontrollimata',
-      plain(record.hash),
-      plain(record.device_id),
     ];
     await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
     let hygieneUpdated = false;
