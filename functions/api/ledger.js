@@ -179,7 +179,8 @@ const HYGIENE_LABELS = [
   'Preformi etteanne', 'Pressi alune', 'Pressi jahutuse alune',
   'Pressikapi sahtlid', 'Korkide ladustamise ala laos', 'Alumine korgikolu',
   'Ülemine korgikolu', 'Ülemise platvormi käepiirded', 'Korgilift',
-  'Liin villijast Spectrumini'
+  'Liin villijast Spectrumini',
+  'Drenaaž', 'Klapp', 'Pesu', 'Uks'
 ];
 
 function displayCheckpoint(record) {
