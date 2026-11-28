@@ -107,20 +107,27 @@ async function ledgerTab(token, sheetId) {
 
 async function insertLedgerRow(token, sheetId, row) {
   const tab = await ledgerTab(token, sheetId);
+  const lookupUrl = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Kirjed!A2:A1000')}`;
+  const lookup = await fetch(lookupUrl, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!lookup.ok) throw new Error(`sheet lookup ${lookup.status}: ${await lookup.text()}`);
+  const used = (await lookup.json()).values || [];
+  const insertIndex = 1 + used.length;
   const batch = await fetch(`${SHEETS_URL}/${encodeURIComponent(sheetId)}:batchUpdate`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     body: JSON.stringify({
       requests: [{
         insertDimension: {
-          range: { sheetId: tab, dimension: 'ROWS', startIndex: 1, endIndex: 2 },
+          range: { sheetId: tab, dimension: 'ROWS', startIndex: insertIndex, endIndex: insertIndex + 1 },
           inheritFromBefore: false,
         }
       }]
     })
   });
   if (!batch.ok) throw new Error(`sheet insert ${batch.status}: ${await batch.text()}`);
-  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Kirjed!A2')}?valueInputOption=USER_ENTERED`;
+  const url = `${SHEETS_URL}/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(`Kirjed!A${insertIndex + 1}`)}?valueInputOption=USER_ENTERED`;
   const response = await fetch(url, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
