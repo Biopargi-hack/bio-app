@@ -371,7 +371,7 @@ const sessionParams = new URLSearchParams(location.search);
 const sessionAsset = (sessionParams.get('asset') || '').trim();
 const sessionNames = [sessionAsset, sessionParams.get('tag') || '']
   .map((value) => value.trim().normalize('NFC').toLocaleLowerCase('et'));
-const namedSessionMode = sessionNames.includes('algus') ? 'start'
+const namedSessionMode = sessionNames.some((value) => value === 'algus' || value === 'alustus') ? 'start'
   : sessionNames.some((value) => value === 'lõpp' || value === 'lopp') ? 'end' : '';
 const sessionMode = sessionParams.get('session') || namedSessionMode;
 const sessionLine = (sessionParams.get('line') || (namedSessionMode ? 'demo' : '')).trim();
@@ -380,7 +380,7 @@ let activeSession = null;
 let reviewSnapshot = '';
 const SESSION_TEXT = {
   et: {
-    start: 'Alusta liini kontrolli',
+    start: 'Algus',
     end: 'Kontrolli ülevaade ja lõpetamine',
     active: 'Aktiivne kontroll',
     identity: 'Nimi on ise deklareeritud; isikut ei kontrollita. Kontroll jääb esmalt sellesse brauserisse ja seadmesse ning kirjed sünkroonitakse võrguühenduse olemasolul.',
@@ -405,7 +405,7 @@ const SESSION_TEXT = {
     auto_default_note: 'Skännimata kohad saavad automaatse kontrollimata hinde 3.'
   },
   en: {
-    start: 'Start line inspection',
+    start: 'Start',
     end: 'Review and finish inspection',
     active: 'Active inspection',
     identity: 'Name is self-declared, not identity verified. The inspection is stored in this browser and device first; records sync when online.',
