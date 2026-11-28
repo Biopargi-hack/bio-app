@@ -168,3 +168,5 @@ Format:
 - **2026-11-28 10:57** — Hinne on nüüd kohustuslik kõigil kontrollikirjetel. Taastatud tõendite kirjed saavad hinna 3 ja uue põhjenduse. Ülevaatuse lõpetamine jääb ilma hindeta, töövoog säilib. Ka Hügieeni lehel eemaldati kinnistatud read 1-7, et need ei kataks tabelit.
 
 - **2026-11-28 11:01** — Hinne nõutakse nüüd kirjes endas, mitte ainult verdictust tuletatuna. Pärast edukat saatmist näitab äpp nii salvestamise kui ka kiirmärkuse kohal 'Kirje saadetud Google Sheetsi'.
+
+- **2026-11-28 11:25** — Saadetud kirje kinnitus jääb samale lehele: 'Kirje salvestatud. Võite nüüd kinni panna.' Uut tühja lehte ei avata. Alguslehel peidetakse 'Proovi uuesti saata', NFC lehel jääb see alles.
