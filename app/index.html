@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script>
     (function () {
-      var record = /^nfc\./.test(location.hostname) || new URLSearchParams(location.search).get('view') === 'record';
+      var params = new URLSearchParams(location.search);
+      var record = /^nfc\./.test(location.hostname) || params.get('view') === 'record' || params.has('session');
       document.documentElement.dataset.mode = record ? 'record' : 'landing';
     })();
   </script>
@@ -147,6 +148,21 @@
         <p class="capture-intro landing-only" data-i18n="capture_intro">Salvesta päris kontroll siit brauserist. Telefonis avaneb sama vorm NFC-kaardi puudutusel.</p>
       </div>
 
+      <section id="sessionPanel" class="session-panel" aria-labelledby="sessionTitle" hidden>
+        <h3 id="sessionTitle"></h3>
+        <p id="sessionDescription"></p>
+        <p id="sessionIdentity" class="note"></p>
+        <div id="sessionStartFields" hidden>
+          <label class="field">
+            <span data-i18n="session_name">Kontrollija nimi</span>
+            <input id="sessionName" type="text" autocomplete="name" maxlength="60">
+          </label>
+          <button id="sessionStart" class="action" type="button" data-i18n="session_start">Alusta kontrolli</button>
+        </div>
+        <ol id="sessionReview" class="session-review" hidden></ol>
+        <button id="sessionFinish" class="action" type="button" data-i18n="session_finish" hidden>Kinnita ja lõpeta kontroll</button>
+        <p id="sessionNote" class="note" role="status" aria-live="polite"></p>
+      </section>
       <div class="capture-layout">
         <div class="capture-main">
           <div class="readout" id="assetStamp">

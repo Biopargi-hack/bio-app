@@ -5,6 +5,16 @@ the top. One screen maximum. If it is reversible and local, do not record it.
 
 ---
 
+## 2026-11-28 — Line sessions and unverified defaults
+
+**Decision.** A starter tag opens a line session with a self-declared inspector. An ender tag opens a review; only explicit confirmation creates grade 3 defaults for untouched demo checkpoints. Those defaults are marked unverified and do not count as observed clean in the hygiene aggregate.
+
+**Why.** The user requested one name per session and automatic defaults. An untouched location is not evidence of cleanliness, so the default must remain distinguishable from a physical check.
+
+**Consequences.** The initial roster is five examples, not an approved production inventory. The name is not authenticated, sessions stay on one device, and physical NFC behavior needs testing.
+
+---
+
 ## 2026-11-27 — Each host has one view
 
 **Decision.** `taptoprove.ee` shows only the landing description. `nfc.taptoprove.ee` shows only the record entry form. Neither host shows the other view, and the hygiene table and ledger links are hidden on both. A hostname check sets `data-mode` before the stylesheet; CSS hides the sections that do not belong to the host.

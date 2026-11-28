@@ -14,6 +14,9 @@ const WORDS = {
     offline_title: 'Works offline',
     offline_copy: 'Checks are written to the device first, even with no network.',
     worker: 'Worker',
+    session_name: 'Inspector name',
+    session_start: 'Start inspection',
+    session_finish: 'Confirm and finish inspection',
     asset_required: 'Tap the NFC card.',
     skip: 'Skip to capture',
     hero_note: 'An NFC card and a phone app for recording production line checks. Tap the card, pick a grade and the record is there.',
@@ -165,6 +168,9 @@ const WORDS = {
     offline_title: 'Töötab võrguta',
     offline_copy: 'Kontroll salvestub esmalt seadmesse, ka ilma võrguta.',
     worker: 'Teostaja',
+    session_name: 'Kontrollija nimi',
+    session_start: 'Alusta kontrolli',
+    session_finish: 'Kinnita ja lõpeta kontroll',
     asset_required: 'Puuduta NFC-kaarti.',
     skip: 'Liigu salvestamise juurde',
     hero_note: 'NFC-kaart ja telefonirakendus tootmisliini kontrollide salvestamiseks. Puuduta kaarti, vali hinne ja kirje on kohe olemas.',
@@ -373,6 +379,59 @@ let audioStarting = false;
 let gradeMode = false;
 let selectedGrade = 0;
 let lastSavedRecord = null;
+const SESSION_KEY = 'inspection:active';
+const SESSION_PENDING = 'inspection:pending:';
+const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Drenaaž', 'Uks'];
+const AUTO_DEFAULT_TEXT = 'Automaatne kontrollimata vaikimisi hinnang';
+const sessionParams = new URLSearchParams(location.search);
+const sessionMode = sessionParams.get('session') || '';
+const sessionLine = (sessionParams.get('line') || '').trim();
+const sessionTag = (sessionParams.get('tag') || '').trim();
+let activeSession = null;
+let reviewSnapshot = '';
+const SESSION_TEXT = {
+  et: {
+    start: 'Alusta liini kontrolli',
+    end: 'Kontrolli ülevaade ja lõpetamine',
+    active: 'Aktiivne kontroll',
+    identity: 'Nimi on ise deklareeritud; isikut ei kontrollita. Kontroll jääb esmalt sellesse brauserisse ja seadmesse ning kirjed sünkroonitakse võrguühenduse olemasolul.',
+    start_desc: 'Näidisnimekiri: Pesu, Täitepea, Klapp, Drenaaž ja Uks. Sisesta nimi ning alusta selgesõnaliselt.',
+    end_desc: 'Näidisnimekiri, mitte tegeliku liini täielik nimekiri. Kinnitamisel lisatakse puuduvatele punktidele automaatne kontrollimata hinne 3. See ei tõenda kontrollimist.',
+    completed: 'Kontroll lõpetatud.',
+    no_session: 'Selle liini aktiivset kontrolli ei leitud.',
+    invalid: 'Link vajab kehtivat session=start või end, line, tag ja via=nfc.',
+    conflict: 'Aktiivset kontrolli ei asendata. Lõpeta see esmalt selle liini lõppkaardiga.',
+    started: 'Kontroll on alustatud. Puuduta kontrollpunkti kaarti ja salvesta hinnang.',
+    name_required: 'Sisesta kontrollija nimi.',
+    missing: 'Hinne 3 — automaatne, KONTROLLIMATA vaikimisi hinnang',
+    saved: 'Salvestatud hinne',
+    changed: 'Kontroll või kirjed muutusid. Vaata ülevaade uuesti üle ja kinnita uuesti.',
+    other: 'See koht ei kuulu viie näidispunkti hulka ega täida ühtegi neist.',
+    line: 'Liin',
+    inspector: 'Kontrollija'
+  },
+  en: {
+    start: 'Start line inspection',
+    end: 'Review and finish inspection',
+    active: 'Active inspection',
+    identity: 'Name is self-declared, not identity verified. The inspection is stored in this browser and device first; records sync when online.',
+    start_desc: 'Example roster: Pesu, Täitepea, Klapp, Drenaaž and Uks. Enter a name and explicitly start.',
+    end_desc: 'Example roster, not a complete real line roster. Confirmation adds automatic unverified grade 3 defaults for missing checkpoints. This does not prove an inspection.',
+    completed: 'Inspection completed.',
+    no_session: 'No inspection for this line was found.',
+    invalid: 'The link needs session=start or end, line, tag and via=nfc.',
+    conflict: 'The active inspection will not be replaced. Finish it first with its line’s end card.',
+    started: 'Inspection started. Tap a checkpoint card and save its grade.',
+    name_required: 'Enter the inspector name.',
+    missing: 'Grade 3 — automatic UNVERIFIED default',
+    saved: 'Saved grade',
+    changed: 'The inspection or its records changed. Review again and confirm again.',
+    other: 'This place is not one of the five example checkpoints and does not satisfy any of them.',
+    line: 'Line',
+    inspector: 'Inspector'
+  }
+};
+function st(key) { return SESSION_TEXT[lang][key]; }
 
 function applyLanguage() {
   document.documentElement.lang = lang === 'et' ? 'et' : 'en';
@@ -393,6 +452,7 @@ function applyLanguage() {
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
+  if ($('sessionPanel')) void refreshSession().catch((error) => note('sessionNote', error.message, true));
 }
 
 function note(id, text, isError = false) {
@@ -595,8 +655,25 @@ async function appendRecord(payload, mediaFiles = [], audioBlob) {
     const tx = db.transaction(['records', 'media'], 'readwrite');
     const store = tx.objectStore('records');
     let record = null;
-    const request = store.getAll();
-    request.onsuccess = () => {
+    let failure = null;
+    const sessionRequest = tx.objectStore('media').get(SESSION_KEY);
+    sessionRequest.onsuccess = () => {
+      const stored = sessionRequest.result?.session;
+      const current = stored?.status === 'active' ? stored : null;
+      if ((current?.id || '') !== (activeSession?.status === 'active' ? activeSession.id : '')) {
+        failure = new Error(st('changed'));
+        tx.abort();
+        return;
+      }
+      if (current) payload = {
+        ...payload,
+        inspection_session_id: current.id,
+        inspection_line: current.line,
+        supervisor: current.supervisor,
+        auto_default: false
+      };
+      const request = store.getAll();
+      request.onsuccess = () => {
       const records = request.result.sort((a, b) => a.seq - b.seq);
       const last = records.at(-1);
       const seq = last ? last.seq + 1 : 1;
@@ -638,13 +715,14 @@ async function appendRecord(payload, mediaFiles = [], audioBlob) {
         media.put({ key: position === 0 ? `${seq}:media` : `${seq}:media:${position}`, blob: file });
       });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
+      };
     };
     tx.oncomplete = () => {
       resolve(record);
       void pushRecord(record, mediaFiles, audioBlob);
     };
     tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error || new Error('Record write aborted'));
+    tx.onabort = () => reject(failure || tx.error || new Error('Record write aborted'));
   });
 }
 
@@ -730,8 +808,19 @@ async function pushRecord(record, mediaFiles = [], audioBlob = null) {
   }
 }
 
-async function flushQueue() {
-  const queue = queuedSeqs();
+let queueFlush = null;
+function flushQueue() {
+  if (queueFlush) return queueFlush.then(() => flushQueue());
+  const run = () => flushQueueRecords();
+  queueFlush = (navigator.locks
+    ? navigator.locks.request('toend-sync', run)
+    : run()).finally(() => { queueFlush = null; });
+  return queueFlush;
+}
+
+async function flushQueueRecords() {
+  const pending = await pendingSessionSeqs();
+  const queue = [...new Set([...queuedSeqs(), ...pending])];
   if (!queue.length) return;
   const records = await allRecords();
   for (const seq of queue) {
@@ -752,7 +841,8 @@ async function flushQueue() {
       mediaFiles.push(new File([blob], meta.name || `media-${key}`, { type: meta.mime || blob.type }));
     }
     const audioBlob = await mediaBlob(`${seq}:audio`);
-    await pushRecord(record, mediaFiles, audioBlob);
+    const synced = await pushRecord(record, mediaFiles, audioBlob);
+    if (synced && pending.includes(seq)) await clearSessionPending(seq);
   }
 }
 
@@ -1122,6 +1212,7 @@ async function guardedWrite(noteId, work) {
     await work();
   } catch (error) {
     note(noteId, `${t('save_failed')} ${error.message}`, true);
+    await refreshSession().catch(() => {});
   } finally {
     $('photo').disabled = false;
     saving = false;
@@ -1145,7 +1236,7 @@ function resetCaptureInputs() {
   hideMediaPreview();
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
-  if ($('worker')) $('worker').value = '';
+  if ($('worker') && activeSession?.status !== 'active') $('worker').value = '';
   updateTier();
 }
 
@@ -1163,6 +1254,10 @@ function quickRecord(kind, grade = 0) {
     const asset = $('asset').value.trim();
     if (!asset) {
       note('quickNote', t('asset_required'), true);
+      return;
+    }
+    if (activeSession?.status === 'active' && !DEMO_CHECKPOINTS.includes(checkpointFor(asset))) {
+      note('quickNote', st('other'), true);
       return;
     }
     const isGrade = kind === 'grade';
@@ -1223,6 +1318,199 @@ function checkpointFor(asset) {
     if (text.includes(estonian.toLocaleLowerCase('et')) || text.includes(english.toLocaleLowerCase('et'))) return estonian;
   }
   return '';
+}
+
+// Session state lives in the existing media store. Completion is also recorded
+// in the chain for JSONL backup, but is not queued as a spreadsheet row.
+function sessionRead() {
+  return openDb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction(['records', 'media'], 'readonly');
+    const state = tx.objectStore('media').get(SESSION_KEY);
+    const records = tx.objectStore('records').getAll();
+    tx.oncomplete = () => resolve({ session: state.result?.session || null, records: records.result });
+    tx.onabort = tx.onerror = () => reject(tx.error || new Error('Session read failed'));
+  }));
+}
+
+function sessionRecords(records, id) {
+  return records.filter((record) => record.inspection_session_id === id);
+}
+
+function sessionSnapshot(records, id) {
+  return JSON.stringify(sessionRecords(records, id).map((record) => [record.seq, record.hash]));
+}
+
+async function refreshSession() {
+  const { session, records } = await sessionRead();
+  activeSession = session;
+  const active = session?.status === 'active';
+  $('worker').readOnly = Boolean(active);
+  if (active) $('worker').value = session.supervisor;
+  const panel = $('sessionPanel');
+  const mode = sessionMode;
+  panel.hidden = !mode && !active;
+  document.querySelector('.capture-layout').hidden = Boolean(mode);
+  if (panel.hidden) return;
+  $('sessionStartFields').hidden = true;
+  $('sessionReview').hidden = true;
+  $('sessionFinish').hidden = true;
+  $('sessionIdentity').textContent = st('identity');
+  const valid = (mode === 'start' || mode === 'end') && sessionLine && sessionTag && sessionParams.get('via') === 'nfc';
+  $('sessionTitle').textContent = mode === 'start' ? st('start') : mode === 'end' ? st('end') : st('active');
+  if (mode && !valid) {
+    $('sessionDescription').textContent = st('invalid');
+    return;
+  }
+  if (mode === 'start') {
+    $('sessionDescription').textContent = active
+      ? `${session.line === sessionLine && session.start_tag === sessionTag ? st('started') : st('conflict')} ${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}.`
+      : `${st('line')}: ${sessionLine}. ${st('start_desc')}`;
+    $('sessionStartFields').hidden = Boolean(active);
+    return;
+  }
+  if (mode === 'end') {
+    if (!session || session.line !== sessionLine) {
+      $('sessionDescription').textContent = st('no_session');
+      return;
+    }
+    $('sessionDescription').textContent = `${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}. ${session.status === 'completed' ? st('completed') : st('end_desc')}`;
+    const entries = sessionRecords(records, session.id);
+    reviewSnapshot = sessionSnapshot(records, session.id);
+    const list = $('sessionReview');
+    list.replaceChildren();
+    for (const checkpoint of DEMO_CHECKPOINTS) {
+      const item = document.createElement('li');
+      const matching = entries.filter((record) => record.checkpoint === checkpoint);
+      const last = matching.at(-1);
+      const grades = matching.filter((record) => !record.auto_default).map((record) => record.grade).join(', ');
+      item.textContent = `${checkpoint}: ${grades ? `${st('saved')}: ${grades}` : st('missing')}`;
+      if (!last || last.auto_default) item.className = 'unverified';
+      list.append(item);
+    }
+    list.hidden = false;
+    $('sessionFinish').hidden = session.status !== 'active';
+    return;
+  }
+  $('sessionDescription').textContent = `${st('line')}: ${session.line}. ${st('inspector')}: ${session.supervisor}. ${st('start_desc')}`;
+  if ($('asset').value && !DEMO_CHECKPOINTS.includes(checkpointFor($('asset').value))) note('quickNote', st('other'), true);
+}
+
+async function startInspection() {
+  const supervisor = $('sessionName').value.trim();
+  if (!supervisor) { note('sessionNote', st('name_required'), true); return; }
+  const db = await openDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction('media', 'readwrite');
+    const store = tx.objectStore('media');
+    const request = store.get(SESSION_KEY);
+    let failure;
+    request.onsuccess = () => {
+      if (request.result?.session?.status === 'active') {
+        failure = new Error(st('conflict'));
+        tx.abort();
+        return;
+      }
+      const session = {
+        id: crypto.randomUUID(), line: sessionLine, supervisor, status: 'active',
+        start_tag: sessionTag, started_at: new Date().toISOString()
+      };
+      store.put({ key: SESSION_KEY, session });
+      store.put({ key: `inspection:session:${session.id}`, session });
+    };
+    tx.oncomplete = resolve;
+    tx.onabort = tx.onerror = () => reject(failure || tx.error || new Error('Session start failed'));
+  });
+  notifyRecords({ seq: 0 });
+  await refreshSession();
+}
+
+async function finishInspection() {
+  const expectedId = activeSession?.id;
+  const expectedSnapshot = reviewSnapshot;
+  const db = await openDb();
+  const added = await new Promise((resolve, reject) => {
+    const tx = db.transaction(['records', 'media'], 'readwrite');
+    const media = tx.objectStore('media');
+    const store = tx.objectStore('records');
+    const request = media.get(SESSION_KEY);
+    const created = [];
+    let failure;
+    request.onsuccess = () => {
+      const session = request.result?.session;
+      if (!session || session.id !== expectedId || session.line !== sessionLine) {
+        failure = new Error(st('changed')); tx.abort(); return;
+      }
+      if (session.status === 'completed') return;
+      const read = store.getAll();
+      read.onsuccess = () => {
+        const records = read.result.sort((a, b) => a.seq - b.seq);
+        if (sessionSnapshot(records, session.id) !== expectedSnapshot) {
+          failure = new Error(st('changed')); tx.abort(); return;
+        }
+        const entries = sessionRecords(records, session.id);
+        let last = records.at(-1);
+        for (const checkpoint of DEMO_CHECKPOINTS) {
+          if (entries.some((record) => record.checkpoint === checkpoint)) continue;
+          const seq = last ? last.seq + 1 : 1;
+          const body = {
+            asset: checkpoint, checkpoint, tag_sig: '', source: 'default', end_tag: sessionTag,
+            method: 'Declared', verdict: 'clean', grade: 3, transcript: AUTO_DEFAULT_TEXT,
+            reason: AUTO_DEFAULT_TEXT, supervisor: session.supervisor,
+            inspection_session_id: session.id, inspection_line: session.line,
+            auto_default: true, default_assessment: true, quick: true,
+            seq, local_seq: seq, device_id: deviceId(),
+            prev_hash: last ? last.hash : '0'.repeat(64), created_at: new Date().toISOString()
+          };
+          last = { ...body, hash: sha256Sync(body) };
+          store.add(last);
+          // This durable outbox is committed atomically with the defaults.
+          media.put({ key: `${SESSION_PENDING}${seq}`, seq });
+          created.push(last);
+        }
+        const completedAt = new Date().toISOString();
+        const seq = last ? last.seq + 1 : 1;
+        const completion = {
+          record_type: 'inspection_completion',
+          inspection_session_id: session.id, inspection_line: session.line,
+          supervisor: session.supervisor, start_tag: session.start_tag, end_tag: sessionTag,
+          started_at: session.started_at, created_at: completedAt,
+          seq, local_seq: seq, device_id: deviceId(),
+          prev_hash: last ? last.hash : '0'.repeat(64)
+        };
+        const marker = { ...completion, hash: sha256Sync(completion) };
+        store.add(marker);
+        created.push(marker);
+        const completed = { ...session, status: 'completed', end_tag: sessionTag, completed_at: completedAt };
+        media.put({ key: SESSION_KEY, session: completed });
+        media.put({ key: `inspection:session:${session.id}`, session: completed });
+      };
+    };
+    tx.oncomplete = () => resolve(created);
+    tx.onabort = tx.onerror = () => reject(failure || tx.error || new Error('Session completion failed'));
+  });
+  for (const record of added) notifyRecords(record);
+  notifyRecords({ seq: 0 });
+  await refreshSession();
+  void flushQueue();
+}
+
+async function pendingSessionSeqs() {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction('media', 'readonly').objectStore('media').getAllKeys();
+    request.onsuccess = () => resolve(request.result.filter((key) => typeof key === 'string' && key.startsWith(SESSION_PENDING)).map((key) => Number(key.slice(SESSION_PENDING.length))));
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function clearSessionPending(seq) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('media', 'readwrite');
+    tx.objectStore('media').delete(`${SESSION_PENDING}${seq}`);
+    tx.oncomplete = resolve;
+    tx.onabort = tx.onerror = () => reject(tx.error || new Error('Outbox update failed'));
+  });
 }
 
 function setAsset(name, tagId = '', origin = 'typed') {
@@ -1713,6 +2001,18 @@ function saveFromForm() {
 }
 
 function bind() {
+  $('sessionStart').addEventListener('click', async () => {
+    $('sessionStart').disabled = true;
+    try { await startInspection(); }
+    catch (error) { note('sessionNote', error.message, true); await refreshSession(); }
+    finally { $('sessionStart').disabled = false; }
+  });
+  $('sessionFinish').addEventListener('click', async () => {
+    $('sessionFinish').disabled = true;
+    try { await finishInspection(); }
+    catch (error) { await refreshSession(); note('sessionNote', error.message, true); }
+    finally { $('sessionFinish').disabled = false; }
+  });
   $('langToggle').addEventListener('click', () => {
     lang = lang === 'en' ? 'et' : 'en';
     localStorage.setItem('toend-lang', lang);
@@ -1723,9 +2023,11 @@ function bind() {
   // The workbook table follows records saved in another tab on this device.
   recordsChannel?.addEventListener('message', () => {
     refreshCount().catch(() => {});
+    refreshSession().catch(() => {});
   });
   window.addEventListener('storage', (event) => {
     if (event.key === 'toend-records-event') refreshCount().catch(() => {});
+    if (event.key === 'toend-records-event') refreshSession().catch(() => {});
   });
   $('asset').addEventListener('input', () => {
     currentTag = '';
@@ -1810,6 +2112,7 @@ async function start() {
   }
   navigator.storage?.persist?.().catch(() => {});
   await refreshCount();
+  await refreshSession();
   void flushQueue();
   await registerServiceWorker();
 }
