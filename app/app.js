@@ -1317,7 +1317,7 @@ const CHECKPOINT_NAMES = [
   ['Siirupituba', 'Syrup room wall'],
   ['Kastipesu', 'Crate washer'],
   ['Täitepea', 'Filler head'],
-  ['Äravool', 'Drain'],
+  ['Äravool', 'Drain'], ['Äravool', 'Drenaaž'],
   ['Klapp', 'Valve'],
   ['Pesu', 'Wash'],
   ['Uks', 'Door']
@@ -1545,8 +1545,9 @@ async function clearSessionPending(seq) {
 function setAsset(name, tagId = '', origin = 'typed') {
   currentTag = tagId;
   currentSource = origin;
-  $('asset').value = name;
-  $('assetStampName').textContent = name;
+  const checkpoint = checkpointFor(name) || name;
+  $('asset').value = checkpoint;
+  $('assetStampName').textContent = checkpoint;
 }
 
 
