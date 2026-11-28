@@ -120,7 +120,7 @@ const WORDS = {
     photo_readable: 'Photo is readable and goes with the record.',
     video_readable: 'Video goes with the record.',
     photo_unusable: 'Too flat or too dark for evidence. The record still saves.',
-    media_unreadable: 'This file cannot be read. Choose another one.',
+    media_unreadable: 'Preview unavailable. The file will still be sent, but does not count as verified evidence.',
     saved_with_photo: 'saved with the photo',
     saved_with_video: 'saved with the video',
     saved_no_media: 'saved without media',
@@ -134,6 +134,8 @@ const WORDS = {
     sheet_note: 'Checks go straight to Google Sheets when online. A failed send retries when the connection returns. The table opens in a new tab.',
     sync_idle: 'Saved on this device',
     sync_pending: 'Sending to Google Sheets',
+    sync_retry: 'Retry sending',
+    sync_keep_open: 'Keep this page open and online until everything is sent. If a response is lost, a retry may create a duplicate row.',
     sync_done: 'Sent to Google Sheets',
     sync_failed: 'Waiting to send, check connection',
     landing_table: 'View table',
@@ -238,6 +240,8 @@ const WORDS = {
     sheet_note: 'Kontrollid lähevad võrgus olles kohe Google Sheetsi. Ebaõnnestunud saatmine proovib uuesti, kui ühendus naaseb. Tabel avaneb uues aknas.',
     sync_idle: 'Salvestatud selles seadmes',
     sync_pending: 'Saadan Google Sheetsi',
+    sync_retry: 'Proovi uuesti saata',
+    sync_keep_open: 'Hoia leht avatuna ja võrguühendusega, kuni kõik on saadetud. Kadunud vastuse järel võib uuesti saatmine tekitada korduva rea.',
     sync_done: 'Saadetud Google Sheetsi',
     sync_failed: 'Ootab saatmist, kontrolli ühendust',
     landing_table: 'Vaata tabelit',
@@ -300,7 +304,7 @@ const WORDS = {
     photo_readable: 'Pilt on loetav ja läheb kirje külge.',
     video_readable: 'Video läheb kirje külge.',
     photo_unusable: 'Pilt on liiga ühtlane või liiga tume, et tõendina lugeda. Kirje salvestub ikka.',
-    media_unreadable: 'Seda faili ei saa lugeda. Vali teine.',
+    media_unreadable: 'Eelvaade pole saadaval. Fail saadetakse siiski, kuid seda ei loeta kontrollitud tõendiks.',
     saved_with_photo: 'salvestatud koos pildiga',
     saved_with_video: 'salvestatud koos videoga',
     saved_no_media: 'salvestatud ilma meediata',
@@ -364,6 +368,7 @@ let gradeMode = false;
 let selectedGrade = 0;
 let lastSavedRecord = null;
 const SESSION_KEY = 'inspection:active';
+const START_INTENT_KEY = 'toend-inspection-start';
 const SESSION_PENDING = 'inspection:pending:';
 const DEMO_CHECKPOINTS = ['Pesu', 'Täitepea', 'Klapp', 'Äravool', 'Uks'];
 const AUTO_DEFAULT_TEXT = 'Automaatne kontrollimata vaikimisi hinnang';
@@ -447,6 +452,7 @@ function applyLanguage() {
   else if (voiceHold || recordState === 'listening') note('audioNote', t('listening'));
   renderMediaPreview();
   showMediaNote();
+  setSyncStatus($('syncStatus')?.dataset.state || 'sync_idle', $('syncStatus')?.title || '');
   refreshSavedRecord();
   if ($('sessionPanel')) void refreshSession().catch((error) => note('sessionNote', error.message, true));
 }
@@ -706,16 +712,16 @@ async function appendRecord(payload, mediaFiles = [], audioBlob) {
       const media = tx.objectStore('media');
       mediaFiles.forEach((file, position) => {
         if (!file) return;
-        // The first file can be a re-shot of an earlier photo; that blob stays on the earlier record.
-        if (position === 0 && payload.photo_reuse_of) return;
         media.put({ key: position === 0 ? `${seq}:media` : `${seq}:media:${position}`, blob: file });
       });
       if (audioBlob) media.put({ key: `${seq}:audio`, blob: audioBlob });
+      media.put({ key: `${SESSION_PENDING}${seq}`, seq });
       };
     };
     tx.oncomplete = () => {
+      setSyncStatus('sync_pending');
       resolve(record);
-      void pushRecord(record, mediaFiles, audioBlob);
+      void flushQueue();
     };
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(failure || tx.error || new Error('Record write aborted'));
@@ -723,30 +729,59 @@ async function appendRecord(payload, mediaFiles = [], audioBlob) {
 }
 
 const SYNC_QUEUE_KEY = 'toend-sync-queue';
+const SYNC_ACK = 'sync:ack:';
+const SYNC_MIGRATION = 'sync:migration:media-recovery-v1';
+const SYNC_LEASE = 'sync:lease';
+const CHUNK_SIZE = 4 * 1024 * 1024;
 
-function queuedSeqs() {
+// Move the old localStorage queue and historical completion/media records into
+// the transactional outbox once. The recovery flag distinguishes rows which
+// may previously have been acknowledged without their attachments.
+async function migrateOutbox() {
+  let legacy = [];
   try {
-    const value = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || '[]');
-    return Array.isArray(value) ? value.filter((seq) => Number.isInteger(seq)) : [];
-  } catch {
-    return [];
-  }
+    const parsed = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || '[]');
+    if (Array.isArray(parsed)) legacy = parsed.filter(Number.isInteger);
+  } catch { /* The durable outbox remains authoritative. */ }
+  const db = await openDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(['records', 'media'], 'readwrite');
+    const media = tx.objectStore('media');
+    const records = tx.objectStore('records').getAll();
+    const entries = media.getAllKeys();
+    entries.onsuccess = () => {
+      const byKey = new Set(entries.result);
+      const migrated = byKey.has(SYNC_MIGRATION);
+      for (const record of records.result) {
+        const key = `${SESSION_PENDING}${record.seq}`;
+        if (byKey.has(key) || byKey.has(`${SYNC_ACK}${record.seq}`)) continue;
+        const pending = legacy.includes(record.seq);
+        const completion = record.record_type === 'inspection_completion';
+        const hasMedia = Boolean(record.media_items?.length || record.media_count || record.media_hash ||
+          record.media_kind || record.audio_hash || record.audio_size);
+        if (pending || (!migrated && (completion || hasMedia || record.auto_default === true))) {
+          media.put({ key, seq: record.seq, recovery: !pending && !completion });
+        }
+      }
+      for (const seq of legacy) {
+        if (!byKey.has(`${SESSION_PENDING}${seq}`) && !byKey.has(`${SYNC_ACK}${seq}`) &&
+            !records.result.some((record) => record.seq === seq)) {
+          media.put({ key: `${SESSION_PENDING}${seq}`, seq });
+        }
+      }
+      if (!migrated) media.put({ key: SYNC_MIGRATION });
+    };
+    tx.oncomplete = resolve;
+    tx.onabort = tx.onerror = () => reject(tx.error || new Error('Outbox migration failed'));
+  });
+  localStorage.removeItem(SYNC_QUEUE_KEY);
 }
 
-function queueSeq(seq) {
-  const queue = queuedSeqs();
-  if (!queue.includes(seq)) queue.push(seq);
-  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
-}
-
-function unqueueSeq(seq) {
-  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queuedSeqs().filter((item) => item !== seq)));
-}
-
-function setSyncStatus(state) {
+function setSyncStatus(state, detail = '') {
   const el = $('syncStatus');
   if (!el) return;
-  el.textContent = t(state);
+  el.textContent = detail ? `${t(state)}: ${detail}` : t(state);
+  el.title = detail;
   el.dataset.state = state;
 }
 
@@ -759,87 +794,177 @@ async function mediaBlob(key) {
   });
 }
 
-async function syncMedia(record, mediaFiles, audioBlob) {
-  const items = [];
-  for (let position = 0; position < mediaFiles.length; position += 1) {
-    const file = mediaFiles[position];
-    if (!file) continue;
-    const meta = record.media_items?.[position] || {};
-    items.push({
-      name: meta.name || file.name || 'photo',
-      mime: meta.mime || file.type || 'application/octet-stream',
-      kind: meta.kind || 'photo',
-      dataUrl: await mediaDataUrl(file)
-    });
+async function syncFetch(url, options) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120000);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
   }
-  if (audioBlob) {
-    items.push({
-      name: 'haal',
-      mime: record.audio_mime || audioBlob.type || 'audio/webm',
-      kind: 'audio',
-      dataUrl: await mediaDataUrl(audioBlob)
-    });
-  }
-  return items;
 }
 
-async function pushRecord(record, mediaFiles = [], audioBlob = null) {
-  queueSeq(record.seq);
-  setSyncStatus('sync_pending');
-  try {
-    const media = await syncMedia(record, mediaFiles, audioBlob);
-    const response = await fetch('/api/ledger', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ record, media })
-    });
-    if (!response.ok) throw new Error(`sync ${response.status}`);
-    unqueueSeq(record.seq);
-    setSyncStatus('sync_done');
-    return true;
-  } catch (error) {
-    console.warn('Sheets sync failed', error);
-    setSyncStatus('sync_failed');
-    return false;
+function mediaKind(mime, name, fallback = '') {
+  if (/^video\//i.test(mime) || ((!mime || mime === 'application/octet-stream') && /\.(mp4|mov|m4v|webm|ogv|avi|mkv|3gp)$/i.test(name))) return 'video';
+  if (/^audio\//i.test(mime)) return 'audio';
+  return fallback || 'image';
+}
+
+function mediaMime(mime, name) {
+  if (mime && mime !== 'application/octet-stream') return mime;
+  const ext = String(name).split('.').pop().toLowerCase();
+  return ({ mp4: 'video/mp4', mov: 'video/quicktime', m4v: 'video/x-m4v', webm: 'video/webm', ogv: 'video/ogg', avi: 'video/x-msvideo', mkv: 'video/x-matroska', '3gp': 'video/3gpp' })[ext] || mime || 'application/octet-stream';
+}
+
+async function syncMedia(record, records) {
+  const metas = Array.isArray(record.media_items) && record.media_items.length
+    ? record.media_items
+    : (record.media_hash || record.media_kind || record.media_count)
+      ? [{ name: record.media_name, mime: record.media_mime, kind: record.media_kind }] : [];
+  if (Number(record.media_count || 0) > metas.length) throw new Error(`${t('media_missing')} ${record.seq}`);
+  const attachments = [];
+  for (let position = 0; position < metas.length; position += 1) {
+    const meta = metas[position] || {};
+    let seq = record.seq;
+    let blob = await mediaBlob(position ? `${seq}:media:${position}` : `${seq}:media`);
+    let current = record;
+    const seen = new Set([seq]);
+    while (!blob && position === 0 && (current.photo_reuse_of || current.media_items?.[0]?.reuse_of)) {
+      seq = current.photo_reuse_of || current.media_items[0].reuse_of;
+      if (seen.has(seq)) break;
+      seen.add(seq);
+      blob = await mediaBlob(`${seq}:media`);
+      current = records.find((item) => item.seq === seq) || {};
+    }
+    if (!blob) throw new Error(`${t('media_missing')} ${record.seq}:${position + 1}`);
+    const name = meta.name || blob.name || record.media_name || `media-${position + 1}`;
+    const mime = mediaMime(meta.mime || blob.type || record.media_mime || '', name);
+    attachments.push({ blob, name, mime, kind: mediaKind(mime, name, meta.kind || record.media_kind) });
   }
+  if (record.audio_hash || record.audio_size) {
+    const blob = await mediaBlob(`${record.seq}:audio`);
+    if (!blob) throw new Error(`${t('media_missing')} ${record.seq}:audio`);
+    const mime = record.audio_mime || blob.type || 'audio/webm';
+    attachments.push({ blob, name: audioFileName(mime), mime, kind: 'audio' });
+  }
+  const uploaded = [];
+  for (let position = 0; position < attachments.length; position += 1) {
+    const { blob, name, mime, kind } = attachments[position];
+    const id = `${record.hash}-${position}`;
+    const total = Math.max(1, Math.ceil(blob.size / CHUNK_SIZE));
+    let url = '';
+    for (let index = 0; index < total; index += 1) {
+      const data = await mediaDataUrl(blob.slice(index * CHUNK_SIZE, (index + 1) * CHUNK_SIZE, mime));
+      const response = await syncFetch('/api/evidence', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id, index, total, name, mime, kind, data })
+      });
+      if (!response.ok) throw new Error(`evidence ${response.status}`);
+      const result = await response.json();
+      if (!result.ok) throw new Error('Evidence upload was not acknowledged');
+      if (index === total - 1) {
+        const resolved = new URL(result.url, location.origin);
+        if (resolved.origin !== location.origin || resolved.pathname !== `/api/evidence/${id}` || resolved.search || resolved.hash) {
+          throw new Error('Invalid evidence URL');
+        }
+        url = resolved.href;
+      }
+    }
+    uploaded.push({ name, mime, kind, url });
+  }
+  return uploaded;
+}
+
+async function pushRecord(record, records, recovery) {
+  const media = await syncMedia(record, records);
+  const response = await syncFetch('/api/ledger', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ record, media, ...(recovery ? { recovery: true } : {}) })
+  });
+  if (!response.ok) throw new Error(`sync ${response.status}`);
+  const result = await response.json();
+  if (!result.ok || result.files !== media.length) throw new Error('Ledger did not acknowledge every attachment');
 }
 
 let queueFlush = null;
+let retryTimer = null;
+let queueDirty = false;
 function flushQueue() {
-  if (queueFlush) return queueFlush.then(() => flushQueue());
-  const run = () => flushQueueRecords();
+  queueDirty = true;
+  if (queueFlush) return queueFlush;
+  clearTimeout(retryTimer);
+  const run = async () => {
+    do {
+      queueDirty = false;
+      await flushQueueRecords();
+    } while (queueDirty);
+  };
   queueFlush = (navigator.locks
     ? navigator.locks.request('toend-sync', run)
-    : run()).finally(() => { queueFlush = null; });
+    : withSyncLease(run)).catch((error) => {
+      console.warn('Sheets sync failed', error);
+      setSyncStatus('sync_failed', error.message);
+      retryTimer = setTimeout(() => { void flushQueue(); }, 30000);
+    }).finally(() => { queueFlush = null; });
   return queueFlush;
 }
 
-async function flushQueueRecords() {
-  const pending = await pendingSessionSeqs();
-  const queue = [...new Set([...queuedSeqs(), ...pending])];
-  if (!queue.length) return;
-  const records = await allRecords();
-  for (const seq of queue) {
-    const record = records.find((item) => item.seq === seq);
-    if (!record) {
-      unqueueSeq(seq);
-      continue;
-    }
-    const specs = Array.isArray(record.media_items) && record.media_items.length
-      ? record.media_items.map((_, position) => `${seq}:media${position ? `:${position}` : ''}`)
-      : record.media_hash ? [`${seq}:media`] : [];
-    const mediaFiles = [];
-    for (const key of specs) {
-      const blob = await mediaBlob(key);
-      if (!blob) continue;
-      const position = specs.indexOf(key);
-      const meta = record.media_items?.[position] || {};
-      mediaFiles.push(new File([blob], meta.name || `media-${key}`, { type: meta.mime || blob.type }));
-    }
-    const audioBlob = await mediaBlob(`${seq}:audio`);
-    const synced = await pushRecord(record, mediaFiles, audioBlob);
-    if (synced && pending.includes(seq)) await clearSessionPending(seq);
+// Web Locks are not available in every browser. A renewable IndexedDB lease
+// keeps fallback tabs from concurrently submitting the same outbox entries.
+async function withSyncLease(run) {
+  const db = await openDb();
+  const owner = `${Date.now()}-${Math.random()}`;
+  const lease = (release = false) => new Promise((resolve, reject) => {
+    const tx = db.transaction('media', 'readwrite');
+    const store = tx.objectStore('media');
+    const request = store.get(SYNC_LEASE);
+    let held = false;
+    request.onsuccess = () => {
+      const existing = request.result;
+      if (release) {
+        if (existing?.owner === owner) store.delete(SYNC_LEASE);
+      } else if (!existing || existing.owner === owner || existing.expires < Date.now()) {
+        store.put({ key: SYNC_LEASE, owner, expires: Date.now() + 60000 });
+        held = true;
+      }
+    };
+    tx.oncomplete = () => resolve(held);
+    tx.onabort = tx.onerror = () => reject(tx.error || new Error('Sync lease failed'));
+  });
+  if (!await lease()) {
+    retryTimer = setTimeout(() => { void flushQueue(); }, 5000);
+    return;
   }
+  const timer = setInterval(() => { void lease().catch(console.warn); }, 10000);
+  try { await run(); } finally { clearInterval(timer); await lease(true); }
+}
+
+async function flushQueueRecords() {
+  await migrateOutbox();
+  const pending = await pendingSessionSeqs();
+  if (!pending.length) {
+    if (!queueDirty && $('syncStatus')?.dataset.state === 'sync_pending') setSyncStatus('sync_done');
+    return;
+  }
+  setSyncStatus('sync_pending');
+  const records = await allRecords();
+  let failure = null;
+  for (const entry of pending) {
+    try {
+      const record = records.find((item) => item.seq === entry.seq);
+      if (!record) throw new Error(`${t('media_missing')} record ${entry.seq}`);
+      await pushRecord(record, records, entry.recovery);
+      await clearSessionPending(entry.seq);
+    } catch (error) {
+      failure ||= error;
+    }
+  }
+  if (failure) throw failure;
+  // Entries may have been added by another tab while this batch was sending.
+  if ((await pendingSessionSeqs()).length) return flushQueueRecords();
+  if (!queueDirty) setSyncStatus('sync_done');
 }
 
 async function bitmapFor(file) {
@@ -1325,8 +1450,7 @@ function checkpointFor(asset) {
   return '';
 }
 
-// Session state lives in the existing media store. Completion is also recorded
-// in the chain for JSONL backup, but is not queued as a spreadsheet row.
+// Session state and its durable outbox live in the existing media store.
 function sessionRead() {
   return openDb().then((db) => new Promise((resolve, reject) => {
     const tx = db.transaction(['records', 'media'], 'readonly');
@@ -1403,31 +1527,56 @@ async function refreshSession() {
   if ($('asset').value && !DEMO_CHECKPOINTS.includes(checkpointFor($('asset').value))) note('quickNote', st('other'), true);
 }
 
-async function startInspection() {
-  const supervisor = $('sessionName').value.trim();
-  if (!supervisor) { note('sessionNote', st('name_required'), true); return; }
+function clearStartIntent(id) {
+  const value = localStorage.getItem(START_INTENT_KEY);
+  if (value && JSON.parse(value).id === id) localStorage.removeItem(START_INTENT_KEY);
+}
+
+async function persistStartIntent(session) {
   const db = await openDb();
-  await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const tx = db.transaction('media', 'readwrite');
     const store = tx.objectStore('media');
     const request = store.get(SESSION_KEY);
-    let failure;
+    let conflict = false;
     request.onsuccess = () => {
-      if (request.result?.session?.status === 'active') {
-        failure = new Error(st('conflict'));
-        tx.abort();
+      const existing = request.result?.session;
+      if (existing?.status === 'active' && existing.id !== session.id) {
+        conflict = true;
         return;
       }
-      const session = {
-        id: crypto.randomUUID(), line: sessionLine, supervisor, status: 'active',
-        start_tag: sessionTag, started_at: new Date().toISOString()
-      };
-      store.put({ key: SESSION_KEY, session });
-      store.put({ key: `inspection:session:${session.id}`, session });
+      if (existing?.id !== session.id) {
+        store.put({ key: SESSION_KEY, session });
+        store.put({ key: `inspection:session:${session.id}`, session });
+      }
     };
-    tx.oncomplete = resolve;
-    tx.onabort = tx.onerror = () => reject(failure || tx.error || new Error('Session start failed'));
+    tx.oncomplete = () => resolve(!conflict);
+    tx.onabort = tx.onerror = () => reject(tx.error || new Error('Session start failed'));
   });
+}
+
+async function recoverStartIntent() {
+  const value = localStorage.getItem(START_INTENT_KEY);
+  if (!value) return;
+  const session = JSON.parse(value);
+  const saved = await persistStartIntent(session);
+  clearStartIntent(session.id);
+  if (!saved) note('quickNote', st('conflict'), true);
+  else notifyRecords({ seq: 0 });
+}
+
+async function startInspection() {
+  const supervisor = $('sessionName').value.trim();
+  if (!supervisor) { note('sessionNote', st('name_required'), true); return; }
+  const session = {
+    id: crypto.randomUUID(), line: sessionLine, supervisor, status: 'active',
+    start_tag: sessionTag, started_at: new Date().toISOString()
+  };
+  // Persist the explicit start synchronously before a later NFC navigation.
+  localStorage.setItem(START_INTENT_KEY, JSON.stringify(session));
+  const saved = await persistStartIntent(session);
+  clearStartIntent(session.id);
+  if (!saved) throw new Error(st('conflict'));
   notifyRecords({ seq: 0 });
   await refreshSession();
 }
@@ -1496,6 +1645,7 @@ async function finishInspection() {
         };
         const marker = { ...completion, hash: sha256Sync(completion) };
         store.add(marker);
+        media.put({ key: `${SESSION_PENDING}${seq}`, seq });
         created.push(marker);
         const completed = { ...session, status: 'completed', signed_by: signature, signature_method: 'typed_self_declared', end_tag: sessionTag, completed_at: completedAt };
         media.put({ key: SESSION_KEY, session: completed });
@@ -1505,6 +1655,7 @@ async function finishInspection() {
     tx.oncomplete = () => resolve(created);
     tx.onabort = tx.onerror = () => reject(failure || tx.error || new Error('Session completion failed'));
   });
+  if (added.length) setSyncStatus('sync_pending');
   for (const record of added) notifyRecords(record);
   notifyRecords({ seq: 0 });
   await refreshSession();
@@ -1514,8 +1665,11 @@ async function finishInspection() {
 async function pendingSessionSeqs() {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const request = db.transaction('media', 'readonly').objectStore('media').getAllKeys();
-    request.onsuccess = () => resolve(request.result.filter((key) => typeof key === 'string' && key.startsWith(SESSION_PENDING)).map((key) => Number(key.slice(SESSION_PENDING.length))));
+    const request = db.transaction('media', 'readonly').objectStore('media')
+      .getAll(IDBKeyRange.bound(SESSION_PENDING, `${SESSION_PENDING}\uffff`));
+    request.onsuccess = () => resolve(request.result
+      .filter((entry) => typeof entry.key === 'string' && entry.key.startsWith(SESSION_PENDING))
+      .sort((a, b) => a.seq - b.seq));
     request.onerror = () => reject(request.error);
   });
 }
@@ -1524,7 +1678,9 @@ async function clearSessionPending(seq) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('media', 'readwrite');
-    tx.objectStore('media').delete(`${SESSION_PENDING}${seq}`);
+    const store = tx.objectStore('media');
+    store.delete(`${SESSION_PENDING}${seq}`);
+    store.put({ key: `${SYNC_ACK}${seq}`, seq });
     tx.oncomplete = resolve;
     tx.onabort = tx.onerror = () => reject(tx.error || new Error('Outbox update failed'));
   });
@@ -2209,10 +2365,13 @@ function bind() {
   recordsChannel?.addEventListener('message', () => {
     refreshCount().catch(() => {});
     refreshSession().catch(() => {});
+    setSyncStatus('sync_pending');
+    void flushQueue();
   });
   window.addEventListener('storage', (event) => {
     if (event.key === 'toend-records-event') refreshCount().catch(() => {});
     if (event.key === 'toend-records-event') refreshSession().catch(() => {});
+    if (event.key === 'toend-records-event') { setSyncStatus('sync_pending'); void flushQueue(); }
   });
   $('asset').addEventListener('input', () => {
     currentTag = '';
@@ -2253,7 +2412,7 @@ function bind() {
           note('photoNote', t('media_limit'), true);
           break;
         }
-        const result = file.type.startsWith('video/') ? await analyseVideo(file) : await analysePhoto(file);
+        const result = mediaKind(file.type, file.name) === 'video' ? await analyseVideo(file) : await analysePhoto(file);
         if (token !== photoToken) return;
         mediaItems = [...mediaItems, result];
         renderMediaPreview();
@@ -2275,6 +2434,7 @@ function bind() {
   });
   $('saveBtn').addEventListener('click', saveFromForm);
   $('mediaClearBtn')?.addEventListener('click', () => clearMedia());
+  $('syncRetry').addEventListener('click', () => { setSyncStatus('sync_pending'); void flushQueue(); });
   window.addEventListener('online', () => { updateNetwork(); flushPendingClip(); void flushQueue(); });
   window.addEventListener('offline', updateNetwork);
 }
@@ -2296,8 +2456,12 @@ async function start() {
     $('grade3').focus({ preventScroll: true });
   }
   navigator.storage?.persist?.().catch(() => {});
+  await recoverStartIntent();
   await refreshCount();
   await refreshSession();
+  $('saveBtn').disabled = false;
+  $('sessionStart').disabled = false;
+  $('sessionFinish').disabled = false;
   void flushQueue();
   await registerServiceWorker();
 }

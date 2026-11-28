@@ -1,8 +1,8 @@
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SHEETS_URL = 'https://sheets.googleapis.com/v4/spreadsheets';
-const MAX_FILE = 8 * 1024 * 1024;
-const MAX_TOTAL = 24 * 1024 * 1024;
+const MAX_CHUNK = 4 * 1024 * 1024;
 const MAX_BODY = 32 * 1024 * 1024;
+const EVIDENCE_ID = /^(?:[a-f0-9]{64}|[a-f0-9]{16})-(?:0|[1-9][0-9]*)$/;
 
 let tokenCache = null;
 
@@ -104,32 +104,153 @@ async function appendRow(token, sheetId, sheetName, row) {
 }
 
 
+function allowedOrigin(request) {
+  const origin = request.headers.get('Origin');
+  const fetchSite = request.headers.get('Sec-Fetch-Site');
+  if (origin) {
+    try { return new URL(origin).host === new URL(request.url).host; } catch { return false; }
+  }
+  return !fetchSite || fetchSite === 'same-origin';
+}
+
+function evidenceMetadata(item) {
+  if (typeof item.name !== 'string' || !item.name || item.name.length > 255 ||
+      typeof item.mime !== 'string' || item.mime.length > 255 || !/^[\w!#$&^_.+-]+\/[\w!#$&^_.+-]+(?:;[ -~]+)?$/.test(item.mime) ||
+      !['photo', 'image', 'video', 'audio'].includes(item.kind)) throw new Error('invalid media metadata');
+  return { name: item.name, mime: item.mime, kind: item.kind };
+}
+
 async function storeEvidence(env, item, base) {
-  if (!env.EVIDENCE) return '';
+  if (!env.EVIDENCE) throw new Error('evidence unavailable');
+  const metadata = evidenceMetadata(item);
   const bytes = dataUrlBytes(item.dataUrl);
-  if (!bytes.length || bytes.length > MAX_FILE) return '';
-  const mime = String(item.mime || 'application/octet-stream').slice(0, 100);
-  const name = String(item.name || 'evidence').replace(/[^\p{L}\p{N}._ -]/gu, '_').slice(0, 80);
+  if (!bytes.length || bytes.length > MAX_CHUNK) throw new Error('invalid or oversized legacy media');
   const key = `ev-${crypto.randomUUID().replace(/-/g, '')}`;
-  await env.EVIDENCE.put(key, bytes, { metadata: { mime, name } });
+  await env.EVIDENCE.put(key, bytes, { metadata });
   return `${base}/api/evidence/${key}`;
+}
+
+async function onRequestEvidencePost({ request, env }) {
+  if (!allowedOrigin(request)) return Response.json({ error: 'forbidden' }, { status: 403 });
+  if (!env.EVIDENCE) return Response.json({ error: 'evidence unavailable' }, { status: 503 });
+  try {
+    const text = await request.text();
+    if (text.length > Math.ceil(MAX_CHUNK / 3) * 4 + 4096) return Response.json({ error: 'chunk too big' }, { status: 413 });
+    const item = JSON.parse(text);
+    if (!EVIDENCE_ID.test(item.id) || !Number.isSafeInteger(item.index) || !Number.isSafeInteger(item.total) ||
+        item.index < 0 || item.total < 1 || item.total > 10000 || item.index >= item.total ||
+        typeof item.data !== 'string' || !/^data:[^,]*;base64,[A-Za-z0-9+/]*={0,2}$/.test(item.data)) {
+      return Response.json({ error: 'invalid chunk' }, { status: 400 });
+    }
+    const metadata = evidenceMetadata(item);
+    const bytes = dataUrlBytes(item.data);
+    if (!bytes.length || bytes.length > MAX_CHUNK) return Response.json({ error: 'invalid chunk size' }, { status: 400 });
+    const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (b) => b.toString(16).padStart(2, '0')).join('');
+    const manifestKey = `manifest-${item.id}`;
+    const manifest = await env.EVIDENCE.get(manifestKey, 'json');
+    const matches = (value) => value && value.total === item.total && value.name === metadata.name &&
+      value.mime === metadata.mime && value.kind === metadata.kind;
+    if (manifest) {
+      const chunk = manifest.chunks[item.index];
+      if (!matches(manifest) || !chunk || chunk.digest !== digest || chunk.size !== bytes.length) {
+        return Response.json({ error: 'upload conflict' }, { status: 409 });
+      }
+    } else {
+      const chunks = [];
+      let size = 0;
+      for (let index = item.index === item.total - 1 ? 0 : Math.max(0, item.index - 1); index < item.index; index++) {
+        const entry = await env.EVIDENCE.getWithMetadata(`chunk-${item.id}-${index}`, 'arrayBuffer');
+        if (!entry.value) return Response.json({ error: 'earlier chunk not yet available; retry' }, { status: 409 });
+        const part = entry.metadata;
+        if (!matches(part) || part.index !== index || part.size !== entry.value.byteLength || typeof part.digest !== 'string') {
+          return Response.json({ error: 'upload conflict' }, { status: 409 });
+        }
+        chunks.push({ size: part.size, digest: part.digest });
+        size += part.size;
+      }
+      const chunkKey = `chunk-${item.id}-${item.index}`;
+      const existing = await env.EVIDENCE.getWithMetadata(chunkKey, 'arrayBuffer');
+      if (existing.value) {
+        const part = existing.metadata;
+        if (!matches(part) || part.index !== item.index || part.digest !== digest ||
+            part.size !== bytes.length || existing.value.byteLength !== bytes.length) {
+          return Response.json({ error: 'upload conflict' }, { status: 409 });
+        }
+      } else {
+        await env.EVIDENCE.put(chunkKey, bytes, {
+          metadata: { ...metadata, total: item.total, index: item.index, size: bytes.length, digest }
+        });
+      }
+      chunks.push({ size: bytes.length, digest });
+      size += bytes.length;
+      if (item.index === item.total - 1) {
+        await env.EVIDENCE.put(manifestKey, JSON.stringify({ ...metadata, total: item.total, chunks, size }));
+      }
+    }
+    return Response.json({ ok: true, url: `${new URL(request.url).origin}/api/evidence/${item.id}` });
+  } catch (error) {
+    console.error('evidence upload failed', error);
+    return Response.json({ error: 'evidence upload failed' }, { status: 502 });
+  }
 }
 
 async function onRequestGet({ request, env }) {
   if (!env.EVIDENCE) return Response.json({ error: 'unavailable' }, { status: 503 });
   const key = new URL(request.url).pathname.split('/').pop() || '';
-  if (!/^[a-zA-Z0-9_-]{1,80}$/.test(key)) return Response.json({ error: 'not found' }, { status: 404 });
-  const entry = await env.EVIDENCE.getWithMetadata(key, 'arrayBuffer');
-  if (!entry.value) return Response.json({ error: 'not found' }, { status: 404 });
-  const mime = entry.metadata?.mime || 'application/octet-stream';
-  const name = String(entry.metadata?.name || 'evidence').replace(/["\\]/g, '_');
-  return new Response(entry.value, {
-    headers: {
-      'content-type': mime,
-      'content-disposition': `inline; filename="${name}"`,
-      'cache-control': 'public, max-age=31536000, immutable'
+  if (!/^[a-zA-Z0-9_-]{1,90}$/.test(key)) return Response.json({ error: 'not found' }, { status: 404 });
+  try {
+    const manifest = EVIDENCE_ID.test(key) ? await env.EVIDENCE.get(`manifest-${key}`, 'json') : null;
+    const legacy = manifest ? null : await env.EVIDENCE.getWithMetadata(key, 'arrayBuffer');
+    if (!manifest && !legacy.value) return Response.json({ error: 'not found' }, { status: 404 });
+    const size = manifest ? manifest.size : legacy.value.byteLength;
+    const metadata = manifest || legacy.metadata || {};
+    let start = 0, end = size - 1, status = 200;
+    const range = request.headers.get('Range');
+    if (range) {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+      if (!match || (!match[1] && !match[2])) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
+      if (!match[1]) {
+        const suffix = Number(match[2]);
+        if (!Number.isSafeInteger(suffix) || suffix < 1) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
+        start = Math.max(0, size - suffix);
+      } else {
+        start = Number(match[1]);
+        if (match[2]) end = Math.min(Number(match[2]), end);
+      }
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start >= size || end < start) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
+      status = 206;
     }
-  });
+    const headers = {
+      'content-type': metadata.mime || 'application/octet-stream',
+      'content-disposition': `inline; filename="${String(metadata.name || 'evidence').replace(/[^\x20-\x7e]|["\\]/g, '_')}"`,
+      'cache-control': 'public, max-age=31536000, immutable',
+      'accept-ranges': 'bytes',
+      'content-length': String(end - start + 1)
+    };
+    if (status === 206) headers['content-range'] = `bytes ${start}-${end}/${size}`;
+    if (!manifest) return new Response(legacy.value.slice(start, end + 1), { status, headers });
+    let offset = 0;
+    const selected = [];
+    for (let i = 0; i < manifest.chunks.length; i++) {
+      const chunkEnd = offset + manifest.chunks[i].size - 1;
+      if (chunkEnd >= start && offset <= end) selected.push({ index: i, from: Math.max(0, start - offset), to: Math.min(manifest.chunks[i].size, end - offset + 1) });
+      offset = chunkEnd + 1;
+    }
+    let index = 0;
+    const stream = new ReadableStream({
+      async pull(controller) {
+        if (index === selected.length) return controller.close();
+        const part = selected[index++];
+        const chunk = await env.EVIDENCE.get(`chunk-${key}-${part.index}`, 'arrayBuffer');
+        if (!chunk) return controller.error(new Error('missing evidence chunk'));
+        controller.enqueue(new Uint8Array(chunk, part.from, part.to - part.from));
+      }
+    });
+    return new Response(stream, { status, headers });
+  } catch (error) {
+    console.error('evidence retrieval failed', error);
+    return Response.json({ error: 'evidence retrieval failed' }, { status: 502 });
+  }
 }
 
 function plain(value) {
@@ -232,18 +353,7 @@ async function onRequestPost({ request, env }) {
   if (!env.GOOGLE_SERVICE_ACCOUNT || !env.SHEET_ID) {
     return Response.json({ error: 'unavailable' }, { status: 503 });
   }
-  const origin = request.headers.get('Origin');
-  const fetchSite = request.headers.get('Sec-Fetch-Site');
-  const ownHost = new URL(request.url).host;
-  if (origin) {
-    try {
-      if (new URL(origin).host !== ownHost) return Response.json({ error: 'forbidden' }, { status: 403 });
-    } catch {
-      return Response.json({ error: 'forbidden' }, { status: 403 });
-    }
-  } else if (fetchSite && fetchSite !== 'same-origin') {
-    return Response.json({ error: 'forbidden' }, { status: 403 });
-  }
+  if (!allowedOrigin(request)) return Response.json({ error: 'forbidden' }, { status: 403 });
 
   const text = await request.text();
   if (text.length > MAX_BODY) return Response.json({ error: 'too big' }, { status: 413 });
@@ -254,38 +364,50 @@ async function onRequestPost({ request, env }) {
     return Response.json({ error: 'bad json' }, { status: 400 });
   }
   const record = payload.record;
-  if (!record || !Number.isInteger(record.seq) || record.seq < 1 || !record.created_at) {
+  if (!record || !Number.isInteger(record.seq) || record.seq < 1 || !record.created_at || Number.isNaN(new Date(record.created_at).getTime()) ||
+      (record.record_type === 'inspection_completion' && record.signed_by !== undefined && (typeof record.signed_by !== 'string' || !record.signed_by.trim()))) {
     return Response.json({ error: 'bad record' }, { status: 400 });
   }
-  if (record.record_type === 'inspection_completion') {
-    return Response.json({ ok: true, seq: record.seq, files: 0, hygieneUpdated: false });
-  }
-  const media = Array.isArray(payload.media) ? payload.media.slice(0, 8) : [];
+  if (payload.media !== undefined && !Array.isArray(payload.media)) return Response.json({ error: 'bad media' }, { status: 400 });
+  const media = payload.media || [];
 
   try {
     const sa = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT);
     const token = await serviceToken(sa);
 
     const links = [];
-    let total = 0;
     for (const item of media) {
-      if (item.kind === 'audio') continue;
-      const size = typeof item.dataUrl === 'string' ? item.dataUrl.length * 0.75 : 0;
-      if (total + size > MAX_TOTAL) break;
-      total += size;
-      const url = await storeEvidence(env, item, new URL(request.url).origin);
-      if (!url) continue;
-      const label = item.label || ((item.mime || '').startsWith('video/') ? 'video' : 'foto');
+      const metadata = evidenceMetadata(item);
+      let url;
+      if (item.url) {
+        const parsed = new URL(item.url, request.url);
+        if (parsed.origin !== new URL(request.url).origin || parsed.search || parsed.hash ||
+            !/^\/api\/evidence\/(?:[a-f0-9]{64}|[a-f0-9]{16})-(?:0|[1-9][0-9]*)$/.test(parsed.pathname)) throw new Error('invalid evidence URL');
+        if (!env.EVIDENCE) throw new Error('evidence unavailable');
+        const id = parsed.pathname.split('/').pop();
+        const manifest = await env.EVIDENCE.get(`manifest-${id}`, 'json');
+        if (!manifest || manifest.name !== metadata.name || manifest.mime !== metadata.mime || manifest.kind !== metadata.kind) throw new Error('missing evidence');
+        for (let index = 0; index < manifest.chunks.length; index++) {
+          const entry = await env.EVIDENCE.getWithMetadata(`chunk-${id}-${index}`, 'arrayBuffer');
+          const expected = manifest.chunks[index];
+          if (!entry.value || entry.value.byteLength !== expected.size || entry.metadata?.digest !== expected.digest) {
+            throw new Error('evidence chunk not yet available');
+          }
+        }
+        url = parsed.href;
+      } else {
+        url = await storeEvidence(env, item, new URL(request.url).origin);
+      }
+      const label = metadata.kind === 'video' ? 'video' : metadata.kind === 'audio' ? 'audio' : 'foto';
       links.push({ url, label });
     }
-    const photos = links.filter((link) => link.label === 'foto' || link.label.startsWith('foto '));
+    const photos = links.filter((link) => link.label === 'foto');
     const videos = links.filter((link) => link.label === 'video');
-    const evidence = photos.concat(videos).map((link) => link.label).join(', ');
-    const photoCells = Array.from({ length: 6 }, (_, index) => {
-      const item = photos[index];
-      return item ? hyperlink(item.url, item.label) : '';
-    });
+    const others = links.filter((link) => link.label === 'audio');
+    const evidence = links.map((link) => link.label).join(', ');
+    const photoCells = Array.from({ length: 6 }, (_, index) => photos[index] ? hyperlink(photos[index].url, photos[index].label) : '');
     const videoCell = videos[0] ? hyperlink(videos[0].url, videos[0].label) : '';
+    const extraCells = [...photos.slice(6), ...videos.slice(1), ...others].map((link) => hyperlink(link.url, link.label));
     const stamp = new Date(record.created_at);
     const safeStamp = Number.isNaN(stamp.getTime()) ? new Date() : stamp;
     const dateText = new Intl.DateTimeFormat('et-EE', {
@@ -297,17 +419,19 @@ async function onRequestPost({ request, env }) {
     const ledgerRow = [
       dateText,
       `'${timeText}`,
-      plain(displayCheckpoint(record)),
-      record.auto_default === true ? '3 — automaatne, kontrollimata / automatic, unverified' : gradeFor(record),
-      record.auto_default === true ? 'Automaatne kontrollimata vaikimisi hinnang / Automatic unverified default assessment' : plain(record.transcript),
-      plain(record.supervisor || record.device_id),
+      record.record_type === 'inspection_completion' ? `Ülevaatuse kinnitamine / Inspection completion${record.inspection_line ? ` — ${plain(record.inspection_line)}` : ''}` : plain(displayCheckpoint(record)),
+      record.record_type === 'inspection_completion' || (payload.recovery === true && record.auto_default !== true) ? '' : record.auto_default === true ? '3 — automaatne, kontrollimata / automatic, unverified' : gradeFor(record),
+      record.record_type === 'inspection_completion' ? (record.signed_by ? 'Allkirjastatud, enda kinnitus / Signed, self-declared confirmation' : 'Lõpetatud, allkiri puudub / Completed, no signature') : payload.recovery === true && record.auto_default === true ? 'Taastatud automaatne kontrollimata hinnang / Recovered automatic unverified default' : payload.recovery === true ? 'Taastatud varasema kirje tõendid / Recovered attachments from an earlier record; not a new inspection' : record.auto_default === true ? 'Automaatne kontrollimata vaikimisi hinnang / Automatic unverified default assessment' : plain(record.transcript),
+      plain(record.record_type === 'inspection_completion' ? record.signed_by || record.supervisor : record.supervisor || record.device_id),
       evidence,
       ...photoCells,
       videoCell,
+      ...extraCells,
+      ...(record.record_type === 'inspection_completion' ? [plain(record.created_at)] : []),
     ];
     await appendRow(token, env.SHEET_ID, 'Kirjed', ledgerRow);
     let hygieneUpdated = false;
-    const target = record.auto_default === true ? null : hygieneTarget(record);
+    const target = record.auto_default === true || record.record_type === 'inspection_completion' || payload.recovery === true ? null : hygieneTarget(record);
     if (target) {
       const current = await readCell(token, env.SHEET_ID, target.range);
       const next = current === null ? target.grade : Math.min(current, target.grade);
@@ -321,4 +445,4 @@ async function onRequestPost({ request, env }) {
   }
 }
 
-export { onRequestPost, onRequestGet };
+export { onRequestPost, onRequestGet, onRequestEvidencePost };
