@@ -30,3 +30,4 @@ Format:
 - **2026-11-28** — Publishing line sessions via admin merge without review; the owner previously bypassed review twice to ship faster. The five checkpoints are examples, not a validated production roster.
 - **2026-11-28** — Fixing existing Algus/Lõpp tag links and requiring the inspector to re-enter their name to confirm completion; unvisited defaults remain marked unverified. Physical NFC needs testing.
 - **2026-11-28** — Publishing the Algus/Lõpp fix via admin merge without review; the owner previously bypassed review twice to ship faster. The signature is self-declared.
+- **2026-11-28** — Renamed the start view Algus and routed existing Alustus tags to it without rating or evidence fields. Publishing via admin merge without review; the owner previously bypassed review twice to ship faster. Physical NFC not tested.
