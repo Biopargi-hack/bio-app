@@ -186,14 +186,15 @@
           </section>
 
           <div class="voice-controls">
-            <button id="voiceBtn" class="voice" type="button" data-i18n="speak">Räägi</button>
-            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.</p>
+            <button id="voiceBtn" class="voice" type="button" aria-pressed="false" data-i18n="speak">Räägi</button>
+            <div id="voiceLevel" class="voice-level" aria-hidden="true"></div>
+            <p id="audioNote" class="note" role="status" data-i18n="audio_hint">Vajuta „Räägi“ ja räägi. Kui oled valmis, vajuta „Valmis“.</p>
           </div>
 
           <label class="field text-field">
             <span data-i18n="note_label">Mis juhtus — kirjuta või räägi</span>
             <textarea id="transcript" rows="5" placeholder="Kirjuta siia või vajuta „Räägi“." data-i18n-placeholder="note_ph"></textarea>
-            <small class="field-hint" data-i18n="note_hint">Kui lisad puuduva tähe, jääb see alles. Võrgus parandatakse ka kirjavead.</small>
+            <small class="field-hint" data-i18n="note_hint">Räägitud tekst kirjutatakse eesti keeles puhtaks. Sinu enda parandused jäävad alles.</small>
           </label>
 
           <div class="field file-field">

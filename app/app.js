@@ -51,28 +51,23 @@ const WORDS = {
     not_clean: 'Not clean',
     cannot_sign: 'Cannot sign',
     speak: 'Speak',
-    record_audio: 'Record voice note',
-    record_audio_stop: 'Stop and save voice note',
-    audio_hint: 'Press Speak, then talk. A long note is kept in full. Spelling is corrected when you are online.',
-    audio_recording: 'Recording... tap to stop and save',
-    audio_saved: 'Voice note saved',
-    spoken_saved: 'Spoken text added',
+    done_btn: 'Done',
+    audio_hint: 'Tap Speak and talk. Tap Done when you finish.',
     audio_unsupported: 'This browser cannot record audio.',
-    speech_lang_unsupported: 'Speech recognition is not available in this browser. Type the note instead.',
-    speech_fallback: 'Estonian is unavailable for speech here. Listening in English.',
     speech_stopped: 'Voice stopped',
-    listening: 'Listening',
-    record_stop_hint: 'Press the button again when you are done.',
-    speech_to_record: 'Browser speech is not answering, recording instead. Press again when you are done.',
-    transcribing: 'Writing it down...',
+    listening: 'Listening…',
+    record_stop_hint: 'Tap Done when you finish.',
+    speech_to_record: 'Browser speech is not answering, recording instead. Tap Done when you finish.',
     record_failed: 'Could not write the voice down. Check the microphone permission and the connection.',
-    record_short: 'The recording was too short. Press, speak, and press again.',
-    polishing: 'Correcting spelling',
-    audio_denied: 'Microphone permission was denied.',
+    record_short: 'The recording was too short. Tap, speak, and tap again.',
+    polishing: 'Cleaning up the text…',
+    text_ready: 'Text is ready. Fix anything that is wrong.',
+    voice_pending_offline: 'No connection. The text is written down when you are back online.',
+    audio_denied: 'Allow the microphone in the browser settings and try again.',
     audio_stop_first: 'Stop the voice note before saving.',
     note_label: 'What happened — write or speak',
-    note_ph: 'Type here, or press Speak. Each recording adds a new line.',
-    note_hint: 'A letter you add stays. Spelling is corrected when you are online.',
+    note_ph: 'Type here or tap Speak.',
+    note_hint: 'Spoken text is cleaned up in Estonian. Your own edits stay.',
     what_happened: 'What happened',
     photo: 'Photo evidence',
     take_photo: 'Take photo',
@@ -205,28 +200,23 @@ const WORDS = {
     not_clean: 'Ei ole puhas',
     cannot_sign: 'Ei saa allkirjastada',
     speak: 'Räägi',
-    record_audio: 'Salvesta häälmärkus',
-    record_audio_stop: 'Peata ja salvesta häälmärkus',
-    audio_hint: 'Vajuta Räägi ja räägi. Pikk jutt jääb tervenisti alles ja kirjaviis täpsustub.',
-    audio_recording: 'Salvestan… vajuta peatamiseks ja salvestamiseks',
-    audio_saved: 'Häälmärkus salvestatud',
-    spoken_saved: 'Räägitud tekst lisatud',
+    done_btn: 'Valmis',
+    audio_hint: 'Vajuta „Räägi“ ja räägi. Kui oled valmis, vajuta „Valmis“.',
     audio_unsupported: 'See brauser ei saa heli salvestada.',
-    speech_lang_unsupported: 'Kõnetuvastus ei ole selles brauseris saadaval. Kirjuta tekst.',
-    speech_fallback: 'Eesti keel pole kõnetuvastuses saadaval. Kuulan inglise keeles.',
     speech_stopped: 'Kõnetuvastus peatus',
-    listening: 'Kuulan',
-    record_stop_hint: 'Vajuta nuppu uuesti, kui oled lõpetanud.',
-    speech_to_record: 'Brauseri kõnetuvastus ei vasta, salvestan ise. Vajuta uuesti, kui oled lõpetanud.',
-    transcribing: 'Kirjutan üles…',
+    listening: 'Kuulan…',
+    record_stop_hint: 'Vajuta „Valmis“, kui oled lõpetanud.',
+    speech_to_record: 'Brauseri kõnetuvastus ei vasta, salvestan ise. Vajuta „Valmis“, kui oled lõpetanud.',
     record_failed: 'Häält ei saanud üles kirjutada. Kontrolli mikrofoniluba ja ühendust.',
     record_short: 'Salvestus jäi liiga lühikeseks. Vajuta, räägi ja vajuta uuesti.',
-    polishing: 'Parandan kirjavigu',
-    audio_denied: 'Mikrofoni luba keelati.',
+    polishing: 'Kirjutan teksti puhtaks…',
+    text_ready: 'Tekst on valmis. Paranda, kui midagi on valesti.',
+    voice_pending_offline: 'Võrku pole. Kirjutan teksti üles, kui ühendus tagasi tuleb.',
+    audio_denied: 'Luba mikrofon brauseri seadetes ja proovi uuesti.',
     audio_stop_first: 'Peata häälmärkus enne salvestamist.',
     note_label: 'Mis juhtus — kirjuta või räägi',
-    note_ph: 'Kirjuta siia või vajuta „Räägi“. Puuduv täht jääb alles.',
-    note_hint: 'Kui lisad puuduva tähe, jääb see alles. Võrgus parandatakse ka kirjavead.',
+    note_ph: 'Kirjuta siia või vajuta „Räägi“.',
+    note_hint: 'Räägitud tekst kirjutatakse eesti keeles puhtaks. Sinu enda parandused jäävad alles.',
     what_happened: 'Mis juhtus',
     photo: 'Foto tõend',
     take_photo: 'Tee foto',
@@ -335,25 +325,19 @@ const WORDS = {
   }
 };
 
-const SPEECH_FALLBACK = 'en-US';
-
-// One recogniser accepts one language, so the first words choose it.
-function detectSpokenLang(text) {
-  const value = String(text || '');
-  if (/[\u0400-\u04FF]/.test(value)) return 'ru-RU';
-  if (/[õÕäÄöÖüÜšŠžŽ]/.test(value) || /\b(puhas|mustus|tihend|drenaaž|kätepesu|vaht|jäägid|korras|masin|puhastatud|kontroll|seade|viga)\b/i.test(value)) return 'et-EE';
-  return 'en-US';
-}
-
 let lang = localStorage.getItem('toend-lang') === 'en' ? 'en' : 'et';
+// The recogniser, the stored record and the server all speak one language.
 let speechLang = 'et-EE';
-let spokenLangs = new Set();
 const SILENCE_MS = 7000;
 // Chrome stops growing one speech hypothesis near a few hundred characters.
 // Flush and open the next session before that, so a spoken note has no length cap.
 const SPEECH_CHUNK_CHARS = 160;
 const SPEECH_CHUNK_MS = 8000;
+// Consecutive sessions that heard nothing before the recording path takes over,
+// so a speech service that dies quietly cannot restart forever.
+const SPEECH_RESTART_LIMIT = 2;
 let voiceHold = false;
+let speechRestarts = 0;
 let speechBase = '';
 let utteranceBase = '';
 let userOwned = false;
@@ -364,7 +348,6 @@ let audioSpeechSession = null;
 let mediaItems = [];
 let galleryUrls = [];
 const MAX_MEDIA = 6;
-let audioRecorder = null;
 let audioState = null;
 let currentTag = '';
 let currentSource = 'typed';
@@ -374,7 +357,6 @@ let audioToken = 0;
 let photoToken = 0;
 let photoPending = false;
 let photoFailed = false;
-let audioStarting = false;
 
 let gradeMode = false;
 let selectedGrade = 0;
@@ -449,6 +431,11 @@ function applyLanguage() {
   }
   $('langToggle').textContent = lang === 'en' ? 'ET' : 'EN';
   $('langToggle').setAttribute('aria-label', lang === 'en' ? 'Switch to Estonian' : 'Switch to English');
+  setVoiceButton();
+  if (polishing) note('audioNote', t('polishing'));
+  else if (recordState === 'sending') note('audioNote', t('polishing'));
+  else if (pendingClip) note('audioNote', t('voice_pending_offline'));
+  else if (voiceHold || recordState === 'listening') note('audioNote', t('listening'));
   renderMediaPreview();
   showMediaNote();
   refreshSavedRecord();
@@ -1163,7 +1150,7 @@ let allRecordsCache = [];
 function mediaPayload(previous = null) {
   const first = mediaItems[0] || null;
   return {
-    speech_lang: spokenLangs.size ? [...spokenLangs].join(',') : speechLang,
+    speech_lang: speechLang,
     media_count: mediaItems.length,
     media_size_total: mediaItems.reduce((sum, item) => sum + (Number(item.size) || 0), 0),
     media_items: mediaItems.map((item, index) => ({
@@ -1195,13 +1182,17 @@ function mediaPayload(previous = null) {
 }
 
 function audioBusy(noteId) {
-  if (!audioRecorder && !audioStarting && !photoPending && !photoFailed) return false;
   if (photoPending || photoFailed) {
     note(noteId, t('media_pending'), true);
     return true;
   }
-  note(noteId, t('audio_stop_first'), true);
-  return true;
+  // A live microphone is stopped or saved first: resetting the form now would
+  // leave the recorder open and its words would land in the next note.
+  if (recordState !== 'idle' || voiceHold) {
+    note(noteId, t('audio_stop_first'), true);
+    return true;
+  }
+  return false;
 }
 
 async function guardedWrite(noteId, work) {
@@ -1225,10 +1216,14 @@ function resetCaptureInputs() {
     speechSession.stop();
     speechSession = null;
   }
+  // A saved or cleared note is not the place for a clip the server has not seen.
+  pendingClip = null;
+  polishing = false;
+  polishToken += 1;
+  stopLevelMeter();
   speechBase = '';
   $('transcript').value = '';
   setGrade(0);
-  spokenLangs = new Set();
   $('photo').value = '';
   mediaItems = [];
   audioState = null;
@@ -1236,6 +1231,7 @@ function resetCaptureInputs() {
   hideMediaPreview();
   note('photoNote', '');
   note('audioNote', t('audio_hint'));
+  setVoiceButton();
   if ($('worker') && activeSession?.status !== 'active') $('worker').value = '';
   updateTier();
 }
@@ -1539,13 +1535,31 @@ function writeSpeech(extra, commit) {
   const base = speechBase.trim();
   const tail = String(extra || '').trim();
   field.value = tail ? (base ? `${base} ${tail}` : tail) : base;
-  if (commit) {
-    speechBase = field.value;
-    if (tail) spokenLangs.add(detectSpokenLang(tail));
-  }
+  if (commit) speechBase = field.value;
   growTranscript(field);
   const end = field.value.length;
   field.setSelectionRange(end, end);
+}
+
+// The server text lands as a new line under whatever is already typed.
+function appendSpoken(text) {
+  const field = $('transcript');
+  if (!field || !text) return;
+  const prefix = String(field.value || '').trim();
+  field.value = prefix ? `${prefix}\n${text}` : text;
+  speechBase = field.value;
+  growTranscript(field);
+}
+
+// The guessed browser words are swapped for the server text, anchored on the
+// note exactly as it was before the speaking started.
+function replaceSpoken(base, text) {
+  const field = $('transcript');
+  if (!field || !text) return;
+  const prefix = String(base || '').trim();
+  field.value = prefix ? `${prefix}\n${text}` : text;
+  speechBase = field.value;
+  growTranscript(field);
 }
 
 let recorder = null;
@@ -1554,6 +1568,10 @@ let recordStream = null;
 let recorderReady = null;
 let recordMime = '';
 let recordError = '';
+let recordStartedAt = 0;
+let recordSeconds = 0;
+let levelContext = null;
+let levelFrame = 0;
 // iPhone Safari has no Web Speech API; MediaRecorder there writes audio/mp4.
 const AUDIO_TYPES = [
   'audio/webm;codecs=opus',
@@ -1594,21 +1612,27 @@ function isIOS() {
 function startRecorder() {
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
   recordError = '';
+  recordStartedAt = 0;
+  recordSeconds = 0;
   recorderReady = navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
     if (!voiceHold) {
       stream.getTracks().forEach((track) => track.stop());
       return;
     }
     recordStream = stream;
+    startLevelMeter(stream);
     const mime = pickAudioMime();
     recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
     recordMime = recorder.mimeType || mime;
     recordChunks = [];
     recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordChunks.push(event.data); };
+    recorder.onstart = () => { recordStartedAt = performance.now(); };
+    recordStartedAt = performance.now();
     recorder.start();
-  }).catch((error) => { recorder = null; recordError = error?.name || 'unknown'; });
+  }).catch((error) => { recorder = null; recordError = error?.name || 'unknown'; stopLevelMeter(); });
 }
 
+// The duration the server needs is the time the recorder was actually running.
 function stopRecorder() {
   return Promise.resolve(recorderReady).catch(() => {}).then(() => new Promise((resolve) => {
     const finish = (blob) => {
@@ -1616,8 +1640,13 @@ function stopRecorder() {
       recordStream = null;
       recorder = null;
       recordChunks = [];
+      stopLevelMeter();
       resolve(blob && blob.size ? blob : null);
     };
+    if (recordStartedAt) {
+      recordSeconds = Math.max(0, (performance.now() - recordStartedAt) / 1000);
+      recordStartedAt = 0;
+    }
     if (!recorder || recorder.state === 'inactive') {
       finish(recordChunks.length ? new Blob(recordChunks, { type: recordMime || 'audio/webm' }) : null);
       return;
@@ -1628,101 +1657,198 @@ function stopRecorder() {
 }
 
 let recordState = 'idle';
+// One clip the server has not written down yet, kept until the connection returns.
+let pendingClip = null;
+let switchingToRecording = false;
 
-async function transcribeRecording(blob) {
+function startLevelMeter(stream) {
+  stopLevelMeter();
+  const meter = $('voiceLevel');
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!meter || !stream || !AudioCtx) return;
+  try {
+    levelContext = new AudioCtx();
+    levelContext.resume().catch(() => {});
+  } catch {
+    return;
+  }
+  const analyser = levelContext.createAnalyser();
+  analyser.fftSize = 512;
+  levelContext.createMediaStreamSource(stream).connect(analyser);
+  const samples = new Uint8Array(analyser.fftSize);
+  const draw = () => {
+    analyser.getByteTimeDomainData(samples);
+    let sum = 0;
+    for (const sample of samples) {
+      const value = (sample - 128) / 128;
+      sum += value * value;
+    }
+    const rms = Math.sqrt(sum / samples.length);
+    meter.style.setProperty('--level', Math.min(1, rms * 4).toFixed(2));
+    levelFrame = requestAnimationFrame(draw);
+  };
+  draw();
+}
+
+function stopLevelMeter() {
+  if (levelFrame) cancelAnimationFrame(levelFrame);
+  levelFrame = 0;
+  const context = levelContext;
+  levelContext = null;
+  if (context) {
+    try { context.close().catch(() => {}); } catch { /* already closed */ }
+  }
+  const meter = $('voiceLevel');
+  if (meter) meter.style.setProperty('--level', '0');
+}
+
+function clipForm(blob, seconds) {
   const body = new FormData();
   body.set('file', blob, audioFileName(blob.type || recordMime));
   body.set('language', 'et');
-  const response = await fetch('./api/transcribe', { method: 'POST', body });
-  if (!response.ok) return '';
+  body.set('seconds', Number(seconds || 0).toFixed(1));
+  return body;
+}
+
+async function postClip(blob, seconds) {
+  const response = await fetch('./api/transcribe', { method: 'POST', body: clipForm(blob, seconds) });
+  if (!response.ok) throw new Error(`transcribe ${response.status}`);
   const payload = await response.json().catch(() => ({}));
   return String(payload.text || '').trim();
+}
+
+async function transcribeRecording(blob) {
+  return postClip(blob, recordSeconds);
 }
 
 // iPhone Safari has no Web Speech API, so the same button records a clip and
 // sends it to Whisper on the server; the text is written into the note.
 async function toggleRecordOnly() {
-  const button = $('voiceBtn');
   if (recordState === 'sending') {
-    note('audioNote', t('transcribing'));
+    note('audioNote', t('polishing'));
     return;
   }
-  if (recordState === 'recording') {
+  if (recordState === 'listening') {
     recordState = 'sending';
     voiceHold = false;
-    button.classList.remove('listening');
-    button.textContent = t('speak');
-    note('audioNote', t('transcribing'));
+    setVoiceButton();
+    note('audioNote', t('polishing'));
     const blob = await stopRecorder();
     // A tap-length clip is mostly silence, which Whisper can invent a word for.
     const tooShort = Boolean(blob) && blob.size < 400;
-    let text = '';
-    try {
-      text = blob && !tooShort ? await transcribeRecording(blob) : '';
-    } catch {
-      text = '';
+    const seconds = recordSeconds;
+    let text = null;
+    if (blob && !tooShort && navigator.onLine) {
+      try {
+        text = await transcribeRecording(blob);
+      } catch {
+        text = null;
+      }
     }
     recordState = 'idle';
-    if (!text) {
-      resetVoiceUI();
-      const denied = recordError === 'NotAllowedError' || recordError === 'SecurityError' || recordError === 'PermissionDeniedError';
-      note('audioNote', t(tooShort ? 'record_short' : denied ? 'audio_denied' : 'record_failed'), true);
+    resetVoiceUI();
+    if (text) {
+      appendSpoken(text);
+      note('audioNote', t('text_ready'));
+      flushPendingClip();
       return;
     }
-    const field = $('transcript');
-    const prefix = String(field.value || '').trim();
-    field.value = prefix ? `${prefix}\n${text}` : text;
-    speechBase = field.value;
-    spokenLangs.add(detectSpokenLang(text));
-    growTranscript(field);
-    resetVoiceUI();
+    if (blob && !tooShort) {
+      pendingClip = { blob, seconds };
+      if (navigator.onLine) note('audioNote', t('record_failed'), true);
+      else note('audioNote', t('voice_pending_offline'));
+      return;
+    }
+    const denied = recordError === 'NotAllowedError' || recordError === 'SecurityError' || recordError === 'PermissionDeniedError';
+    note('audioNote', t(tooShort ? 'record_short' : denied ? 'audio_denied' : 'record_failed'), true);
+    flushPendingClip();
     return;
   }
-  recordState = 'recording';
+  recordState = 'listening';
   voiceHold = true;
   userOwned = false;
-  button.classList.add('listening');
-  button.textContent = t('listening');
-  note('audioNote', t('record_stop_hint'));
+  setVoiceButton();
+  note('audioNote', t('listening'));
   startRecorder();
+}
+
+// The server was not reachable, so the clip waits for the connection instead of
+// being lost; the online event sends it without another tap.
+async function resumePendingClip() {
+  const clip = pendingClip;
+  // A live session owns the note; the clip waits until it ends.
+  if (!clip || !navigator.onLine || polishing || voiceHold
+    || recordState !== 'idle' || switchingToRecording) return;
+  pendingClip = null;
+  // The user typed after speaking, so their own words win over the clip.
+  if (userOwned) return;
+  // A save or a new session clears the note this text belongs to.
+  const token = polishToken;
+  polishing = true;
+  note('audioNote', t('polishing'));
+  try {
+    const text = await postClip(clip.blob, clip.seconds);
+    if (token !== polishToken || userOwned) return;
+    if (text) {
+      appendSpoken(text);
+      note('audioNote', t('text_ready'));
+    } else {
+      note('audioNote', t('record_failed'), true);
+    }
+  } catch {
+    if (token !== polishToken) return;
+    pendingClip = clip;
+    note('audioNote', t('voice_pending_offline'));
+  } finally {
+    if (token === polishToken) polishing = false;
+  }
+}
+
+// A clip kept for the network must not land in the middle of a session.
+function flushPendingClip() {
+  if (!pendingClip || !navigator.onLine || polishing || voiceHold
+    || recordState !== 'idle' || switchingToRecording) return;
+  void resumePendingClip();
 }
 
 // A browser can expose speech recognition and still refuse it after the
 // microphone was granted; then the recording path is used instead.
 async function switchToRecording() {
-  resetVoiceUI();
-  await stopRecorder();
-  toggleRecordOnly();
-  note('audioNote', t('speech_to_record'));
+  if (switchingToRecording) return;
+  switchingToRecording = true;
+  try {
+    resetVoiceUI();
+    await stopRecorder();
+    toggleRecordOnly();
+    note('audioNote', t('speech_to_record'));
+  } finally {
+    switchingToRecording = false;
+  }
 }
 
 async function polishUtterance(base, owned, token) {
   const blob = await stopRecorder();
-  if (owned || token !== polishToken || !blob || blob.size < 400 || !navigator.onLine) return;
-  polishing = true;
-  note('audioNote', t('polishing'));
-  try {
-    const body = new FormData();
-    const type = blob.type || recordMime || 'audio/webm';
-    body.set('file', blob, audioFileName(type));
-    body.set('language', String(speechLang || 'et-EE').slice(0, 2));
-    const response = await fetch('./api/transcribe', { method: 'POST', body });
-    if (!response.ok || token !== polishToken || userOwned) return;
-    const payload = await response.json();
-    const text = String(payload.text || '').trim();
-    if (!text) return;
-    const field = $('transcript');
-    const prefix = String(base || '').trim();
-    field.value = prefix ? `${prefix}\n${text}` : text;
-    speechBase = field.value;
-    spokenLangs.add(detectSpokenLang(text));
-    growTranscript(field);
-  } catch {
-    // The browser text stays when the spelling check cannot run.
-  } finally {
+  // Offline, owned by the user, or too short: the browser text stays as it is.
+  if (owned || token !== polishToken || !blob || blob.size < 400 || !navigator.onLine) {
     if (token === polishToken) {
       polishing = false;
       note('audioNote', t('audio_hint'));
+      flushPendingClip();
+    }
+    return;
+  }
+  note('audioNote', t('polishing'));
+  try {
+    const text = await transcribeRecording(blob);
+    if (token !== polishToken || userOwned) return;
+    if (text) replaceSpoken(base, text);
+  } catch {
+    // The browser text stays when the clean-up cannot run.
+  } finally {
+    if (token === polishToken) {
+      polishing = false;
+      note('audioNote', t('text_ready'));
+      flushPendingClip();
     }
   }
 }
@@ -1732,13 +1858,7 @@ function speechRecognition() {
 }
 
 function speechErrorNote(error) {
-  if (error === 'language-not-supported' || error === 'language-unavailable') {
-    note('audioNote', t('speech_lang_unsupported'), true);
-  } else if (error === 'not-allowed' || error === 'service-not-allowed') {
-    note('audioNote', t('audio_denied'), true);
-  } else {
-    note('audioNote', `${t('speech_stopped')}: ${error}`, true);
-  }
+  note('audioNote', `${t('speech_stopped')}: ${error}`, true);
 }
 
 function startSpeechSession(langCode, handlers) {
@@ -1775,7 +1895,7 @@ function startSpeechSession(langCode, handlers) {
     // Interim words are all some browsers ever deliver before the mic closes.
     const text = [...session.texts, session.interim].join(' ').trim();
     if (text && handlers.onText) handlers.onText(text, langCode);
-    if (handlers.onDone) handlers.onDone({ restart });
+    if (handlers.onDone) handlers.onDone({ restart, heard: Boolean(text) });
     try { recognition.stop(); } catch { /* already stopped */ }
     if (restart) session.restartTimer = setTimeout(releaseMic, 400);
   };
@@ -1828,13 +1948,31 @@ function startSpeechSession(langCode, handlers) {
   recognition.onerror = (event) => {
     if (session.finished) return;
     const error = event.error;
-    const retried = handlers.onUnsupported?.(error) ?? false;
-    if (retried) {
+    // Words already in the note must not be recorded a second time: ending the
+    // session normally lets the clip replace them with the cleaned-up text.
+    const heard = [...session.texts, session.interim].join(' ').trim().length > 0;
+    // A refused microphone is the recording path's problem, not the browser's.
+    if (error === 'not-allowed' || error === 'audio-capture') {
+      if (heard) {
+        finish();
+        return;
+      }
       session.cancel();
-      if (handlers.onMicFree) handlers.onMicFree();
+      if (handlers.onDenied) handlers.onDenied(error);
       return;
     }
-    const denied = error === 'not-allowed' || error === 'service-not-allowed' || error === 'audio-capture';
+    // This service cannot speak Estonian or cannot be reached at all. Recording
+    // the clip is the only way forward, and a retry loop must not start.
+    if (error === 'language-not-supported' || error === 'language-unavailable'
+      || error === 'network' || error === 'service-not-allowed') {
+      if (heard) {
+        finish();
+        return;
+      }
+      session.cancel();
+      if (handlers.onUnusable) handlers.onUnusable(error);
+      return;
+    }
     const quiet = error === 'no-speech' || error === 'aborted';
     if (quiet && voiceHold && handlers.onChunkFull) {
       finish({ restart: true });
@@ -1845,12 +1983,7 @@ function startSpeechSession(langCode, handlers) {
       finish();
       return;
     }
-    if (denied && handlers.onDenied) {
-      session.cancel();
-      handlers.onDenied(error);
-      return;
-    }
-    if (!denied && handlers.onChunkFull) {
+    if (handlers.onChunkFull) {
       finish({ restart: true });
       return;
     }
@@ -1878,59 +2011,90 @@ function resetVoiceUI() {
   speechSession = null;
   voiceHold = false;
   recordState = 'idle';
+  stopLevelMeter();
   const field = $('transcript');
   if (field) {
     speechBase = field.value;
     growTranscript(field);
   }
   note('audioNote', t('audio_hint'));
+  setVoiceButton();
+}
+
+// One button starts a session and ends it, so its label and pressed state
+// follow the microphone, and the level bar only shows while it is open.
+function setVoiceButton() {
+  const active = voiceHold || recordState === 'listening';
+  const meter = $('voiceLevel');
+  if (meter) meter.classList.toggle('on', active);
   const button = $('voiceBtn');
   if (!button) return;
-  button.classList.remove('listening');
-  button.textContent = t('speak');
+  button.classList.toggle('listening', active);
+  button.setAttribute('aria-pressed', String(active));
+  button.textContent = t(active ? 'done_btn' : 'speak');
+  if (active) button.title = t('record_stop_hint');
+  else button.removeAttribute('title');
 }
 
 function afterVoiceStop() {
   const base = utteranceBase;
   const owned = userOwned;
   const token = polishToken;
+  // The pass, even the one that decides not to run, keeps the button closed.
+  polishing = true;
   resetVoiceUI();
   polishUtterance(base, owned, token);
 }
 
 function beginHeldSpeech(langCode, attempt = 0) {
   const session = startSpeechSession(langCode, {
-    onProgress: (text) => writeSpeech(text, false),
-    onText: (text) => writeSpeech(text, true),
+    onProgress: (text) => {
+      if (text) speechRestarts = 0;
+      writeSpeech(text, false);
+    },
+    onText: (text) => {
+      speechRestarts = 0;
+      writeSpeech(text, true);
+    },
     onSilence: () => { voiceHold = false; },
     onChunkFull: () => { voiceHold = true; },
     onDenied: () => { switchToRecording(); },
-    onUnsupported: (error) => {
-      if (langCode === SPEECH_FALLBACK) return false;
-      if (error !== 'language-not-supported' && error !== 'language-unavailable') return false;
-      speechLang = SPEECH_FALLBACK;
-      note('audioNote', t('speech_fallback'));
-      voiceHold = true;
-      return true;
-    },
-    onDone: ({ restart } = {}) => {
-      if (restart) return;
-      afterVoiceStop();
+    onUnusable: () => { switchToRecording(); },
+    onDone: ({ restart, heard } = {}) => {
+      if (!restart) {
+        afterVoiceStop();
+        return;
+      }
+      speechRestarts = heard ? 0 : speechRestarts + 1;
     },
     onMicFree: () => {
       if (!voiceHold) return;
-      beginHeldSpeech(speechLang);
+      // A service that keeps giving the mic back without a word is recorded instead.
+      if (speechRestarts > SPEECH_RESTART_LIMIT) {
+        switchToRecording();
+        return;
+      }
+      beginHeldSpeech(langCode);
     }
   });
-  if (!session && voiceHold && attempt < 2) {
-    setTimeout(() => beginHeldSpeech(langCode, attempt + 1), 300);
+  if (!session) {
+    if (voiceHold && attempt < 2) {
+      setTimeout(() => beginHeldSpeech(langCode, attempt + 1), 300);
+      return;
+    }
+    if (recordState === 'idle') resetVoiceUI();
     return;
   }
-  speechSession = session;
-  if (!session) resetVoiceUI();
+  if (!session.finished) speechSession = session;
 }
 
 function toggleVoice() {
+  if (switchingToRecording) return;
+  // The server pass owns the note until it finishes.
+  if (polishing) {
+    note('audioNote', t('polishing'));
+    return;
+  }
   if (recordState !== 'idle') {
     toggleRecordOnly();
     return;
@@ -1955,11 +2119,11 @@ function toggleVoice() {
   }
   voiceHold = true;
   userOwned = false;
+  speechRestarts = 0;
   polishToken += 1;
   utteranceBase = $('transcript').value;
   speechBase = utteranceBase;
-  $('voiceBtn').classList.add('listening');
-  $('voiceBtn').textContent = t('listening');
+  setVoiceButton();
   note('audioNote', t('listening'));
   startRecorder();
   beginHeldSpeech(speechLang);
@@ -2017,7 +2181,7 @@ function bind() {
     lang = lang === 'en' ? 'et' : 'en';
     localStorage.setItem('toend-lang', lang);
     applyLanguage();
-    if (speechSession) toggleVoice();
+    if (speechSession || voiceHold || recordState !== 'idle') toggleVoice();
     refreshCount();
   });
   // The workbook table follows records saved in another tab on this device.
@@ -2039,7 +2203,7 @@ function bind() {
   });
   $('voiceBtn').addEventListener('click', toggleVoice);
   $('transcript').addEventListener('input', (event) => {
-    if (!event.isTrusted || (!voiceHold && !polishing)) return;
+    if (!event.isTrusted || (!voiceHold && !polishing && !pendingClip)) return;
     userOwned = true;
     speechBase = $('transcript').value;
   });
@@ -2090,7 +2254,7 @@ function bind() {
   });
   $('saveBtn').addEventListener('click', saveFromForm);
   $('mediaClearBtn')?.addEventListener('click', () => clearMedia());
-  window.addEventListener('online', () => { updateNetwork(); void flushQueue(); });
+  window.addEventListener('online', () => { updateNetwork(); flushPendingClip(); void flushQueue(); });
   window.addEventListener('offline', updateNetwork);
 }
 
