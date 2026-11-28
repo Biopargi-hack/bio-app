@@ -170,3 +170,5 @@ Format:
 - **2026-11-28 11:01** — Hinne nõutakse nüüd kirjes endas, mitte ainult verdictust tuletatuna. Pärast edukat saatmist näitab äpp nii salvestamise kui ka kiirmärkuse kohal 'Kirje saadetud Google Sheetsi'.
 
 - **2026-11-28 11:25** — Saadetud kirje kinnitus jääb samale lehele: 'Kirje salvestatud. Võite nüüd kinni panna.' Uut tühja lehte ei avata. Alguslehel peidetakse 'Proovi uuesti saata', NFC lehel jääb see alles.
+
+- **2026-11-28 11:39** — Hügieeni hinded 2 ja 1 on nüüd lingid täpsele Kirjed reale. Genereator teeb lingi vanemate kirjete põhjal, otsekirjutaja teeb lingi just lisatud reale. Parandasin ka nädalavõtmete erinevuse, mis takistas generaatoril üldse hindeid näidata.

@@ -207,6 +207,11 @@ if (ledgerWriter.includes("Number(record.grade)") && ledgerWriter.includes("grad
 } else {
   fail("functions/api/ledger.js no longer requires a grade on inspection records");
 }
+if (ledgerWriter.includes("ledgerRowNumber") && ledgerWriter.includes('=HYPERLINK("#gid=${gid}&range=A${ledgerRowNumber}"')) {
+  ok("grades 2 and 1 link to the exact ledger row");
+} else {
+  fail("functions/api/ledger.js: hygiene grades do not link to their record");
+}
 if (appSource.includes("record_sent: 'Kirje salvestatud. Võite nüüd kinni panna.'") && appSource.includes('function markSent()') && appSource.includes('if (!queueDirty) markSent();')) {
   ok("a successful send opens a clear confirmation in the app");
 } else {
