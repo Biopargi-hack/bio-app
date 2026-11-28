@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { onRequestPost, onRequestGet, onRequestEvidencePost } from '../functions/api/ledger.js';
 
-function insertedRow(call, sheetId = 42) {
+function insertedRow(call, sheetId = 42, insertIndex = 1) {
   const requests = JSON.parse(call.options.body).requests;
   assert.equal(requests.length, 2);
-  assert.deepEqual(requests[0].insertDimension.range, { sheetId, dimension: 'ROWS', startIndex: 1, endIndex: 2 });
+  assert.deepEqual(requests[0].insertDimension.range, { sheetId, dimension: 'ROWS', startIndex: insertIndex, endIndex: insertIndex + 1 });
   const update = requests[1].updateCells;
-  assert.deepEqual(update.start, { sheetId, rowIndex: 1, columnIndex: 0 });
+  assert.deepEqual(update.start, { sheetId, rowIndex: insertIndex, columnIndex: 0 });
   assert.equal(update.fields, 'userEnteredValue');
   return update.rows[0].values.map(({ userEnteredValue }) =>
     userEnteredValue.formulaValue ?? userEnteredValue.numberValue ?? userEnteredValue.stringValue);
@@ -24,11 +24,13 @@ test('unverified automatic defaults are labelled and do not overwrite hygiene re
     client_email: 'test@example.invalid', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' })
   }) };
   const calls = [];
+  let usedRows = 0;
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).includes('oauth2.googleapis.com')) return Response.json({ access_token: 'test', expires_in: 3600 });
     if (String(url).includes('?fields=sheets(')) return Response.json({ sheets: [{ properties: { title: 'Kirjed', sheetId: 42 } }] });
+    if (String(url).includes(encodeURIComponent('Kirjed!A2:A'))) return Response.json({ values: Array.from({ length: usedRows }, () => ['date']) });
     if ((options.method || 'GET') === 'GET') return Response.json({ values: [[2]] });
     return Response.json({});
   };
@@ -37,7 +39,7 @@ test('unverified automatic defaults are labelled and do not overwrite hygiene re
   }) });
   try {
     const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Tallinn', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-    const base = { seq: 1, created_at: `${day}T12:00:00Z`, checkpoint: 'Pesu', grade: 3, supervisor: 'Test' };
+    const base = { seq: 1, created_at: `${day}T12:00:00Z`, checkpoint: 'Pesu', grade: 3, supervisor: 'Test', transcript: '=HYPERLINK("https://evil.invalid")' };
     let response = await post({ ...base, auto_default: true });
     assert.equal(response.status, 200);
     assert.equal((await response.json()).hygieneUpdated, false);
@@ -49,15 +51,18 @@ test('unverified automatic defaults are labelled and do not overwrite hygiene re
     assert.equal(row[5], 'Test');
     assert.match(row[1], /^\d{2}:\d{2}$/);
     calls.length = 0;
+    usedRows = 3;
     response = await post({ ...base, seq: 2, auto_default: false });
     assert.equal((await response.json()).hygieneUpdated, true);
     sheetCalls = calls.filter((call) => call.url.includes('sheets.googleapis.com'));
-    assert.equal(sheetCalls.length, 3);
-    row = insertedRow(batchCalls(calls)[0]);
+    assert.equal(sheetCalls.length, 4);
+    row = insertedRow(batchCalls(calls)[0], 42, 4);
     assert.equal(row[3], 3);
     const numericCell = JSON.parse(batchCalls(calls)[0].options.body).requests[1].updateCells.rows[0].values[3];
     assert.deepEqual(numericCell.userEnteredValue, { numberValue: 3 });
-    assert.equal(JSON.parse(sheetCalls[2].options.body).values[0][0], 2);
+    const transcriptCell = JSON.parse(batchCalls(calls)[0].options.body).requests[1].updateCells.rows[0].values[4];
+    assert.deepEqual(transcriptCell.userEnteredValue, { stringValue: base.transcript });
+    assert.equal(JSON.parse(sheetCalls[3].options.body).values[0][0], 2);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -144,10 +149,12 @@ test('ledger stores all media, rejects missing evidence and records signed compl
   const calls = [];
   const originalFetch = globalThis.fetch;
   let failBatch = false;
+  let failLookup = false;
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).includes('oauth2.googleapis.com')) return Response.json({ access_token: 'test', expires_in: 3600 });
     if (String(url).includes('?fields=sheets(')) return Response.json({ sheets: [{ properties: { title: 'Kirjed', sheetId: 42 } }] });
+    if (String(url).includes(encodeURIComponent('Kirjed!A2:A'))) return failLookup ? new Response('failure', { status: 500 }) : Response.json({ values: Array.from({ length: 1301 }, () => ['date']) });
     if (String(url).includes(':batchUpdate') && failBatch) return new Response('failure', { status: 500 });
     if ((options.method || 'GET') === 'GET') return Response.json({ values: [[2]] });
     return Response.json({});
@@ -171,7 +178,7 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     assert.equal((await response.json()).files, 4);
     assert.equal(calls.filter((call) => call.url.includes('?fields=sheets(')).length, 1);
     let rows = batchCalls(calls);
-    let row = insertedRow(rows[0]);
+    let row = insertedRow(rows[0], 42, 1302);
     assert.equal(row.filter((cell) => String(cell).startsWith('=HYPERLINK')).length, 4);
     const cells = JSON.parse(rows[0].options.body).requests[1].updateCells.rows[0].values;
     assert.equal(cells.filter((cell) => cell.userEnteredValue.formulaValue?.startsWith('=HYPERLINK')).length, 4);
@@ -193,7 +200,7 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     assert.equal((await response.json()).hygieneUpdated, false);
     rows = batchCalls(calls);
     assert.equal(rows.length, 1);
-    row = insertedRow(rows[0]);
+    row = insertedRow(rows[0], 42, 1302);
     assert.match(row[2], /Inspection completion/);
     assert.equal(row[3], '');
     assert.equal(row[5], 'Signer');
@@ -202,7 +209,7 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     response = await post({ record: { ...base, record_type: 'inspection_completion' } });
     assert.equal((await response.json()).hygieneUpdated, false);
     rows = batchCalls(calls);
-    row = insertedRow(rows[0]);
+    row = insertedRow(rows[0], 42, 1302);
     assert.match(row[4], /allkiri puudub/);
     assert.equal(row[5], 'Inspector');
     calls.length = 0;
@@ -210,7 +217,7 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     assert.equal((await response.json()).hygieneUpdated, false);
     rows = batchCalls(calls);
     assert.equal(rows.length, 1);
-    row = insertedRow(rows[0]);
+    row = insertedRow(rows[0], 42, 1302);
     assert.match(row[3], /kontrollimata/);
     assert.match(row[4], /Taastatud automaatne/);
     calls.length = 0;
@@ -218,7 +225,7 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     assert.equal((await response.json()).hygieneUpdated, false);
     rows = batchCalls(calls);
     assert.equal(rows.length, 1);
-    row = insertedRow(rows[0]);
+    row = insertedRow(rows[0], 42, 1302);
     assert.match(row[4], /Recovered attachments/);
     assert.equal(row[2], 'Pesu');
     assert.equal(row[5], 'Inspector');
@@ -228,7 +235,13 @@ test('ledger stores all media, rejects missing evidence and records signed compl
     response = await post({ record: base });
     assert.notEqual(response.status, 200);
     assert.equal(batchCalls(calls).length, 1);
-    assert.equal(calls.filter((call) => call.url.includes('/values/')).length, 0);
+    assert.equal(calls.filter((call) => call.options.method === 'PUT').length, 0);
+    calls.length = 0;
+    failBatch = false;
+    failLookup = true;
+    response = await post({ record: base });
+    assert.notEqual(response.status, 200);
+    assert.equal(batchCalls(calls).length, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }
