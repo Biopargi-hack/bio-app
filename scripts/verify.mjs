@@ -129,13 +129,14 @@ if (audioTypeWired) {
   fail("app/app.js: the audio type or file extension mapping is missing");
 }
 
-const iosMicWired = appSource.includes("function isIOS()")
-  && appSource.includes("canRecordAudio() && isIOS()")
+const phoneMicWired = appSource.includes("function isPhone()")
+  && /Android\|iPad\|iPhone\|iPod/.test(appSource)
+  && appSource.includes("canRecordAudio() && isPhone()")
   && appSource.includes("speech_to_record");
-if (iosMicWired) {
-  ok("an iPhone uses the microphone and Whisper instead of the speech service");
+if (phoneMicWired) {
+  ok("iPhone and Android record the clip for the Estonian server instead of the speech service");
 } else {
-  fail("app/app.js: the iPhone microphone path is missing");
+  fail("app/app.js: the phone microphone path is missing");
 }
 
 const speechDeniedWired = appSource.includes("onDenied: () => { switchToRecording(); }")
