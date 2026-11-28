@@ -83,6 +83,7 @@ html[data-mode="landing"] .sr-only {
 html[data-mode="landing"] #sheetLink,
 html[data-mode="landing"] #net,
 html[data-mode="landing"] .skip { display: none !important; }
+html[data-mode="landing"] .sync-controls { display: none !important; }
 
 /* Buttons and links. The capture form and sheet card keep their styles.css buttons. */
 html[data-mode="landing"] .link-button:not(:where(#capture, #hygieen) *) {

@@ -138,7 +138,7 @@ const WORDS = {
     sync_retry: 'Retry sending',
     sync_keep_open: 'Keep this page open and online until everything is sent. If a response is lost, a retry may create a duplicate row.',
     sync_done: 'Sent to Google Sheets',
-    record_sent: 'Record sent to Google Sheets.',
+    record_sent: 'Record saved. You can close this now.',
     sync_failed: 'Waiting to send, check connection',
     landing_table: 'View table',
 
@@ -246,7 +246,7 @@ const WORDS = {
     sync_retry: 'Proovi uuesti saata',
     sync_keep_open: 'Hoia leht avatuna ja võrguühendusega, kuni kõik on saadetud. Kadunud vastuse järel võib uuesti saatmine tekitada korduva rea.',
     sync_done: 'Saadetud Google Sheetsi',
-    record_sent: 'Kirje saadetud Google Sheetsi.',
+    record_sent: 'Kirje salvestatud. Võite nüüd kinni panna.',
     sync_failed: 'Ootab saatmist, kontrolli ühendust',
     landing_table: 'Vaata tabelit',
     grade3_word: 'korras',

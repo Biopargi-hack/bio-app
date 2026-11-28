@@ -207,10 +207,16 @@ if (ledgerWriter.includes("Number(record.grade)") && ledgerWriter.includes("grad
 } else {
   fail("functions/api/ledger.js no longer requires a grade on inspection records");
 }
-if (appSource.includes("record_sent: 'Kirje saadetud Google Sheetsi.'") && appSource.includes('function markSent()') && appSource.includes('if (!queueDirty) markSent();')) {
+if (appSource.includes("record_sent: 'Kirje salvestatud. Võite nüüd kinni panna.'") && appSource.includes('function markSent()') && appSource.includes('if (!queueDirty) markSent();')) {
   ok("a successful send opens a clear confirmation in the app");
 } else {
   fail("app/app.js: no confirmation after a record reaches the sheet");
+}
+const landingCss = existsSync(join(appDir, "landing.css")) ? readFileSync(join(appDir, "landing.css"), "utf8") : "";
+if (landingCss.includes('html[data-mode="landing"] .sync-controls { display: none !important; }')) {
+  ok("the landing host keeps the sent note on the page and hides the retry control");
+} else {
+  fail("app/landing.css: the retry control is still shown on the start page");
 }
 if (appSource.includes("function checkpointFor(asset)") && appSource.includes("checkpoint: checkpointFor(asset)")) {
   ok("a saved check still carries its checkpoint name");
