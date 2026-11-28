@@ -78,12 +78,19 @@ if (defaultWired) {
   fail("app/app.js: fixed default assessment is missing from records");
 }
 
-// Speech runs in Estonian only, because the app is Estonian.
-const speechLocaleWired = appSource.includes("let speechLang = 'et-EE'") && appSource.includes("beginHeldSpeech(speechLang)") && appSource.includes("SPEECH_FALLBACK");
+// Speech runs in Estonian only, because the app is Estonian. A browser that
+// cannot serve Estonian records the clip instead of switching language.
+const speechLocaleWired = appSource.includes("let speechLang = 'et-EE'")
+  && appSource.includes("beginHeldSpeech(speechLang)")
+  && !appSource.includes("SPEECH_FALLBACK")
+  && !appSource.includes("'en-US'")
+  && appSource.includes("error === 'language-not-supported'")
+  && appSource.includes("error === 'network'")
+  && appSource.includes("async function switchToRecording()");
 if (speechLocaleWired) {
-  ok("speech listens in Estonian with a fallback when the browser cannot");
+  ok("speech listens in Estonian only, and a recogniser that cannot serve it switches to recording");
 } else {
-  fail("app/app.js: the fixed Estonian speech language is missing");
+  fail("app/app.js: the fixed Estonian speech language or its recording fallback is missing");
 }
 
 const speechTextWired = appSource.includes("session.texts, session.interim") && appSource.includes("handlers.onInterim");

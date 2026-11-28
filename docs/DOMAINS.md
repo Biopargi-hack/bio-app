@@ -6,8 +6,9 @@ Updated 2026-11-27. Two host names, one deploy, both can record.
 | --- | --- | --- |
 | `https://taptoprove.ee` | Landing page with description, steps, a Google Sheet link to the ledger and a capture form. "Proovi kontrolli" scrolls to that form. | `https://taptoprove.ee/` |
 | `https://nfc.taptoprove.ee` | Direct record entry only from an NFC card. No landing copy and no table link. | `https://nfc.taptoprove.ee/?asset=Pesu&tag=TAP-NFC-001&via=nfc` |
+| `https://asr.taptoprove.ee` | Estonian speech to text, not for people. Only `/api/transcribe` calls it, with the `ASR_TOKEN` secret. It runs TalTech's `whisper-large-v3-turbo-et-verbatim-2604` on the team server through a Cloudflare tunnel. If it is down or busy, Groq `whisper-large-v3` answers instead. | `GET /health` |
 
-Both names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS hides only the sections that do not belong: the landing host hides the live-records link, the NFC host hides landing copy.
+The first two names are custom domains on Cloudflare Pages project `toend` and serve the same files from the `main` deploy. A hostname check before the stylesheet sets `data-mode`. CSS hides only the sections that do not belong: the landing host hides the live-records link, the NFC host hides landing copy.
 
 Each host loads one stylesheet. The NFC host loads `styles.css` only. The landing host loads `landing.css`, which imports `styles.css` as a cascade layer: the black, white and red landing design applies everywhere except the capture form and the sheet card, which keep the `styles.css` look with the landing red. `landing.js` runs the in-page card tap demo and saves nothing.
 

@@ -5,7 +5,7 @@ seconds. States: `idle`, `doing`, `review`, `blocked`, `demo`.
 
 | Person | Agent | State | Now | Branch / PR | Blocker |
 | --- | --- | --- | --- | --- | --- |
-| @AARenor | omp | doing | Hügieen only five line points, previous and current week | `feat/five_checkpoints_two_weeks`, #55 | real NFC device test |
+| @AARenor | omp | demo | Eestikeelne häälmärkus TalTechi mudeliga | #142, `feat/et_voice_estonian` | real phone voice test |
 | @linnudtonisted | OpenCode | review | UI copy: visual hygiene / visuaalne hügieen | `fix/visual_hygiene_copy` | none |
 | @Pepukarv | OpenCode | review | Capture UI polish and manual place selector | #96, fix/ui_visual_function | none |
 | @stevenlaas123-pixel | omp | review | Starter and ender NFC line inspection sessions | `feat/inspection-session` | real NFC device test |
